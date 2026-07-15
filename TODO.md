@@ -10,7 +10,8 @@ Nothing currently in progress.
 
 ## Plan
 
-No queued plans.
+- [product] 建立安全且可離線運作的 V4 手動跨港貿易核心 — [ref plans/v4-manual-trade-core.md]
+- [product] 在手動貿易核心上加入 deterministic 航行風險與完整結果回饋 — [ref plans/v4-voyage-risk-and-feedback.md]
 
 ## Chore
 
@@ -24,14 +25,6 @@ No queued plans.
 No known bugs.
 
 ## Draft
-
-### V4 Manual Trade Core
-
-建立無隨機航行風險的可玩垂直切片：V4 state/content、Cargo/Supplies、Market Session、手動買賣、成本帳、Port Mastery、Guild XP、基礎航行、offline arrival 與新 UI。此 Draft 已準備晉級為 Main Plan。
-
-### V4 Voyage Risk And Feedback
-
-在 Manual Trade Core 之上增加 deterministic voyage resolution、Pirate Danger、航行事件、共用海戰、貨物損失、Items、修理與 online/offline 共用的 Voyage Result。此 Draft 依賴 Manual Trade Core，並將在前者 Main Plan 確立後晉升。
 
 ### Deferred V4 Systems
 
