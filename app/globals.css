@@ -1,0 +1,56 @@
+:root {
+  color-scheme: dark;
+  --color-ink: #e9e2cf;
+  --color-muted: #a89f8d;
+  --color-ocean-950: #071518;
+  --color-ocean-900: #0b2025;
+  --color-ocean-800: #12343a;
+  --color-brass: #c69b57;
+  --color-brass-soft: #8f7145;
+  --color-line: rgb(198 155 87 / 24%);
+  --color-success: #79b69a;
+  --font-sans: Inter, "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-serif: Georgia, "Noto Serif TC", serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-ocean-950);
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background: radial-gradient(circle at 50% -20%, rgb(54 104 108 / 25%), transparent 42rem), var(--color-ocean-950);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brass);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
