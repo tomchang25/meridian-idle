@@ -2,7 +2,8 @@
 
 ## Design
 
-- `design/meridian-idle_v3.md`：GDD v3.0
+- `design/meridian-idle_v4.md`：目前產品設計基準，GDD v4.0
+- `design/meridian-idle_v3.md`：歷史設計，GDD v3.0
 - `design/meridian-idle_layout.md`：Web layout v1.0
 
 ## Plans
