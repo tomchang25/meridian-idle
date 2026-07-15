@@ -5,5 +5,5 @@
 - 鍵盤操作必須可達，focus indicator 不得移除。
 - 不以顏色作為唯一狀態訊號。
 - 動畫遵守 `prefers-reduced-motion`。
-- Action locked、running、selected 等狀態需提供文字或 ARIA state。
+- Locked、running、selected、loading 與 error 等互動狀態需提供文字或適當 ARIA state。
 - 最小觸控目標與文字對比在 mobile layout 一併驗證。

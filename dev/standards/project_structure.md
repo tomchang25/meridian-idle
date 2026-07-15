@@ -29,4 +29,4 @@ tests/                  cross-boundary tests and shared fixtures
 - 是多個 Meridian feature 的 presentation primitive？放 `game/shared`。
 - 是 route、document metadata 或 global CSS？放 `app`。
 
-Scene-style component 必須和自己的 CSS module、tests、fixtures 盡量靠近，避免依 artifact type 建立巨大 `components/`、`hooks/`、`utils/` 資料夾。
+Page-scale 或 feature-root component 必須和自己的 CSS module、tests、fixtures 盡量靠近，避免依 artifact type 建立巨大 `components/`、`hooks/`、`utils/` 資料夾。
