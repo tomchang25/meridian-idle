@@ -28,7 +28,8 @@ function isV5State(value: unknown): value is V5GameState {
   return (
     candidate.schemaVersion === 2 &&
     !!candidate.fleet &&
-    candidate.fleet.locationPortId === "lisbon" &&
+    typeof candidate.fleet.locationPortId === "string" &&
+    !!candidate.marketSession &&
     isFiniteNonNegative(candidate.fleet.gold)
   );
 }

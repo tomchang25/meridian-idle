@@ -1,4 +1,5 @@
 import { SUPPLY_IDS, type CargoStack, type V5GameState } from "@/game/domain/models/game";
+import { createMarketSession } from "@/game/domain/rules/market";
 
 function emptyStack(): CargoStack {
   return { quantity: 0, totalCostBasis: 0 };
@@ -8,7 +9,7 @@ export function createInitialGameState(now: number): V5GameState {
   return {
     schemaVersion: 2,
     createdAt: now,
-    world: { knownPortIds: ["lisbon"] },
+    world: { knownPortIds: ["lisbon", "faro", "tangier"] },
     fleet: {
       locationPortId: "lisbon",
       gold: 2_000,
@@ -19,7 +20,10 @@ export function createInitialGameState(now: number): V5GameState {
       products: {},
       supplies: Object.fromEntries(SUPPLY_IDS.map((id) => [id, emptyStack()])) as V5GameState["fleet"]["supplies"],
     },
-    portProgress: { lisbon: { xp: 0 } },
+    portProgress: { lisbon: { xp: 0 }, faro: { xp: 0 }, tangier: { xp: 0 } },
+    marketSession: createMarketSession("lisbon", 1, 1),
+    voyage: null,
+    latestVoyageResult: null,
     migrationReport: null,
     activity: [{ id: `world-created-${now}`, at: now, message: "Fleet is docked at Lisbon.", tone: "info" }],
   };

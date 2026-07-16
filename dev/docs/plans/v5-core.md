@@ -110,15 +110,15 @@ Hydration settles absent, loaded, migrated, corrupt, or storage-unavailable stat
 
 Children land in observable vertical slices. Each becomes executable only after its sketch is replaced by a live-code-verified implementation spec.
 
-| Child | Focus                                    | Observable outcome                                                                                    | Current document                                                |
-| ----- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| 02    | Product, Cargo, and Provisioning         | The player can inspect Port catalogs and manage five Supplies while Product inventory authority lands | [Sketch](v5-core_02_product-cargo-and-provisioning.sketch.md)   |
-| 03    | Market Session and Manual Trade          | Persisted Category prices drive atomic Buy／Sell and complete accounting                              | [Sketch](v5-core_03_market-and-manual-trade.sketch.md)          |
-| 04    | Port Progression and Specialty Supply    | Different-Port settlement unlocks catalog tiers and finite Specialty cycles without same-Port farming | [Sketch](v5-core_04_port-progression-and-specialty.sketch.md)   |
-| 05    | Deterministic Voyage and Offline Arrival | Foreground and offline travel share one repeat-safe route and Session transition                      | [Sketch](v5-core_05_voyage-and-offline.sketch.md)               |
-| 06    | Events, Items, Combat, and Recovery      | Voyage risk produces deterministic Items, losses, Combat, diversion, and Repair                       | [Sketch](v5-core_06_events-items-combat-and-recovery.sketch.md) |
-| 07    | Expedition and Region Unlock             | A manual Expedition can retreat or unlock West Africa exactly once                                    | [Sketch](v5-core_07_expedition-and-region-unlock.sketch.md)     |
-| 08    | Core Journey Hardening                   | The full loop remains playable across recovery, responsive, keyboard, and integration boundaries      | [Sketch](v5-core_08_core-hardening.sketch.md)                   |
+| Child | Focus                                    | Observable outcome                                                                                    | Current document                                                                        |
+| ----- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 02    | Product, Cargo, and Provisioning         | The player can inspect Port catalogs and manage five Supplies while Product inventory authority lands | [Implementation spec](v5-core_02_product-cargo-and-provisioning.implementation_spec.md) |
+| 03    | Market Session and Manual Trade          | Persisted Category prices drive atomic Buy／Sell and complete accounting                              | [Implementation spec](v5-core_03_market-and-manual-trade.implementation_spec.md)        |
+| 04    | Port Progression and Specialty Supply    | Different-Port settlement unlocks catalog tiers and finite Specialty cycles without same-Port farming | [Implementation spec](v5-core_04_port-progression-and-specialty.implementation_spec.md) |
+| 05    | Deterministic Voyage and Offline Arrival | Foreground and offline travel share one repeat-safe route and Session transition                      | [Implementation spec](v5-core_05_voyage-and-offline.implementation_spec.md)             |
+| 06    | Events, Items, Combat, and Recovery      | Voyage risk produces deterministic Items, losses, Combat, diversion, and Repair                       | [Sketch](v5-core_06_events-items-combat-and-recovery.sketch.md)                         |
+| 07    | Expedition and Region Unlock             | A manual Expedition can retreat or unlock West Africa exactly once                                    | [Sketch](v5-core_07_expedition-and-region-unlock.sketch.md)                             |
+| 08    | Core Journey Hardening                   | The full loop remains playable across recovery, responsive, keyboard, and integration boundaries      | [Sketch](v5-core_08_core-hardening.sketch.md)                                           |
 
 ## Non-Goals
 
