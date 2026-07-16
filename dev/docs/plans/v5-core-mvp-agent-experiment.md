@@ -12,7 +12,7 @@ Measure whether one autonomous agent can deliver the V5 Core MVP through Child 0
 2. The experiment begins from a user-designated base revision on one dedicated branch named `feat/v5-core-mvp`, unless that branch name already exists and the user explicitly selects a different name.
 3. The agent may create, switch, stage, commit, push, and inspect CI only when the user explicitly invokes this experiment and grants those Git and remote mutations for that invocation; this document does not grant standing permission for later work.
 4. Every phase must end on one or more logical commits. Each commit uses Conventional Commits and an outcome-focused message produced from the staged diff according to the commit-message workflow.
-5. A later phase may not begin until the preceding phase's final commit passes the required local verification, automated browser smoke check, and remote CI check.
+5. A later phase may not begin until the preceding phase's final commit passes the required local verification and remote CI check. Browser smoke is reserved for final acceptance of the applicable main plan or a user request that explicitly names it.
 6. The agent must preserve unrelated worktree changes, never stage them, and never amend, rebase, force-push, reset, or otherwise rewrite history during the experiment.
 7. Before gameplay implementation, the agent records the initial content and deterministic decisions that the MVP plans leave open. This ledger becomes the approved MVP content contract for the experiment so later phases do not silently change economy or resolution meaning.
 
@@ -28,7 +28,7 @@ The experiment is blocked, rather than partially simulated, when it cannot creat
 
 | Phase | Scope                                      | Required outcome before the next phase                                                                                                 |
 | ----- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 00    | Automation baseline and MVP content ledger | CI executes repository verification and browser smoke checks; all initial content and deterministic choices are durable and reviewable |
+| 00    | Automation baseline and MVP content ledger | CI executes repository verification; all initial content and deterministic choices are durable and reviewable |
 | 01    | V5 bootstrap and migration                 | New, migrated, corrupt, absent, and unavailable-save states meet Child 01 acceptance criteria                                          |
 | 02    | Product, cargo, and provisioning           | Authored catalog, shared cargo capacity, supply transactions, and persisted cost basis meet Child 02 acceptance criteria               |
 | 03    | Market session and manual trade            | Persisted pricing, atomic buy and sell, price classification, and sale accounting meet Child 03 acceptance criteria                    |
@@ -39,7 +39,7 @@ Before implementing each Child, the agent creates the required live-code-verifie
 
 ### Phase 00 Baseline
 
-Phase 00 establishes a CI workflow that checks out required submodules, installs the locked dependencies, and runs `npm run verify`. It also establishes a reproducible automated browser smoke mechanism suitable for local execution and CI. The browser smoke mechanism must start the application or its production-equivalent server, exercise the currently available boot path, and return a non-zero status on failure.
+Phase 00 establishes a CI workflow that checks out required submodules, installs the locked dependencies, and runs `npm run verify`. It may establish a reproducible browser smoke mechanism for final main-plan acceptance, but that mechanism is not run during intermediate phases unless the user explicitly requests it.
 
 The MVP content ledger fixes at least these decisions before Child 01 implementation:
 
@@ -70,15 +70,15 @@ The final commit of every phase is eligible to close that phase only after all o
 
 1. The Child's acceptance criteria are implemented, with focused tests covering its domain, application, persistence, and rendered behavior where applicable.
 2. `npm run verify` passes against the final phase state.
-3. The automated browser smoke check passes against the final phase state and covers the phase's newly available player path.
-4. The final phase state is pushed without rewriting history, and the corresponding CI run passes.
+3. The final phase state is pushed without rewriting history, and the corresponding CI run passes.
+4. Browser smoke runs only at final main-plan acceptance or when the user explicitly requests it.
 5. The agent reports every required manual-only boundary that automation cannot prove, including assistive technology, reduced motion, and visual review where applicable.
 
-If local verification, browser smoke, push, or CI fails, the agent remains in the current phase, diagnoses and fixes the failure, then repeats every affected check. It must not begin a later phase after a failed, missing, or unobservable gate.
+If local verification, push, or CI fails, the agent remains in the current phase, diagnoses and fixes the failure, then repeats every affected check. Browser smoke failure blocks only when that check has been explicitly invoked for final acceptance. It must not begin a later phase after a failed, missing, or unobservable required gate.
 
 ### Browser Smoke Journeys
 
-The automated browser suite grows with the completed phases. At minimum, it proves application boot in Phase 00, save state selection and recovery rendering in Phase 01, provisioning in Phase 02, product buy and sell in Phase 03, different-Port settlement in Phase 04, and departure plus eventual arrival in Phase 05. The Phase 05 journey must also prove that a persisted in-progress Voyage resolves consistently after reload or elapsed time.
+At final main-plan acceptance, the automated browser suite proves application boot, save-state recovery, provisioning, product buy and sell, different-Port settlement, departure, and eventual arrival. The final Voyage journey must also prove that a persisted in-progress Voyage resolves consistently after reload or elapsed time. Do not run this suite at intermediate phase boundaries unless the user explicitly asks for it.
 
 ### Failure And Stop Conditions
 
@@ -95,8 +95,8 @@ The agent stops and reports the blocker instead of making speculative changes wh
 ## Acceptance Criteria
 
 1. A dedicated branch contains Phase 00 through Phase 05 in order, with at least one logical Conventional Commit per phase and no rewritten history.
-2. Every phase's terminal revision has a recorded passing local `npm run verify`, automated browser smoke result, and CI run before the next phase begins.
-3. The CI workflow reliably initializes required submodules and fails when repository verification or browser smoke checks fail.
+2. Every phase's terminal revision has a recorded passing local `npm run verify` and CI run before the next phase begins. Browser smoke is recorded only for final main-plan acceptance or an explicit user request.
+3. The CI workflow reliably initializes required submodules and fails when repository verification fails.
 4. The committed MVP content ledger supplies all data and deterministic choices needed for Child 01 through Child 05 without incompatible later-phase assumptions.
 5. The delivered branch satisfies the parent plan's Child 01 through Child 05 acceptance criteria, while Child 06 through Child 08 remain absent from the playable runtime.
 6. The experiment record identifies any manual-only verification gaps and any stop condition encountered, rather than representing unverified behavior as complete.

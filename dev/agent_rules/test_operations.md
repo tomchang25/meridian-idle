@@ -8,6 +8,10 @@ Use the narrowest available layer that proves the changed behavior. Read the sel
 
 Documentation-only, TODO-only, plan-only, or local-governance prose changes require the changed Markdown Prettier check and `npm run governance:check`. They do not require application typechecking, tests, or production build unless they also change package scripts, the local checker, or build behavior.
 
+## Browser smoke policy
+
+Do not run a local browser smoke check during an intermediate implementation Child or phase. Browser smoke is reserved for final acceptance of the applicable main plan, or for a user request that explicitly names browser smoke. Intermediate work uses focused unit tests, `npm run verify` where required, and the normal remote CI workflow only.
+
 ## Environment and preparation
 
 - Run commands from the repository root with npm 11.6.2 and Node.js 22.13.0 or later, as declared in `package.json`.
