@@ -6,7 +6,7 @@
 
 ## Active
 
-Nothing currently in progress.
+- [v5] 修正 V5 MVP content ownership、command feedback、seed 與 Voyage deterministic verification — [ref plans/v5-core-mvp_correctness-repair.implementation_spec.md]
 
 ## Plan
 

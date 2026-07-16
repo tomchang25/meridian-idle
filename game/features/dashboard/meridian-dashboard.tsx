@@ -3,9 +3,10 @@
 import { useGameStore } from "@/game/application/use-game-store";
 import { getPort, getProduct, ROUTES } from "@/game/domain/content/core-content";
 import { SUPPLY_IDS } from "@/game/domain/models/game";
-import { usedCargo } from "@/game/domain/rules/cargo";
-import { buyPrice, sellPrice } from "@/game/domain/rules/market";
+import { supplyPurchaseError, usedCargo } from "@/game/domain/rules/cargo";
+import { buyPrice, productPurchaseError, sellPrice } from "@/game/domain/rules/market";
 import { portLevel, xpThreshold } from "@/game/domain/rules/progression";
+import { voyageDepartureError } from "@/game/domain/rules/voyage";
 
 export function MeridianDashboard() {
   const store = useGameStore();
@@ -31,6 +32,7 @@ export function MeridianDashboard() {
         <p>Meridian Idle</p>
         <p>Save status: {saveStatus === "unavailable" ? "Local save unavailable" : "Saved"}</p>
       </header>
+      {store.commandError && <p role="alert">Command failed: {store.commandError}</p>}
       <section aria-labelledby="port">
         <p>Current port</p>
         <h1 id="port">{port?.name ?? "Unknown Port"}</h1>
@@ -84,17 +86,25 @@ export function MeridianDashboard() {
                 const sell = sellPrice(state, entry.productId);
                 const held = state.fleet.products[entry.productId]?.quantity ?? 0;
                 const locked = level < entry.unlockLevel;
+                const purchaseError = productPurchaseError(state, entry.productId, 1);
+                const purchaseReasonId = `buy-${entry.productId}-reason`;
                 return (
                   <li key={entry.productId}>
                     <strong>{product?.name}</strong> · Lv.{entry.unlockLevel} {locked ? "locked" : "available"} ·
                     reference {buy?.reference} · buy {buy?.unitPrice} ({buy?.label}) · sell {sell?.unitPrice} (
                     {sell?.label}) · held {held} · net trade {state.marketSession.netTrade[entry.productId] ?? 0}{" "}
-                    <button type="button" disabled={locked} onClick={() => store.buyProduct(entry.productId)}>
+                    <button
+                      type="button"
+                      disabled={purchaseError !== null}
+                      aria-describedby={purchaseError ? purchaseReasonId : undefined}
+                      onClick={() => store.buyProduct(entry.productId)}
+                    >
                       Buy 1
                     </button>{" "}
                     <button type="button" disabled={held === 0} onClick={() => store.sellProduct(entry.productId)}>
                       Sell 1
                     </button>
+                    {purchaseError && <span id={purchaseReasonId}> Unavailable: {purchaseError}</span>}
                   </li>
                 );
               })}
@@ -122,35 +132,58 @@ export function MeridianDashboard() {
           <section aria-labelledby="provisioning">
             <h2 id="provisioning">Provisioning</h2>
             <ul>
-              {SUPPLY_IDS.map((id) => (
-                <li key={id}>
-                  {id}: {state.fleet.supplies[id].quantity} · cost {port?.supplyPrices[id]}{" "}
-                  <button type="button" onClick={() => store.buySupply(id, 1)}>
-                    Buy 1
-                  </button>{" "}
-                  <button
-                    type="button"
-                    disabled={state.fleet.supplies[id].quantity === 0}
-                    onClick={() => store.discardSupply(id, 1)}
-                  >
-                    Discard 1
-                  </button>
-                </li>
-              ))}
+              {SUPPLY_IDS.map((id) => {
+                const purchaseError = supplyPurchaseError(state, id, 1);
+                const purchaseReasonId = `buy-${id}-reason`;
+                return (
+                  <li key={id}>
+                    {id}: {state.fleet.supplies[id].quantity} · cost {port?.supplyPrices[id]}{" "}
+                    <button
+                      type="button"
+                      disabled={purchaseError !== null}
+                      aria-describedby={purchaseError ? purchaseReasonId : undefined}
+                      onClick={() => store.buySupply(id, 1)}
+                    >
+                      Buy 1
+                    </button>{" "}
+                    <button
+                      type="button"
+                      disabled={state.fleet.supplies[id].quantity === 0}
+                      onClick={() => store.discardSupply(id, 1)}
+                    >
+                      Discard 1
+                    </button>
+                    {purchaseError && <span id={purchaseReasonId}> Unavailable: {purchaseError}</span>}
+                  </li>
+                );
+              })}
             </ul>
           </section>
           <section aria-labelledby="routes">
             <h2 id="routes">Routes</h2>
             <ul>
-              {ROUTES.filter((route) => route.originPortId === state.fleet.locationPortId).map((route) => (
-                <li key={route.id}>
-                  {getPort(route.destinationPortId)?.name} · {route.durationMilliseconds / 1000}s · risk{" "}
-                  {route.staticRisk} · Food {route.requiredSupplies.food} / Water {route.requiredSupplies.water}{" "}
-                  <button type="button" onClick={() => store.departVoyage(route.id)}>
-                    Depart
-                  </button>
-                </li>
-              ))}
+              {ROUTES.filter((route) => route.originPortId === state.fleet.locationPortId).map((route) => {
+                const departureError = voyageDepartureError(state, route.id);
+                const unavailableReason = !store.canGenerateVoyageSeed
+                  ? "Secure randomness is unavailable."
+                  : departureError;
+                const departureReasonId = `depart-${route.id}-reason`;
+                return (
+                  <li key={route.id}>
+                    {getPort(route.destinationPortId)?.name} · {route.durationMilliseconds / 1000}s · risk{" "}
+                    {route.staticRisk} · Food {route.requiredSupplies.food} / Water {route.requiredSupplies.water}{" "}
+                    <button
+                      type="button"
+                      disabled={unavailableReason !== null}
+                      aria-describedby={unavailableReason ? departureReasonId : undefined}
+                      onClick={() => store.departVoyage(route.id)}
+                    >
+                      Depart
+                    </button>
+                    {unavailableReason && <span id={departureReasonId}> Unavailable: {unavailableReason}</span>}
+                  </li>
+                );
+              })}
             </ul>
           </section>
         </>

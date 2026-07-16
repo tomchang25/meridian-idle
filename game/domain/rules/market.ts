@@ -1,4 +1,4 @@
-import { getPort, getProduct } from "@/game/domain/content/core-content";
+import { getPort, getProduct, getProductFamilyForProduct } from "@/game/domain/content/core-content";
 import type { CategoryId, MarketSession, V5GameState } from "@/game/domain/models/game";
 import { removedCostBasis, roundHalfUp, usedCargo, validQuantity, type RuleResult } from "@/game/domain/rules/cargo";
 import { portLevel } from "@/game/domain/rules/progression";
@@ -37,19 +37,19 @@ function currentPort(state: V5GameState) {
   return port && state.marketSession.portId === port.id ? port : undefined;
 }
 export function marketReference(state: V5GameState, productId: string): number | null {
-  const product = getProduct(productId);
-  if (!product || !currentPort(state)) return null;
-  const factor = state.marketSession.categoryFactors[product.category];
+  const family = getProductFamilyForProduct(productId);
+  if (!family || !currentPort(state)) return null;
+  const factor = state.marketSession.categoryFactors[family.category];
   if (!Number.isFinite(factor)) return null;
-  return Math.max(1, roundHalfUp(product.basePrice * factor));
+  return Math.max(1, roundHalfUp(family.basePrice * factor));
 }
 export function buyPrice(state: V5GameState, productId: string): PriceBreakdown | null {
-  const product = getProduct(productId);
+  const family = getProductFamilyForProduct(productId);
   const port = currentPort(state);
-  if (!product || !port) return null;
-  const factor = state.marketSession.categoryFactors[product.category];
+  if (!family || !port) return null;
+  const factor = state.marketSession.categoryFactors[family.category];
   if (!Number.isFinite(factor)) return null;
-  const rawReference = product.basePrice * factor;
+  const rawReference = family.basePrice * factor;
   const modifier = portLevel(state, port.id) >= 100 ? 0.9 : 1;
   return {
     rawReference,
@@ -61,11 +61,12 @@ export function buyPrice(state: V5GameState, productId: string): PriceBreakdown 
 }
 export function sellPrice(state: V5GameState, productId: string): PriceBreakdown | null {
   const product = getProduct(productId);
+  const family = getProductFamilyForProduct(productId);
   const port = currentPort(state);
-  if (!product || !port) return null;
-  const factor = state.marketSession.categoryFactors[product.category];
+  if (!product || !family || !port) return null;
+  const factor = state.marketSession.categoryFactors[family.category];
   if (!Number.isFinite(factor)) return null;
-  const rawReference = product.basePrice * factor;
+  const rawReference = family.basePrice * factor;
   const locallyProduced = port.catalog.some((entry) => entry.productId === productId);
   const origin = product.specialtyOriginPortId ? getPort(product.specialtyOriginPortId) : undefined;
   const modifier = locallyProduced ? 0.5 : origin?.regionId === port.regionId ? 1.5 : origin ? 3 : 1.2;
@@ -84,25 +85,31 @@ export function sellPrice(state: V5GameState, productId: string): PriceBreakdown
     label,
   };
 }
-export function buyProduct(state: V5GameState, productId: string, quantity: number, now = 0): RuleResult {
+export function productPurchaseError(state: V5GameState, productId: string, quantity: number): string | null {
   const port = currentPort(state);
   const price = buyPrice(state, productId);
   const entry = port?.catalog.find((candidate) => candidate.productId === productId);
-  if (
-    state.voyage ||
-    !port ||
-    !price ||
-    !entry ||
-    !validQuantity(quantity) ||
-    portLevel(state, port.id) < entry.unlockLevel
-  )
-    return { state, error: "Product is locked or unavailable." };
-  const product = getProduct(productId)!;
+  if (state.voyage) return "Products cannot be bought during a Voyage.";
+  if (!validQuantity(quantity)) return "Quantity must be a positive whole number.";
+  if (!port || !price || !entry) return "This Product is not sold at the current Port.";
+  if (portLevel(state, port.id) < entry.unlockLevel) return `Unlocks at Port Level ${entry.unlockLevel}.`;
+  const product = getProduct(productId);
+  if (!product) return "Product content is unavailable.";
   if (product.specialtyOriginPortId === port.id && quantity > state.marketSession.specialtySupply)
-    return { state, error: "Not enough Specialty supply." };
+    return `Only ${state.marketSession.specialtySupply} Specialty units remain.`;
   const cost = price.unitPrice * quantity;
-  if (cost > state.fleet.gold || usedCargo(state) + quantity > state.fleet.cargoCapacity)
-    return { state, error: "Cannot afford this Cargo." };
+  if (cost > state.fleet.gold) return `Requires ${cost} Gold; only ${state.fleet.gold} is available.`;
+  const remainingCapacity = state.fleet.cargoCapacity - usedCargo(state);
+  if (quantity > remainingCapacity) return `Requires ${quantity} Cargo Capacity; only ${remainingCapacity} remains.`;
+  return null;
+}
+export function buyProduct(state: V5GameState, productId: string, quantity: number, now = 0): RuleResult {
+  const error = productPurchaseError(state, productId, quantity);
+  if (error) return { state, error };
+  const port = currentPort(state)!;
+  const price = buyPrice(state, productId)!;
+  const product = getProduct(productId)!;
+  const cost = price.unitPrice * quantity;
   const stack = state.fleet.products[productId] ?? { quantity: 0, totalCostBasis: 0 };
   return {
     state: {

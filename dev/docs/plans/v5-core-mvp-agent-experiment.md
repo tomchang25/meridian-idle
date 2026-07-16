@@ -37,6 +37,15 @@ The experiment is blocked, rather than partially simulated, when it cannot creat
 
 Before implementing each Child, the agent creates the required live-code-verified implementation spec. The spec replaces that Child's sketch as the parent plan's single executable handoff. Each Child's closeout is part of its Phase and completes before that Phase's terminal verification gate. This experiment adds delivery gates but does not replace planning, verification, or closeout ownership.
 
+### Experiment Follow-Up Subsections
+
+These subsections record corrective work discovered by reviewing the experiment outcome. They do not retroactively change the Phase 00–05 gates or represent those phases as accepted.
+
+| Subsection           | Focus                                                                                      | Current document                                     |
+| -------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| HUD recovery         | Restore the disconnected responsive maritime presentation and complete human visual review | [Sketch](v5-core-mvp_hud-recovery.sketch.md)         |
+| Smoke journey repair | Replace the misleading one-path smoke with truthful Child 01–05 final-acceptance journeys  | [Sketch](v5-core-mvp_smoke-journey-repair.sketch.md) |
+
 ### Phase 00 Baseline
 
 Phase 00 establishes a CI workflow that checks out required submodules, installs the locked dependencies, and runs `npm run verify`. It may establish a reproducible browser smoke mechanism for final main-plan acceptance, but that mechanism is not run during intermediate phases unless the user explicitly requests it.

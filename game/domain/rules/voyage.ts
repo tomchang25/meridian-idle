@@ -16,18 +16,13 @@ function consumeSupply(state: V5GameState, id: SupplyId, quantity: number) {
 }
 export function departVoyage(state: V5GameState, routeId: string, now: number, seed: number): RuleResult {
   const route = getRoute(routeId);
-  if (
-    !route ||
-    state.voyage ||
-    route.originPortId !== state.fleet.locationPortId ||
-    !state.world.knownPortIds.includes(route.destinationPortId) ||
-    !Number.isSafeInteger(now) ||
-    seed === 0
-  )
-    return { state, error: "This route is unavailable." };
+  const eligibilityError = voyageDepartureError(state, routeId);
+  if (eligibilityError) return { state, error: eligibilityError };
+  if (!route) return { state, error: "This route is unavailable." };
+  if (!Number.isSafeInteger(now) || now < 0) return { state, error: "Departure time is invalid." };
+  if (!Number.isInteger(seed) || seed <= 0 || seed > 0xffff_ffff)
+    return { state, error: "A secure non-zero Voyage seed is required." };
   const { food, water } = route.requiredSupplies;
-  if (state.fleet.supplies.food.quantity < food || state.fleet.supplies.water.quantity < water)
-    return { state, error: "Food and Water are required before departure." };
   const foodUse = consumeSupply(state, "food", food);
   const waterUse = consumeSupply({ ...state, fleet: { ...state.fleet, supplies: foodUse.supplies } }, "water", water);
   const voyage: Voyage = {
@@ -40,7 +35,7 @@ export function departVoyage(state: V5GameState, routeId: string, now: number, s
     staticRisk: route.staticRisk,
     requiredSupplies: route.requiredSupplies,
     supplyCost: foodUse.cost + waterUse.cost,
-    seed: seed >>> 0,
+    seed,
   };
   return {
     state: {
@@ -54,6 +49,17 @@ export function departVoyage(state: V5GameState, routeId: string, now: number, s
     },
   };
 }
+export function voyageDepartureError(state: V5GameState, routeId: string): string | null {
+  const route = getRoute(routeId);
+  if (!route) return "This route is unavailable.";
+  if (state.voyage) return "The Fleet is already on a Voyage.";
+  if (route.originPortId !== state.fleet.locationPortId) return "The Fleet is not docked at this route's origin.";
+  if (!state.world.knownPortIds.includes(route.destinationPortId)) return "This destination is still locked.";
+  const { food, water } = route.requiredSupplies;
+  if (state.fleet.supplies.food.quantity < food || state.fleet.supplies.water.quantity < water)
+    return `Requires Food ${food} and Water ${water} before departure.`;
+  return null;
+}
 export function resolveVoyage(state: V5GameState, now: number): RuleResult {
   const voyage = state.voyage;
   if (!voyage || now < voyage.plannedArrivesAt) return { state };
@@ -64,7 +70,7 @@ export function resolveVoyage(state: V5GameState, now: number): RuleResult {
       voyage: null,
       latestVoyageResult: {
         voyageId: voyage.id,
-        arrivedAt: Math.max(now, voyage.plannedArrivesAt),
+        arrivedAt: voyage.plannedArrivesAt,
         destinationPortId: voyage.destinationPortId,
         sourceXpGained: arrival.xpGained,
         supplyCost: voyage.supplyCost,
@@ -72,7 +78,7 @@ export function resolveVoyage(state: V5GameState, now: number): RuleResult {
       activity: [
         {
           id: `${voyage.id}-arrived`,
-          at: Math.max(now, voyage.plannedArrivesAt),
+          at: voyage.plannedArrivesAt,
           message: `Arrived at ${voyage.destinationPortId}.`,
           tone: "success" as const,
         },

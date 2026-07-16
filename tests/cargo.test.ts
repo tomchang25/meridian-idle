@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGameState } from "@/game/domain/state/initial-game-state";
-import { buySupply, discardSupply, usedCargo } from "@/game/domain/rules/cargo";
+import { buySupply, discardSupply, supplyPurchaseError, usedCargo } from "@/game/domain/rules/cargo";
 
 describe("supply provisioning", () => {
   it("atomically adds supply quantity and cost basis", () => {
@@ -24,5 +24,15 @@ describe("supply provisioning", () => {
     const discarded = discardSupply(purchased, "food", 1).state;
     expect(discarded.fleet.gold).toBe(purchased.fleet.gold);
     expect(discarded.fleet.supplies.food).toEqual({ quantity: 1, totalCostBasis: 8 });
+  });
+
+  it("returns actionable Gold and Cargo eligibility reasons", () => {
+    const noGold = createInitialGameState(0);
+    noGold.fleet.gold = 0;
+    expect(supplyPurchaseError(noGold, "food", 1)).toBe("Requires 8 Gold; only 0 is available.");
+
+    const full = createInitialGameState(0);
+    full.fleet.supplies.food.quantity = full.fleet.cargoCapacity;
+    expect(supplyPurchaseError(full, "water", 1)).toBe("Requires 1 Cargo Capacity; only 0 remains.");
   });
 });

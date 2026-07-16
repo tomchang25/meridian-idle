@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGameState } from "@/game/domain/state/initial-game-state";
-import { buyPrice, buyProduct, createMarketSession, sellPrice, sellProduct } from "@/game/domain/rules/market";
+import {
+  buyPrice,
+  buyProduct,
+  createMarketSession,
+  productPurchaseError,
+  sellPrice,
+  sellProduct,
+} from "@/game/domain/rules/market";
 describe("market", () => {
   it("persists deterministic factors and applies producer prices", () => {
     const session = createMarketSession("lisbon", 1, 7);
@@ -25,5 +32,23 @@ describe("market", () => {
     state.fleet.locationPortId = "tangier";
     state.marketSession = createMarketSession("tangier", 1, 5);
     expect(sellPrice(state, "lisbon-cork")?.modifier).toBe(3);
+  });
+  it("shares actionable unlock, Gold, capacity, and Specialty eligibility", () => {
+    const locked = createInitialGameState(0);
+    expect(productPurchaseError(locked, "lisbon-cork", 1)).toBe("Unlocks at Port Level 50.");
+
+    const noGold = createInitialGameState(0);
+    noGold.fleet.gold = 0;
+    expect(productPurchaseError(noGold, "cod", 1)).toBe("Requires 20 Gold; only 0 is available.");
+
+    const full = createInitialGameState(0);
+    full.fleet.supplies.food.quantity = full.fleet.cargoCapacity;
+    expect(productPurchaseError(full, "cod", 1)).toBe("Requires 1 Cargo Capacity; only 0 remains.");
+
+    const noSpecialty = createInitialGameState(0);
+    noSpecialty.portProgress.lisbon.xp = 7_900;
+    noSpecialty.marketSession = createMarketSession("lisbon", 50, 1);
+    noSpecialty.marketSession.specialtySupply = 0;
+    expect(productPurchaseError(noSpecialty, "lisbon-cork", 1)).toBe("Only 0 Specialty units remain.");
   });
 });

@@ -1,4 +1,4 @@
-import { getProduct } from "@/game/domain/content/core-content";
+import { getProductFamilyForProduct } from "@/game/domain/content/core-content";
 import type { MarketSession, V5GameState } from "@/game/domain/models/game";
 import { createMarketSession } from "@/game/domain/rules/market";
 
@@ -16,7 +16,7 @@ export function portLevel(state: V5GameState, portId: string): number {
 }
 export function sessionXp(session: MarketSession): number {
   return Object.entries(session.netTrade).reduce(
-    (sum, [id, quantity]) => sum + Math.abs(quantity) * (getProduct(id) ? 1 : 0),
+    (sum, [id, quantity]) => sum + Math.abs(quantity) * (getProductFamilyForProduct(id) ? 1 : 0),
     0,
   );
 }
@@ -26,22 +26,16 @@ export function settlePortEntry(
   seed: number,
 ): { state: V5GameState; xpGained: number } {
   if (destinationPortId === state.marketSession.portId) return { state, xpGained: 0 };
-  const contributions = Object.entries(state.marketSession.netTrade).reduce(
-    (sum, [productId, quantity]) =>
+  const contributions = Object.entries(state.marketSession.netTrade).reduce((sum, [productId, quantity]) => {
+    const family = getProductFamilyForProduct(productId);
+    return (
       sum +
       Math.abs(quantity) *
-        (getProduct(productId)
-          ? Math.max(
-              1,
-              Math.floor(
-                getProduct(productId)!.basePrice *
-                  state.marketSession.categoryFactors[getProduct(productId)!.category] +
-                  0.5,
-              ),
-            )
-          : 0),
-    0,
-  );
+        (family
+          ? Math.max(1, Math.floor(family.basePrice * state.marketSession.categoryFactors[family.category] + 0.5))
+          : 0)
+    );
+  }, 0);
   const source = state.marketSession.portId;
   const xp = (state.portProgress[source]?.xp ?? 0) + contributions;
   const progress = {

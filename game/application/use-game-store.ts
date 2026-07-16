@@ -1,23 +1,48 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createInitialGameState } from "@/game/domain/state/initial-game-state";
-import { loadSave } from "@/game/infrastructure/persistence/save-migrations";
-import { IndexedDbSaveRepository } from "@/game/infrastructure/persistence/indexed-db-save-repository";
-import type { V5GameState } from "@/game/domain/models/game";
+import type { SeedSource } from "@/game/application/seed-source";
+import type { SupplyId, V5GameState } from "@/game/domain/models/game";
 import { buySupply as applySupplyPurchase, discardSupply as applySupplyDiscard } from "@/game/domain/rules/cargo";
+import type { RuleResult } from "@/game/domain/rules/cargo";
 import { buyProduct as applyProductBuy, sellProduct as applyProductSell } from "@/game/domain/rules/market";
-import { departVoyage as applyDeparture, resolveVoyage as applyVoyageResolution } from "@/game/domain/rules/voyage";
-import type { SupplyId } from "@/game/domain/models/game";
+import {
+  departVoyage as applyDeparture,
+  resolveVoyage as applyVoyageResolution,
+  voyageDepartureError,
+} from "@/game/domain/rules/voyage";
+import { createInitialGameState } from "@/game/domain/state/initial-game-state";
+import { IndexedDbSaveRepository } from "@/game/infrastructure/persistence/indexed-db-save-repository";
+import { loadSave } from "@/game/infrastructure/persistence/save-migrations";
+import { browserSeedSource } from "@/game/infrastructure/random/crypto-seed-source";
 
 export type SaveStatus = "loading" | "saved" | "saving" | "unavailable" | "corrupt";
+export type SaveRepository = Pick<IndexedDbSaveRepository, "isAvailable" | "loadRaw" | "save">;
+export type GameStoreDependencies = {
+  repository?: SaveRepository;
+  seedSource?: SeedSource;
+  now?: () => number;
+};
+type RuntimeGameState = { state: V5GameState; commandError: string | null };
 
-export function useGameStore() {
-  const repository = useMemo(() => new IndexedDbSaveRepository(), []);
-  const [state, setState] = useState<V5GameState>(() => createInitialGameState(Date.now()));
+function commandResult(result: RuleResult): RuntimeGameState {
+  return { state: result.state, commandError: result.error ?? null };
+}
+
+export function useGameStore({
+  repository: providedRepository,
+  seedSource = browserSeedSource,
+  now = Date.now,
+}: GameStoreDependencies = {}) {
+  const repository = useMemo(() => providedRepository ?? new IndexedDbSaveRepository(), [providedRepository]);
+  const [runtime, setRuntime] = useState<RuntimeGameState>(() => ({
+    state: createInitialGameState(now()),
+    commandError: null,
+  }));
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [hydrated, setHydrated] = useState(false);
   const lastSavedState = useRef<V5GameState | null>(null);
+  const state = runtime.state;
 
   useEffect(() => {
     let active = true;
@@ -36,13 +61,13 @@ export function useGameStore() {
         settled = true;
         window.clearTimeout(timeout);
         if (raw === null) {
-          setState(createInitialGameState(Date.now()));
+          setRuntime({ state: createInitialGameState(now()), commandError: null });
           setSaveStatus("saved");
         } else {
-          const loaded = loadSave(raw, Date.now());
+          const loaded = loadSave(raw, now());
           if (loaded.kind === "corrupt") setSaveStatus("corrupt");
           else {
-            setState(loaded.envelope.state);
+            setRuntime({ state: loaded.envelope.state, commandError: null });
             setSaveStatus("saved");
           }
         }
@@ -55,7 +80,7 @@ export function useGameStore() {
       active = false;
       window.clearTimeout(timeout);
     };
-  }, [repository]);
+  }, [now, repository]);
 
   useEffect(() => {
     if (!hydrated || saveStatus === "unavailable" || saveStatus === "corrupt") return;
@@ -64,59 +89,87 @@ export function useGameStore() {
     const timer = window.setTimeout(() => {
       setSaveStatus("saving");
       void repository
-        .save(state, Date.now())
+        .save(state, now())
         .then(() => setSaveStatus("saved"))
         .catch(() => setSaveStatus("unavailable"));
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [hydrated, repository, saveStatus, state]);
+  }, [hydrated, now, repository, saveStatus, state]);
 
   const acknowledgeMigration = useCallback(
     () =>
-      setState((current) =>
-        current.migrationReport
-          ? { ...current, migrationReport: { ...current.migrationReport, acknowledged: true } }
-          : current,
-      ),
+      setRuntime((current) => ({
+        commandError: null,
+        state: current.state.migrationReport
+          ? {
+              ...current.state,
+              migrationReport: { ...current.state.migrationReport, acknowledged: true },
+            }
+          : current.state,
+      })),
     [],
   );
   const startNewGame = useCallback(() => {
-    setState(createInitialGameState(Date.now()));
+    setRuntime({ state: createInitialGameState(now()), commandError: null });
     setSaveStatus(repository.isAvailable() ? "saved" : "unavailable");
-  }, [repository]);
+  }, [now, repository]);
   const buySupply = useCallback(
     (supplyId: SupplyId, quantity: number) =>
-      setState((current) => applySupplyPurchase(current, supplyId, quantity, Date.now()).state),
-    [],
+      setRuntime((current) => commandResult(applySupplyPurchase(current.state, supplyId, quantity, now()))),
+    [now],
   );
   const discardSupply = useCallback(
     (supplyId: SupplyId, quantity: number) =>
-      setState((current) => applySupplyDiscard(current, supplyId, quantity).state),
+      setRuntime((current) => commandResult(applySupplyDiscard(current.state, supplyId, quantity))),
     [],
   );
   const buyProduct = useCallback(
-    (productId: string) => setState((current) => applyProductBuy(current, productId, 1, Date.now()).state),
-    [],
+    (productId: string) => setRuntime((current) => commandResult(applyProductBuy(current.state, productId, 1, now()))),
+    [now],
   );
   const sellProduct = useCallback(
-    (productId: string) => setState((current) => applyProductSell(current, productId, 1, Date.now()).state),
-    [],
+    (productId: string) => setRuntime((current) => commandResult(applyProductSell(current.state, productId, 1, now()))),
+    [now],
   );
   const departVoyage = useCallback(
     (routeId: string) =>
-      setState((current) => applyDeparture(current, routeId, Date.now(), Date.now() >>> 0 || 1).state),
-    [],
+      setRuntime((current) => {
+        const eligibilityError = voyageDepartureError(current.state, routeId);
+        if (eligibilityError) return { ...current, commandError: eligibilityError };
+        let seed: number | null = null;
+        try {
+          seed = seedSource.nextSeed();
+        } catch {
+          seed = null;
+        }
+        if (seed === null)
+          return { ...current, commandError: "Secure randomness is unavailable; Voyage departure was not changed." };
+        return commandResult(applyDeparture(current.state, routeId, now(), seed));
+      }),
+    [now, seedSource],
   );
-  const resolveVoyage = useCallback(() => setState((current) => applyVoyageResolution(current, Date.now()).state), []);
+  const resolveVoyage = useCallback(
+    () => setRuntime((current) => commandResult(applyVoyageResolution(current.state, now()))),
+    [now],
+  );
   useEffect(() => {
     if (!state.voyage) return;
-    const delay = Math.max(0, state.voyage.plannedArrivesAt - Date.now());
+    const delay = Math.max(0, state.voyage.plannedArrivesAt - now());
     const timer = window.setTimeout(resolveVoyage, delay);
     return () => window.clearTimeout(timer);
-  }, [resolveVoyage, state.voyage]);
+  }, [now, resolveVoyage, state.voyage]);
+
+  let canGenerateVoyageSeed = false;
+  try {
+    canGenerateVoyageSeed = seedSource.isAvailable();
+  } catch {
+    canGenerateVoyageSeed = false;
+  }
   return {
     state,
     saveStatus,
+    commandError: runtime.commandError,
+    canGenerateVoyageSeed,
     acknowledgeMigration,
     startNewGame,
     buySupply,
