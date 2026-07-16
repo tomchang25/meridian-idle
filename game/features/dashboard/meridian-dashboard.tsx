@@ -1,9 +1,11 @@
 "use client";
 
 import { useGameStore } from "@/game/application/use-game-store";
+import { SUPPLY_IDS } from "@/game/domain/models/game";
+import { getPort } from "@/game/domain/content/core-content";
 
 export function MeridianDashboard() {
-  const { state, saveStatus, acknowledgeMigration, startNewGame } = useGameStore();
+  const { state, saveStatus, acknowledgeMigration, startNewGame, buySupply } = useGameStore();
   if (saveStatus === "loading") return <main aria-busy="true">Loading your logbook…</main>;
   if (saveStatus === "corrupt")
     return (
@@ -44,9 +46,24 @@ export function MeridianDashboard() {
           </button>
         </section>
       )}
-      <section>
-        <h2>Port operations</h2>
-        <p>Trading, provisioning, and voyages become available in later phases.</p>
+      <section aria-labelledby="provisioning">
+        <h2 id="provisioning">Provisioning</h2>
+        <p>
+          Cargo {Object.values(state.fleet.supplies).reduce((sum, stack) => sum + stack.quantity, 0)}/
+          {state.fleet.cargoCapacity}
+        </p>
+        <ul>
+          {SUPPLY_IDS.map((supplyId) => (
+            <li key={supplyId}>
+              {supplyId}: {state.fleet.supplies[supplyId].quantity} · cost{" "}
+              {getPort(state.fleet.locationPortId)?.supplyPrices[supplyId]}{" "}
+              <button type="button" onClick={() => buySupply(supplyId, 1)}>
+                Buy 1
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p>Product trading and voyages become available in later phases.</p>
       </section>
     </main>
   );

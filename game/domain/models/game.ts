@@ -9,7 +9,7 @@ export type CargoStack = {
 };
 
 export type Fleet = {
-  locationPortId: "lisbon";
+  locationPortId: string;
   gold: number;
   cargoCapacity: number;
   hp: number;
@@ -40,9 +40,9 @@ export type ActivityEntry = {
 export type V5GameState = {
   schemaVersion: 2;
   createdAt: number;
-  world: { knownPortIds: ["lisbon"] };
+  world: { knownPortIds: string[] };
   fleet: Fleet;
-  portProgress: { lisbon: PortProgress };
+  portProgress: Record<string, PortProgress>;
   migrationReport: MigrationReport | null;
   activity: ActivityEntry[];
 };
