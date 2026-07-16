@@ -39,7 +39,7 @@ export function useGameStore({
     state: createInitialGameState(now()),
     commandError: null,
   }));
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("loading");
   const [hydrated, setHydrated] = useState(false);
   const lastSavedState = useRef<V5GameState | null>(null);
   const state = runtime.state;
@@ -154,8 +154,17 @@ export function useGameStore({
   );
   useEffect(() => {
     if (!state.voyage) return;
-    const delay = Math.max(0, state.voyage.plannedArrivesAt - now());
-    const timer = window.setTimeout(resolveVoyage, delay);
+    const plannedArrivesAt = state.voyage.plannedArrivesAt;
+    let timer = 0;
+    const resolveWhenDue = () => {
+      const remaining = plannedArrivesAt - now();
+      if (remaining > 0) {
+        timer = window.setTimeout(resolveWhenDue, remaining);
+        return;
+      }
+      resolveVoyage();
+    };
+    timer = window.setTimeout(resolveWhenDue, Math.max(0, plannedArrivesAt - now()));
     return () => window.clearTimeout(timer);
   }, [now, resolveVoyage, state.voyage]);
 
@@ -177,6 +186,5 @@ export function useGameStore({
     buyProduct,
     sellProduct,
     departVoyage,
-    resolveVoyage,
   };
 }

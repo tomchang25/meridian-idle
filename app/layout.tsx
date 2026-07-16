@@ -4,7 +4,7 @@ import { PwaRegistration } from "@/game/infrastructure/pwa/pwa-registration";
 
 export const metadata: Metadata = {
   title: "Meridian Idle",
-  description: "培養船長、配置副官並開拓未知海域的航海增量遊戲。",
+  description: "A web-first maritime trading and Fleet management game.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/favicon.svg",
@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-Hant">
+    <html lang="en">
       <body>
         {children}
         <PwaRegistration />

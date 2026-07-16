@@ -10,3 +10,7 @@
 - Action、判定公式、持續執行與離線結算骨架。
 - IndexedDB versioned save boundary 與 PWA shell。
 - Web-native development standards、workflows 與 tests。
+
+### Changed
+
+- 2026-07-16 — [v5] The playable dashboard now uses a responsive city-command HUD with state-driven pixel scenes, focused Port operations, automatic Voyage progress, and separate Fleet ledgers.

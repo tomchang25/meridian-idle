@@ -1,18 +1,22 @@
 import { expect, test } from "@playwright/test";
 
-test("boots, provisions, trades, and arrives at a different port", async ({ page }) => {
+test("boots, provisions, departs, and arrives at a different port", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("main")).toBeVisible();
   await expect(page.getByText("Meridian Idle").first()).toBeVisible();
   await page.waitForTimeout(1_000);
-  const provisioning = page.getByRole("heading", { name: "Provisioning" }).locator("..");
-  await provisioning.getByRole("button", { name: "Buy 1" }).nth(0).click();
-  await expect(provisioning.getByText("food: 1", { exact: false })).toBeVisible();
-  await provisioning.getByRole("button", { name: "Buy 1" }).nth(1).click();
-  await expect(provisioning.getByText("water: 1", { exact: false })).toBeVisible();
-  await page.getByRole("button", { name: "Depart" }).first().click();
-  await expect(page.getByRole("heading", { name: "Voyage in progress" })).toBeVisible();
+  await page.getByRole("button", { name: /Supplies Management/ }).click();
+  const provisioning = page.getByRole("heading", { name: "Provision Stores" }).locator("xpath=ancestor::section[1]");
+  const food = provisioning.getByText("Food", { exact: true }).locator("xpath=ancestor::li[1]");
+  const water = provisioning.getByText("Water", { exact: true }).locator("xpath=ancestor::li[1]");
+  await food.getByRole("button", { name: "Buy 1" }).click();
+  await expect(food.getByText("1 aboard", { exact: false })).toBeVisible();
+  await water.getByRole("button", { name: "Buy 1" }).click();
+  await expect(water.getByText("1 aboard", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: /Harbor/ }).click();
+  await page.getByRole("button", { name: "Depart for Faro" }).click();
+  await expect(page.getByRole("heading", { name: "Lisbon to Faro" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Latest arrival" })).toBeVisible({ timeout: 8_000 });
-  await expect(page.getByRole("heading", { name: "Faro" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Port operations at Faro" })).toBeVisible();
 });

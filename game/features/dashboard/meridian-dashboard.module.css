@@ -1,852 +1,2124 @@
-.shell,
-.stateScreen {
-  min-height: 100vh;
-}
-
 .shell {
-  position: relative;
-  isolation: isolate;
-  padding-bottom: 48px;
-}
-
-.shell::before {
-  content: "";
-  position: fixed;
-  z-index: -1;
-  inset: 0;
-  pointer-events: none;
+  --hud-paper: #e7d7b2;
+  --hud-paper-dark: #c5ad7d;
+  --hud-ink: #27261f;
+  --hud-navy: #112f47;
+  --hud-navy-light: #1d4d68;
+  --hud-brass: #c99b4b;
+  --hud-brass-dark: #735124;
+  --hud-wood: #3a271e;
+  --hud-sea: #2d7586;
+  min-height: 100vh;
+  overflow-x: hidden;
   background:
-    linear-gradient(115deg, rgb(7 21 24 / 12%) 20%, rgb(29 71 76 / 13%) 50%, transparent 72%),
-    repeating-linear-gradient(90deg, transparent 0 119px, rgb(198 155 87 / 2%) 120px);
+    linear-gradient(rgb(3 14 20 / 68%), rgb(3 14 20 / 84%)),
+    repeating-linear-gradient(90deg, #11242a 0 2px, #0e2026 2px 84px, #0b1b20 84px 86px);
+  color: var(--color-ink);
 }
 
 .topBar {
   position: sticky;
-  z-index: 10;
+  z-index: 20;
   top: 0;
   display: grid;
-  grid-template-columns: minmax(190px, 0.7fr) minmax(360px, 1.5fr) minmax(210px, auto);
-  align-items: stretch;
-  min-height: 64px;
-  border-bottom: 1px solid var(--color-line);
-  background: rgb(7 21 24 / 92%);
-  box-shadow: 0 12px 35px rgb(0 0 0 / 18%);
-  backdrop-filter: blur(16px);
+  grid-template-columns: minmax(250px, 0.8fr) minmax(470px, 1.5fr) minmax(170px, 0.6fr);
+  min-height: 62px;
+  border-bottom: 3px double var(--hud-brass-dark);
+  background: linear-gradient(180deg, rgb(25 57 67 / 98%), rgb(7 29 38 / 98%)), var(--hud-navy);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 35%);
 }
 
-.brand {
+.brandBlock {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 10px 24px;
-  border-right: 1px solid var(--color-line);
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px;
+  border-right: 1px solid rgb(201 155 75 / 32%);
 }
 
-.brand strong {
+.brandMark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 2px solid var(--hud-brass);
+  border-radius: 50%;
+  background: radial-gradient(circle, #315d64 0 36%, #102f3b 37% 56%, #8a642e 57% 62%, #142f39 63%);
+  box-shadow:
+    inset 0 0 0 2px #07171c,
+    0 0 0 2px #4d351b;
+  color: #f1dab0;
   font-family: var(--font-serif);
-  font-size: 1.08rem;
-  font-weight: 500;
-  letter-spacing: 0.035em;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
 }
 
-.eyebrow {
+.brandBlock > div,
+.fleetName > div,
+.sectionHeading > div,
+.ledgerHeading > div,
+.activityHeading > div,
+.actionPanelHeading > div,
+.voyageHeader > div,
+.workspaceHeading > div,
+.productHeading > div,
+.routeIdentity,
+.provisionLedger li > div {
+  min-width: 0;
+}
+
+.kicker,
+.sectionHeading p,
+.ledgerHeading p,
+.activityHeading p,
+.actionPanelHeading p,
+.voyageHeader p,
+.workspaceHeading p,
+.sceneCopy > p {
+  display: block;
   margin: 0;
-  color: var(--color-brass);
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  color: var(--hud-brass);
+  font-size: 0.59rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
-.resourceStrip {
+.brandBlock h1 {
+  display: block;
+  margin: 2px 0 0;
+  color: #f4ead0;
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.globalResources {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.globalResources > div {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: center;
-  gap: 34px;
-  padding: 10px 24px;
-  color: var(--color-ink);
-  font-family: var(--font-serif);
-  font-variant-numeric: tabular-nums;
+  gap: 10px;
+  padding: 8px 16px;
+  border-right: 1px solid rgb(201 155 75 / 18%);
 }
 
-.resourceStrip span {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.resourceStrip small {
-  color: var(--color-muted);
-  font-family: var(--font-sans);
-  font-size: 0.64rem;
-  font-weight: 700;
+.globalResources dt {
+  color: #91a4a5;
+  font-size: 0.59rem;
+  font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
-.saveState {
+.globalResources dd {
+  margin: 0;
+  color: #fff2d3;
+  font-family: var(--font-serif);
+  font-size: 0.96rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.saveStatus {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 9px;
   margin: 0;
-  padding: 10px 24px;
-  border-left: 1px solid var(--color-line);
-  color: var(--color-muted);
-  font-size: 0.74rem;
-  line-height: 1.35;
-  text-align: right;
+  padding: 8px 18px;
+  color: #b6c3ba;
+  font-size: 0.7rem;
 }
 
-.saveState::before {
-  content: "";
-  flex: 0 0 auto;
+.saveStatus span {
   width: 7px;
   height: 7px;
+  border: 1px solid #bfe0c8;
   border-radius: 50%;
-  background: var(--color-muted);
-  box-shadow: 0 0 0 3px rgb(168 159 141 / 10%);
+  background: #6dad8b;
+  box-shadow: 0 0 0 3px rgb(109 173 139 / 15%);
 }
 
-.saveState[data-status="saved"]::before {
-  background: var(--color-success);
-  box-shadow: 0 0 0 3px rgb(121 182 154 / 12%);
-}
-
-.saveState[data-status="saving"]::before {
-  background: var(--color-brass);
-  box-shadow: 0 0 0 3px rgb(198 155 87 / 13%);
-}
-
-.saveState[data-status="unavailable"] {
-  color: #e0ad91;
-}
-
-.saveState[data-status="unavailable"]::before {
-  background: #cf8068;
-  box-shadow: 0 0 0 3px rgb(207 128 104 / 13%);
-}
-
-.dashboard {
-  width: min(1480px, 100%);
-  margin: 0 auto;
-  padding: 28px 32px 0;
-}
-
-.portOverview {
+.hudGrid {
   display: grid;
-  grid-template-columns: minmax(250px, 0.85fr) minmax(600px, 2fr);
-  min-height: 180px;
-  overflow: hidden;
-  border: 1px solid var(--color-line);
-  background: linear-gradient(105deg, rgb(9 31 35 / 96%) 0 34%, rgb(17 55 60 / 82%) 34% 100%), var(--color-ocean-900);
-  box-shadow: 0 22px 70px rgb(0 0 0 / 20%);
+  grid-template-columns: 250px minmax(580px, 1fr) 320px;
+  width: min(1800px, 100%);
+  margin: 0 auto;
+  align-items: start;
 }
 
-.portIdentity {
+.leftSidebar,
+.rightSidebar {
+  position: sticky;
+  top: 62px;
+  max-height: calc(100vh - 62px);
+  overflow-y: auto;
+  scrollbar-color: var(--hud-brass-dark) #07191e;
+}
+
+.leftSidebar {
+  border-right: 1px solid rgb(201 155 75 / 35%);
+  background: linear-gradient(90deg, rgb(18 41 45 / 97%), rgb(8 27 32 / 97%)), #0b2025;
+}
+
+.rightSidebar {
+  border-left: 1px solid rgb(201 155 75 / 35%);
+  background: linear-gradient(270deg, rgb(18 41 45 / 97%), rgb(8 27 32 / 97%)), #0b2025;
+}
+
+.sidebarSection,
+.ledgerSection {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 28px 32px;
-  border-right: 1px solid var(--color-line);
+  padding: 20px 18px;
+  border-bottom: 1px solid rgb(201 155 75 / 25%);
 }
 
-.portIdentity::after {
-  content: "";
+.sidebarSection::after,
+.ledgerSection::after {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 92px;
-  height: 72px;
-  opacity: 0.16;
-  background: linear-gradient(145deg, transparent 48%, var(--color-brass) 49% 51%, transparent 52%);
+  right: 7px;
+  bottom: 5px;
+  width: 14px;
+  height: 14px;
+  border-right: 1px solid rgb(201 155 75 / 35%);
+  border-bottom: 1px solid rgb(201 155 75 / 35%);
+  content: "";
 }
 
-.portIdentity h1 {
-  margin: 7px 0 5px;
+.sectionHeading,
+.ledgerHeading,
+.activityHeading,
+.actionPanelHeading,
+.voyageHeader,
+.workspaceHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionHeading {
+  justify-content: flex-start;
+  margin-bottom: 15px;
+}
+
+.sectionIndex {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--hud-brass-dark);
+  background: #07191e;
+  color: var(--hud-brass);
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  font-weight: 500;
-  letter-spacing: -0.035em;
+  font-size: 0.62rem;
 }
 
-.portIdentity > p:last-child,
-.panelIntro,
-.emptyState {
-  margin: 0;
-  color: var(--color-muted);
-  font-size: 0.8rem;
+.sectionHeading h2,
+.ledgerHeading h2,
+.activityHeading h2,
+.actionPanelHeading h2,
+.voyageHeader h2,
+.workspaceHeading h3 {
+  margin: 3px 0 0;
+  color: #f1e5c9;
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
+.sectionHeading h2,
+.ledgerHeading h2 {
+  font-size: 0.98rem;
+}
+
+.placeholderCard {
+  padding: 13px;
+  border: 1px dashed rgb(201 155 75 / 36%);
+  background: rgb(4 19 23 / 48%);
+}
+
+.placeholderCard > span {
+  display: inline-block;
+  margin-bottom: 9px;
+  padding: 3px 6px;
+  border: 1px solid rgb(201 155 75 / 30%);
+  color: var(--hud-brass);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.placeholderCard strong {
+  display: block;
+  color: #cac1aa;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.placeholderCard p,
+.progressCard p,
+.atSeaMessage p,
+.routeIdentity p {
+  margin: 6px 0 0;
+  color: #8f968c;
+  font-size: 0.67rem;
   line-height: 1.55;
 }
 
-.summaryGrid,
-.detailGrid,
-.priceGrid {
+.fleetName {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 14px;
+}
+
+.shipSeal {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--hud-brass-dark);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, transparent 0 10px, rgb(201 155 75 / 18%) 11px 12px, transparent 13px), #0e3038;
+  color: #e8d3a6;
+  font-family: var(--font-serif);
+}
+
+.fleetName strong,
+.fleetName span,
+.supplyIdentity strong,
+.supplyIdentity span,
+.provisionLedger strong,
+.provisionLedger span {
+  display: block;
+}
+
+.fleetName strong {
+  color: #e9ddc1;
+  font-family: var(--font-serif);
+  font-size: 0.87rem;
+  font-weight: 500;
+}
+
+.fleetName div span {
+  margin-top: 3px;
+  color: #839190;
+  font-size: 0.62rem;
+}
+
+.statList,
+.priceLedger,
+.voyageFacts,
+.harborRoutes dl,
+.cargoLedger dl {
   margin: 0;
 }
 
-.summaryGrid {
+.statList {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: center;
-  padding: 18px 28px;
+  border-top: 1px solid rgb(201 155 75 / 18%);
 }
 
-.summaryGrid > div {
-  min-width: 0;
-  padding: 15px 20px;
-  border-left: 1px solid rgb(198 155 87 / 14%);
+.statList > div {
+  padding: 9px 6px;
+  border-right: 1px solid rgb(201 155 75 / 13%);
+  border-bottom: 1px solid rgb(201 155 75 / 13%);
 }
 
-.summaryGrid > div:nth-child(n + 3) {
-  border-top: 1px solid rgb(198 155 87 / 14%);
-}
-
-.summaryGrid dt,
-.detailGrid dt,
-.priceGrid dt {
-  margin-bottom: 6px;
-  color: var(--color-muted);
-  font-size: 0.65rem;
-  font-weight: 700;
+.statList dt,
+.priceLedger dt,
+.voyageFacts dt,
+.harborRoutes dt,
+.cargoLedger dt {
+  color: #738687;
+  font-size: 0.54rem;
+  font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.summaryGrid dd,
-.detailGrid dd,
-.priceGrid dd {
-  margin: 0;
-  color: var(--color-ink);
+.statList dd,
+.priceLedger dd,
+.voyageFacts dd,
+.harborRoutes dd,
+.cargoLedger dd {
+  margin: 3px 0 0;
+  color: #e6d8ba;
   font-family: var(--font-serif);
+  font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
 }
 
-.summaryGrid dd {
-  font-size: 1.12rem;
+.regionMap {
+  position: relative;
+  height: 102px;
+  margin: 0 0 14px;
+  overflow: hidden;
+  border: 1px solid rgb(201 155 75 / 28%);
+  background:
+    radial-gradient(circle at 75% 30%, rgb(201 155 75 / 10%), transparent 35px),
+    repeating-linear-gradient(25deg, transparent 0 19px, rgb(201 155 75 / 5%) 20px), #0b2931;
 }
 
-.summaryGrid dd small,
-.priceGrid dd small {
+.regionMap::before {
+  position: absolute;
+  top: -12px;
+  left: -20px;
+  width: 110px;
+  height: 78px;
+  border-radius: 40% 50% 55% 25%;
+  background: #4a5549;
+  box-shadow: inset -8px -7px #303f39;
+  content: "";
+}
+
+.routeLine {
+  position: absolute;
+  top: 49px;
+  left: 54px;
+  width: 125px;
+  border-top: 2px dotted var(--hud-brass);
+  transform: rotate(16deg);
+  transform-origin: left;
+}
+
+.portDot {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  border: 2px solid #d7b46c;
+  border-radius: 50%;
+  background: #123844;
+  color: #f6e6c2;
+  font-size: 0.53rem;
+  font-weight: 800;
+  box-shadow: 0 0 0 3px rgb(5 20 24 / 65%);
+}
+
+.portLisbon {
+  top: 25px;
+  left: 47px;
+}
+
+.portFaro {
+  top: 60px;
+  left: 115px;
+}
+
+.portTangier {
+  top: 70px;
+  right: 25px;
+}
+
+.portProgressList,
+.marketGrid,
+.supplyManagementList,
+.harborRoutes,
+.activityList,
+.cargoLedger,
+.provisionLedger {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.portProgressList {
+  display: grid;
+  gap: 10px;
+}
+
+.portProgressList li > div,
+.capacityLabels,
+.productHeading,
+.cargoLedger li > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.portProgressList li > div {
+  margin-bottom: 5px;
+  color: #a9b0a4;
+  font-size: 0.64rem;
+}
+
+.portProgressList strong {
+  color: #d9c9a8;
+  font-weight: 600;
+}
+
+.portProgressList progress,
+.capacityProgress,
+.voyageProgress {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #041519;
+}
+
+.portProgressList progress {
+  height: 5px;
+}
+
+.portProgressList progress::-webkit-progress-bar,
+.capacityProgress::-webkit-progress-bar,
+.voyageProgress::-webkit-progress-bar {
+  background: #041519;
+}
+
+.portProgressList progress::-webkit-progress-value,
+.capacityProgress::-webkit-progress-value,
+.voyageProgress::-webkit-progress-value {
+  background: linear-gradient(90deg, #735124, #d0a34f);
+}
+
+.portProgressList progress::-moz-progress-bar,
+.capacityProgress::-moz-progress-bar,
+.voyageProgress::-moz-progress-bar {
+  background: linear-gradient(90deg, #735124, #d0a34f);
+}
+
+.mainColumn {
+  min-width: 0;
+  padding: 16px;
+}
+
+.scenePanel,
+.actionPanel,
+.activityPanel {
+  position: relative;
+  border: 1px solid var(--hud-brass-dark);
+  background: #0b2329;
+  box-shadow:
+    0 15px 35px rgb(0 0 0 / 23%),
+    inset 0 0 0 2px rgb(5 17 20 / 65%),
+    inset 0 0 0 3px rgb(201 155 75 / 13%);
+}
+
+.scenePanel {
+  min-height: 300px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #86b8c4;
+}
+
+.sceneCopy {
+  position: absolute;
+  z-index: 5;
+  top: 18px;
+  left: 20px;
+  max-width: min(430px, calc(100% - 40px));
+  padding: 11px 14px 12px;
+  border-left: 3px solid var(--hud-brass);
+  background: rgb(7 28 34 / 82%);
+  box-shadow: 6px 6px 0 rgb(16 45 52 / 35%);
+}
+
+.sceneCopy h2 {
+  margin: 4px 0 8px;
+  color: #fff1cf;
+  font-family: var(--font-serif);
+  font-size: clamp(1.25rem, 2.5vw, 2rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-shadow: 2px 2px #17353d;
+}
+
+.sceneTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sceneTags span {
+  padding: 3px 7px;
+  border: 1px solid rgb(231 215 178 / 32%);
+  background: rgb(231 215 178 / 10%);
+  color: #d9d3be;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pixelScene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(#8fc5d1 0 58%, #3d8797 59% 100%);
+  image-rendering: pixelated;
+}
+
+.pixelScene::before {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 3%) 0 2px, transparent 2px 4px),
+    linear-gradient(90deg, rgb(255 234 181 / 12%), transparent 35% 70%, rgb(22 74 88 / 14%));
+  content: "";
+}
+
+.pixelSun {
+  position: absolute;
+  top: 30px;
+  right: 14%;
+  width: 38px;
+  height: 38px;
+  background: #f4d48a;
+  box-shadow:
+    8px 0 #f4d48a,
+    -8px 0 #f4d48a,
+    0 8px #f4d48a,
+    0 -8px #f4d48a,
+    0 0 0 12px rgb(244 212 138 / 16%);
+}
+
+.pixelCloud {
+  position: absolute;
+  z-index: 1;
+  width: 46px;
+  height: 13px;
+  background: #dce9e5;
+  box-shadow:
+    12px -7px #eef3eb,
+    27px -2px #e8efea,
+    39px 2px #dce9e5,
+    8px 6px #c5d9d8,
+    24px 7px #c5d9d8;
+}
+
+.cloudOne {
+  top: 47px;
+  left: 44%;
+}
+
+.cloudTwo {
+  top: 102px;
+  right: 8%;
+  transform: scale(0.72);
+}
+
+.farHills {
+  position: absolute;
+  right: -5%;
+  bottom: 37%;
+  width: 58%;
+  height: 73px;
+  clip-path: polygon(0 100%, 12% 57%, 23% 72%, 36% 30%, 50% 65%, 62% 42%, 76% 72%, 88% 33%, 100% 66%, 100% 100%);
+  background: #648f88;
+  box-shadow: inset 0 -17px #527c79;
+}
+
+.pixelBuilding {
+  position: absolute;
+  z-index: 2;
+  bottom: 31%;
+  border: 3px solid #52676a;
+  border-bottom: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 11px, #5a6b6c 11px 15px, transparent 15px 24px),
+    repeating-linear-gradient(0deg, #d8d2bc 0 13px, #bcb7a4 13px 16px);
+  box-shadow: inset -9px 0 rgb(84 93 90 / 25%);
+}
+
+.pixelBuilding::before {
+  position: absolute;
+  top: -15px;
+  right: -5px;
+  left: -5px;
+  height: 14px;
+  clip-path: polygon(0 100%, 8% 0, 92% 0, 100% 100%);
+  background: #a66d4f;
+  box-shadow: inset 0 -4px #754e3e;
+  content: "";
+}
+
+.buildingOne {
+  left: 4%;
+  width: 104px;
+  height: 88px;
+}
+
+.buildingTwo {
+  left: 19%;
+  width: 132px;
+  height: 105px;
+}
+
+.buildingThree {
+  left: 38%;
+  width: 92px;
+  height: 69px;
+}
+
+.harborTower {
+  position: absolute;
+  z-index: 2;
+  bottom: 31%;
+  left: 34%;
+  width: 36px;
+  height: 129px;
+  border: 3px solid #56676a;
+  background:
+    linear-gradient(90deg, transparent 13px, #59696b 13px 19px, transparent 19px),
+    repeating-linear-gradient(#d4ceb8 0 15px, #aaa793 15px 18px);
+}
+
+.harborTower::before {
+  position: absolute;
+  top: -22px;
+  left: -8px;
+  width: 46px;
+  height: 22px;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  background: #9d6146;
+  content: "";
+}
+
+.harborWall {
+  position: absolute;
+  z-index: 3;
+  bottom: 22%;
+  left: -2%;
+  width: 65%;
+  height: 49px;
+  border-top: 5px solid #7b7770;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 42px, rgb(83 83 77 / 35%) 42px 46px),
+    repeating-linear-gradient(0deg, #aaa79b 0 18px, #7c817b 18px 21px);
+  transform: skewY(-2deg);
+  box-shadow: 0 8px #4f6869;
+}
+
+.dockCrane {
+  position: absolute;
+  z-index: 4;
+  bottom: 24%;
+  left: 51%;
+  width: 7px;
+  height: 70px;
+  background: #49372a;
+  box-shadow: 5px 0 #7a5b3a;
+}
+
+.dockCrane::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 65px;
+  height: 7px;
+  background: #5d432c;
+  box-shadow: 0 5px #7d5e3c;
+  content: "";
+}
+
+.dockCrane::after {
+  position: absolute;
+  top: 7px;
+  left: 56px;
+  width: 2px;
+  height: 34px;
+  background: #34271e;
+  box-shadow: 0 33px 0 2px #4f3c2b;
+  content: "";
+}
+
+.distantCoast {
+  position: absolute;
+  right: -5%;
+  bottom: 35%;
+  width: 37%;
+  height: 45px;
+  clip-path: polygon(0 100%, 17% 56%, 28% 75%, 43% 23%, 60% 65%, 74% 41%, 100% 70%, 100% 100%);
+  background: #526f69;
+}
+
+.pixelShip {
+  position: absolute;
+  z-index: 5;
+  width: 134px;
+  height: 132px;
+  filter: drop-shadow(6px 7px rgb(15 55 62 / 25%));
+}
+
+.dockedShip {
+  right: 8%;
+  bottom: 13%;
+  transform: scale(0.78);
+  transform-origin: bottom;
+}
+
+.voyageShip {
+  right: 37%;
+  bottom: 16%;
+}
+
+.shipMast {
+  position: absolute;
+  bottom: 30px;
+  left: 65px;
+  width: 5px;
+  height: 97px;
+  background: #493326;
+  box-shadow: 4px 0 #765233;
+}
+
+.shipSail {
+  position: absolute;
+  bottom: 55px;
+  left: 70px;
+  width: 52px;
+  height: 65px;
+  clip-path: polygon(0 0, 100% 30%, 0 100%);
+  background: linear-gradient(90deg, transparent 45%, #aa9b73 46% 51%, transparent 52%), #e9d9aa;
+  box-shadow: inset -8px -5px #c4b481;
+}
+
+.shipSail::before {
+  position: absolute;
+  top: 21px;
+  left: 8px;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #99634a;
+  border-radius: 50%;
+  content: "";
+}
+
+.shipFlag {
+  position: absolute;
+  bottom: 120px;
+  left: 70px;
+  width: 25px;
+  height: 12px;
+  clip-path: polygon(0 0, 100% 18%, 74% 55%, 100% 100%, 0 86%);
+  background: #9c3e35;
+}
+
+.shipHull {
+  position: absolute;
+  bottom: 15px;
+  left: 7px;
+  width: 126px;
+  height: 36px;
+  clip-path: polygon(0 0, 100% 0, 85% 76%, 65% 100%, 25% 88%, 8% 54%);
+  background: repeating-linear-gradient(0deg, #4b2e22 0 8px, #82573a 8px 11px), #573525;
+  box-shadow: inset 0 7px #b6844f;
+}
+
+.pixelWater {
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 37%;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 12px, rgb(13 84 101 / 28%) 12px 15px),
+    linear-gradient(#4a9caf, #286f82);
+}
+
+.pixelWater span {
+  position: absolute;
+  width: 82px;
+  height: 5px;
+  background: #a7d2d0;
+  box-shadow: 21px 7px #6fb4bb;
+}
+
+.pixelWater span:nth-child(1) {
+  top: 20px;
+  left: 9%;
+}
+
+.pixelWater span:nth-child(2) {
+  top: 53px;
+  left: 39%;
+  transform: scaleX(1.4);
+}
+
+.pixelWater span:nth-child(3) {
+  top: 26px;
+  right: 4%;
+  transform: scaleX(0.7);
+}
+
+.pixelWater span:nth-child(4) {
+  top: 79px;
+  left: 18%;
+  transform: scaleX(1.8);
+}
+
+.sceneFrame {
+  position: absolute;
+  z-index: 10;
+  inset: 5px;
+  border: 1px solid rgb(255 237 191 / 30%);
+  pointer-events: none;
+}
+
+.sceneFrame::before,
+.sceneFrame::after {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-color: var(--hud-brass);
+  content: "";
+}
+
+.sceneFrame::before {
+  top: -1px;
+  left: -1px;
+  border-top: 4px double;
+  border-left: 4px double;
+}
+
+.sceneFrame::after {
+  right: -1px;
+  bottom: -1px;
+  border-right: 4px double;
+  border-bottom: 4px double;
+}
+
+.actionPanel,
+.activityPanel {
+  margin-top: 14px;
+  padding: 20px;
+  background:
+    linear-gradient(rgb(11 35 41 / 95%), rgb(7 25 30 / 98%)),
+    repeating-linear-gradient(90deg, transparent 0 54px, rgb(201 155 75 / 4%) 55px);
+}
+
+.actionPanelHeading,
+.voyageHeader {
+  align-items: center;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgb(201 155 75 / 25%);
+}
+
+.actionPanelHeading h2,
+.voyageHeader h2,
+.activityHeading h2 {
+  font-size: 1.23rem;
+}
+
+.actionPanelHeading > span,
+.activityHeading > span,
+.ledgerHeading > strong {
+  color: #8c968d;
+  font-size: 0.61rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cityCommands {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+  padding: 8px;
+  border: 1px solid rgb(201 155 75 / 32%);
+  background: #061b21;
+}
+
+.cityCommands button {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 62px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #4f4938;
+  background: linear-gradient(180deg, #234f5b, #102e38), var(--hud-navy);
+  color: #d8d4c5;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: inset 0 0 0 2px #071b21;
+}
+
+.cityCommands button::after {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid var(--hud-brass-dark);
+  border-bottom: 1px solid var(--hud-brass-dark);
+  content: "";
+}
+
+.cityCommands button:hover,
+.cityCommands button[aria-pressed="true"] {
+  border-color: var(--hud-brass);
+  background: linear-gradient(180deg, #2d6070, #173e4f);
+  color: #fff2d3;
+}
+
+.cityCommands button[aria-pressed="true"] {
+  box-shadow:
+    inset 0 0 0 2px #071b21,
+    inset 0 -3px var(--hud-brass);
+}
+
+.commandIcon,
+.supplyIcon,
+.routeCompass {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--hud-brass-dark);
+  background: radial-gradient(circle, #d1b36f 0 18%, #7a572b 20% 24%, #102f3a 26%);
+  color: #f8e6bd;
+  font-family: var(--font-serif);
+  box-shadow: inset 0 0 0 2px #061a20;
+}
+
+.commandIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 0.8rem;
+}
+
+.cityCommands small,
+.cityCommands strong {
+  display: block;
+}
+
+.cityCommands small {
+  color: #889b9a;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.cityCommands strong {
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+  font-family: var(--font-serif);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.actionWorkspace {
+  margin-top: 15px;
+  padding: 18px;
+  border: 1px solid rgb(201 155 75 / 24%);
+  background: linear-gradient(rgb(230 216 184 / 94%), rgb(196 174 127 / 95%)), var(--hud-paper);
+  color: var(--hud-ink);
+  box-shadow: inset 0 0 0 4px rgb(81 58 30 / 12%);
+}
+
+.workspaceHeading {
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 3px double #7c6037;
+}
+
+.workspaceHeading p {
+  color: #765424;
+}
+
+.workspaceHeading h3 {
+  color: #292921;
+  font-size: 1.18rem;
+}
+
+.marketPulse {
+  text-align: right;
+}
+
+.marketPulse span,
+.marketPulse strong {
+  display: block;
+}
+
+.marketPulse span {
+  color: #695e48;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.marketPulse strong {
+  margin-top: 3px;
+  color: #345d4b;
+  font-family: var(--font-serif);
+  font-size: 0.77rem;
+}
+
+.marketGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.marketGrid > li {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #8e754d;
+  background: rgb(255 247 224 / 47%);
+  box-shadow: inset 0 0 0 2px rgb(93 66 33 / 7%);
+}
+
+.marketGrid > li[data-locked="true"] {
+  border-style: dashed;
+  background: rgb(103 94 73 / 14%);
+}
+
+.productHeading {
+  align-items: flex-start;
+}
+
+.productHeading div > span,
+.productHeading div > strong {
+  display: block;
+}
+
+.productHeading div > span,
+.productHeading > span {
+  color: #786b51;
+  font-size: 0.53rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.productHeading div > strong {
+  margin-top: 3px;
+  font-family: var(--font-serif);
+  font-size: 0.96rem;
+  font-weight: 600;
+}
+
+.productHeading > span {
+  padding: 3px 5px;
+  border: 1px solid #a18b62;
+}
+
+.priceLedger {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 13px 0;
+  border-block: 1px solid rgb(95 77 50 / 34%);
+}
+
+.priceLedger > div {
+  min-width: 0;
+  padding: 8px 5px 8px 0;
+}
+
+.priceLedger dt,
+.harborRoutes dt,
+.cargoLedger dt {
+  color: #786d56;
+}
+
+.priceLedger dd,
+.harborRoutes dd,
+.cargoLedger dd {
+  color: #2d2c25;
+  font-weight: 600;
+}
+
+.actionButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.actionButtons button,
+.harborRoutes > li > button {
+  min-height: 36px;
+  border: 1px solid #70572f;
+  background: linear-gradient(#264f5e, #183845);
+  color: #e8d8b6;
+  font-size: 0.64rem;
+}
+
+.actionButtons button:disabled,
+.harborRoutes > li > button:disabled {
+  opacity: 0.78;
+  cursor: not-allowed;
+}
+
+.supplyManagementList {
+  display: grid;
+  gap: 7px;
+}
+
+.supplyManagementList > li {
+  display: grid;
+  grid-template-columns: 38px minmax(120px, 1fr) minmax(82px, auto) minmax(140px, 0.7fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid rgb(95 77 50 / 35%);
+  background: rgb(255 247 224 / 28%);
+}
+
+.supplyIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 0.69rem;
+}
+
+.supplyIdentity strong {
+  font-family: var(--font-serif);
+  font-size: 0.85rem;
+}
+
+.supplyIdentity span,
+.supplyPrice span {
+  margin-top: 3px;
+  color: #6f644f;
+  font-size: 0.57rem;
+}
+
+.supplyPrice {
+  text-align: right;
+}
+
+.supplyPrice strong {
   display: block;
   margin-top: 3px;
-  color: var(--color-muted);
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+}
+
+.harborRoutes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.harborRoutes > li {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 11px;
+  padding: 14px;
+  border: 1px solid #8e754d;
+  background: rgb(255 247 224 / 47%);
+}
+
+.routeCompass {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 0.66rem;
+}
+
+.routeIdentity > span {
+  color: #75674e;
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.routeIdentity > strong {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-serif);
+  font-size: 1.13rem;
+}
+
+.routeIdentity p {
+  color: #655e4f;
+}
+
+.harborRoutes dl,
+.harborRoutes > li > button {
+  grid-column: 1 / -1;
+}
+
+.harborRoutes dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-block: 1px solid rgb(95 77 50 / 35%);
+}
+
+.harborRoutes dl > div {
+  padding: 8px 4px;
+}
+
+.voyageStatus {
+  padding: 3px;
+}
+
+.voyageBadge {
+  padding: 6px 9px;
+  border: 1px solid var(--hud-brass-dark);
+  background: #153a45;
+  color: #e6d3aa;
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.routeTrack {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0 9px;
+  color: #d8c8a6;
+  font-family: var(--font-serif);
+  font-size: 0.76rem;
+}
+
+.routeTrack i {
+  height: 1px;
+  background: repeating-linear-gradient(90deg, var(--hud-brass) 0 5px, transparent 5px 9px);
+}
+
+.routeTrack b {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 2px solid var(--hud-brass);
+  border-radius: 50%;
+  background: #143b47;
+  color: #fff0ce;
   font-family: var(--font-sans);
   font-size: 0.68rem;
+  box-shadow: 0 0 0 4px rgb(201 155 75 / 10%);
+}
+
+.voyageProgress {
+  height: 13px;
+  border: 2px solid #07181d;
+  outline: 1px solid var(--hud-brass-dark);
+}
+
+.voyageFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 17px;
+  border-block: 1px solid rgb(201 155 75 / 22%);
+}
+
+.voyageFacts > div {
+  min-width: 0;
+  padding: 12px 9px;
+  border-right: 1px solid rgb(201 155 75 / 15%);
+}
+
+.voyageFacts dd {
+  color: #e9dbbd;
+}
+
+.atSeaMessage {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px solid rgb(201 155 75 / 24%);
+  background: rgb(9 47 57 / 60%);
+}
+
+.atSeaMessage > span {
+  display: grid;
+  width: 37px;
+  height: 37px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #4d7780;
+  border-radius: 50%;
+  color: #a7ced1;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+}
+
+.atSeaMessage strong {
+  color: #e6d9bd;
+  font-family: var(--font-serif);
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.activityHeading {
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.activityList {
+  border-top: 1px solid rgb(201 155 75 / 22%);
+}
+
+.activityList li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px 70px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 10px 10px 17px;
+  border-bottom: 1px solid rgb(201 155 75 / 12%);
+}
+
+.activityList li::before {
+  position: absolute;
+  top: 14px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #80a8a5;
+  background: #2f6e71;
+  content: "";
+}
+
+.activityList li[data-tone="success"]::before {
+  border-color: #a9d5ba;
+  background: #5e9b77;
+}
+
+.activityList li[data-tone="warning"]::before {
+  border-color: #ecc88a;
+  background: #b9813d;
+}
+
+.activityList time {
+  color: #708485;
+  font-family: var(--font-serif);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.activityList li > span {
+  color: var(--hud-brass);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.activityList p {
+  margin: 0;
+  color: #bac0b4;
+  font-size: 0.69rem;
+  line-height: 1.5;
+}
+
+.ledgerHeading {
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.ledgerHeading > strong {
+  color: #d9c7a2;
+  white-space: nowrap;
+}
+
+.capacityProgress {
+  height: 9px;
+  border: 1px solid #66502f;
+}
+
+.capacityLabels {
+  margin-top: 6px;
+  color: #778786;
+  font-size: 0.58rem;
+}
+
+.cargoLedger {
+  margin-top: 16px;
+}
+
+.cargoLedger > li {
+  padding: 11px 0;
+  border-top: 1px solid rgb(201 155 75 / 15%);
+}
+
+.cargoLedger li > div:first-child {
+  align-items: baseline;
+}
+
+.cargoLedger li > div:first-child strong {
+  color: #e7d9ba;
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.cargoLedger li > div:first-child span {
+  color: #84918f;
+  font-size: 0.61rem;
+}
+
+.cargoLedger dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 8px;
+}
+
+.cargoLedger dl > div {
+  padding: 6px 7px;
+  background: rgb(231 215 178 / 6%);
+}
+
+.cargoLedger dt {
+  color: #758585;
+}
+
+.cargoLedger dd {
+  color: #d6c7aa;
+}
+
+.provisionLedger {
+  display: grid;
+  gap: 7px;
+}
+
+.provisionLedger li {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgb(201 155 75 / 13%);
+}
+
+.provisionLedger strong {
+  color: #dfd2b7;
+  font-family: var(--font-serif);
+  font-size: 0.74rem;
+  font-weight: 500;
+}
+
+.provisionLedger span {
+  margin-top: 2px;
+  color: #758584;
+  font-size: 0.55rem;
+}
+
+.provisionLedger b {
+  display: grid;
+  min-width: 26px;
+  min-height: 26px;
+  place-items: center;
+  border: 1px solid rgb(201 155 75 / 25%);
+  background: #071a1f;
+  color: #e3d1aa;
+  font-family: var(--font-serif);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.progressCard {
+  margin-top: 15px;
+  padding: 12px;
+  border-left: 3px solid #6fa280;
+  background: rgb(78 125 91 / 10%);
+}
+
+.progressCard > span,
+.progressCard > strong {
+  display: block;
+}
+
+.progressCard > span {
+  color: #83a18b;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.progressCard > strong {
+  margin-top: 4px;
+  color: #c8dec9;
+  font-family: var(--font-serif);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.saveStatus[data-status="saving"] span {
+  border-color: #eed293;
+  background: var(--hud-brass);
+  box-shadow: 0 0 0 3px rgb(201 155 75 / 17%);
+}
+
+.saveStatus[data-status="unavailable"] {
+  color: #e5b39d;
+}
+
+.saveStatus[data-status="unavailable"] span {
+  border-color: #f2b29c;
+  background: #bd6954;
+  box-shadow: 0 0 0 3px rgb(189 105 84 / 18%);
 }
 
 .feedbackStack {
   display: grid;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 .alertPanel,
-.migrationPanel,
-.resultPanel {
-  border: 1px solid var(--color-line);
-  background: rgb(10 31 35 / 86%);
+.migrationPanel {
+  position: relative;
+  border: 1px solid rgb(201 155 75 / 30%);
+  background: #0a242a;
+  box-shadow: inset 3px 0 var(--hud-brass);
 }
 
 .alertPanel {
-  padding: 16px 20px;
-  border-color: rgb(207 128 104 / 48%);
-  box-shadow: inset 3px 0 #cf8068;
+  padding: 14px 17px;
+  border-color: rgb(205 118 91 / 50%);
+  box-shadow: inset 3px 0 #cd765b;
+}
+
+.alertPanel p,
+.migrationPanel p {
+  margin: 0;
+  color: var(--hud-brass);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .alertPanel h2,
-.alertPanel p,
-.migrationPanel h2,
-.migrationPanel p,
-.resultPanel h2,
-.resultPanel p {
-  margin: 0;
-}
-
-.alertPanel h2 {
-  margin-bottom: 4px;
-  color: #e0ad91;
+.migrationPanel h2 {
+  margin: 4px 0 5px;
+  color: #eddfc2;
   font-family: var(--font-serif);
-  font-size: 1rem;
+  font-size: 0.93rem;
   font-weight: 500;
 }
 
-.alertPanel p,
-.migrationPanel p,
-.resultPanel p {
-  color: var(--color-muted);
-  font-size: 0.78rem;
-  line-height: 1.55;
+.alertPanel > span,
+.migrationPanel > div > span {
+  color: #b7bdb2;
+  font-size: 0.69rem;
+  line-height: 1.5;
 }
 
 .migrationPanel {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 20px 22px;
-  box-shadow: inset 3px 0 var(--color-brass);
-}
-
-.migrationPanel h2,
-.resultPanel h2 {
-  margin: 4px 0 6px;
-  font-family: var(--font-serif);
-  font-size: 1.12rem;
-  font-weight: 500;
+  gap: 18px;
+  padding: 15px 17px;
 }
 
 .migrationPanel ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
-  margin: 9px 0 0;
-  padding-left: 18px;
-  color: var(--color-muted);
-  font-size: 0.75rem;
+  gap: 4px 18px;
+  margin: 8px 0 0;
+  padding-left: 17px;
+  color: #9ca69d;
+  font-size: 0.64rem;
 }
 
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1.75fr) minmax(300px, 0.75fr);
-  grid-template-areas:
-    "market cargo"
-    "market provisioning"
-    "market routes";
-  gap: 16px;
-  margin-top: 16px;
-  align-items: start;
+.workspaceIntro {
+  margin: -4px 0 14px;
+  color: #655f52;
+  font-size: 0.68rem;
+  line-height: 1.5;
 }
 
-.workspace[data-mode="transit"] {
-  display: block;
-}
-
-.panel {
-  min-width: 0;
-  padding: 22px;
-  border: 1px solid var(--color-line);
-  background: linear-gradient(145deg, rgb(15 45 50 / 88%), rgb(9 28 32 / 94%));
-  box-shadow:
-    inset 0 1px rgb(255 255 255 / 3%),
-    0 18px 45px rgb(0 0 0 / 12%);
-}
-
-.marketPanel {
-  grid-area: market;
-}
-
-.cargoPanel {
-  grid-area: cargo;
-}
-
-.provisioningPanel {
-  grid-area: provisioning;
-}
-
-.routesPanel {
-  grid-area: routes;
-}
-
-.panelHeading,
-.cardHeading,
-.supplyHeading,
-.manifestList li,
-.manifestAction {
+.priceContext {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-}
-
-.panelHeading {
-  align-items: flex-start;
-  margin-bottom: 14px;
-}
-
-.panelHeading h2 {
-  margin: 5px 0 0;
-  font-family: var(--font-serif);
-  font-size: 1.35rem;
-  font-weight: 500;
-}
-
-.sessionLabel,
-.statusBadge {
-  flex: 0 0 auto;
-  color: var(--color-muted);
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.statusBadge {
-  padding: 5px 7px;
-  border: 1px solid var(--color-line);
-  background: rgb(198 155 87 / 7%);
-}
-
-.tradeList,
-.manifestList,
-.supplyList,
-.routeList {
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.tradeList {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.tradeCard,
-.supplyList > li,
-.routeList > li {
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid rgb(198 155 87 / 18%);
-  background: rgb(7 25 29 / 58%);
-}
-
-.tradeCard[data-locked="true"] {
-  border-style: dashed;
-}
-
-.cardHeading,
-.supplyHeading {
-  align-items: flex-start;
-}
-
-.cardHeading > strong,
-.supplyHeading > strong,
-.manifestList strong {
-  font-family: var(--font-serif);
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.priceGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 15px 0;
-  border-top: 1px solid rgb(198 155 87 / 13%);
-}
-
-.priceGrid > div {
-  min-width: 0;
-  padding: 10px 8px 8px 0;
-  border-bottom: 1px solid rgb(198 155 87 / 13%);
-}
-
-.priceGrid dd {
-  font-size: 0.94rem;
-}
-
-.buttonRow {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  margin: -4px 0 10px;
+  color: #71664f;
+  font-size: 0.56rem;
+  line-height: 1.35;
 }
 
 .primaryButton,
 .secondaryButton {
   min-height: 40px;
-  padding: 8px 13px;
-  border: 1px solid var(--color-brass-soft);
-  border-radius: 2px;
+  padding: 7px 11px;
+  border: 1px solid var(--hud-brass-dark, #735124);
+  color: #ecddbd;
   cursor: pointer;
+  font-size: 0.65rem;
 }
 
 .primaryButton {
-  background: linear-gradient(180deg, rgb(198 155 87 / 22%), rgb(143 113 69 / 13%));
+  background: linear-gradient(#2a5967, #173b47);
 }
 
 .secondaryButton {
-  background: rgb(7 21 24 / 48%);
+  background: #102a31;
 }
 
 .primaryButton:hover:not(:disabled),
 .secondaryButton:hover:not(:disabled) {
-  border-color: var(--color-brass);
-  background-color: rgb(198 155 87 / 13%);
+  border-color: var(--hud-brass, #c99b4b);
+  background-color: #285563;
 }
 
 .primaryButton:disabled,
 .secondaryButton:disabled {
-  border-color: rgb(168 159 141 / 22%);
-  color: #817b70;
+  border-color: #8c8067;
+  color: #746d60;
   cursor: not-allowed;
 }
 
 .unavailableReason {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   overflow-wrap: anywhere;
-  color: #d4a28d;
-  font-size: 0.7rem;
-  line-height: 1.45;
+  color: #744334;
+  font-size: 0.61rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.unavailableReason strong {
-  font-weight: 700;
+.supplyManagementList .unavailableReason,
+.harborRoutes .unavailableReason {
+  grid-column: 1 / -1;
 }
 
-.manifestList,
-.supplyList,
-.routeList {
+.latestResult {
   display: grid;
-  gap: 9px;
-}
-
-.manifestList li {
+  grid-template-columns: minmax(130px, 0.4fr) minmax(220px, 1fr);
   align-items: center;
-  padding: 11px 0;
-  border-top: 1px solid rgb(198 155 87 / 13%);
-}
-
-.manifestList li > div,
-.supplyHeading {
-  min-width: 0;
-}
-
-.manifestList span,
-.supplyHeading span,
-.routeList p {
-  color: var(--color-muted);
-  font-size: 0.72rem;
-  line-height: 1.45;
-}
-
-.manifestList li > div:first-child span {
-  display: block;
-  margin-top: 3px;
-}
-
-.manifestAction {
-  align-items: center;
-}
-
-.manifestAction > span {
-  white-space: nowrap;
-}
-
-.manifestAction .secondaryButton {
-  min-height: 34px;
-}
-
-.supplyHeading {
-  align-items: baseline;
+  gap: 16px;
   margin-bottom: 12px;
+  padding: 11px 13px;
+  border: 1px solid rgb(111 162 128 / 35%);
+  background: rgb(78 125 91 / 10%);
+  box-shadow: inset 3px 0 #6fa280;
 }
 
-.routeList p {
-  margin: 10px 0 14px;
+.latestResult h3,
+.latestResult strong {
+  display: block;
 }
 
-.routeList .primaryButton {
-  width: 100%;
-}
-
-.voyagePanel {
-  position: relative;
-  min-height: 360px;
-  overflow: hidden;
-  padding: clamp(24px, 5vw, 56px);
-  background:
-    radial-gradient(circle at 85% 12%, rgb(198 155 87 / 18%), transparent 16rem),
-    linear-gradient(135deg, rgb(12 44 50 / 95%), rgb(7 25 29 / 98%));
-}
-
-.voyagePanel::after {
-  content: "";
-  position: absolute;
-  right: -60px;
-  bottom: -130px;
-  width: 360px;
-  height: 260px;
-  border: 1px solid rgb(198 155 87 / 14%);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 46px rgb(198 155 87 / 3%),
-    0 0 0 92px rgb(198 155 87 / 2%);
-  pointer-events: none;
-}
-
-.voyageRoute {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin: 44px 0 28px;
-}
-
-.voyageRoute span {
-  color: var(--color-muted);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+.latestResult h3 {
+  margin: 0;
+  color: #83a18b;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
-.voyageRoute strong {
+.latestResult strong {
+  margin-top: 3px;
+  color: #d9e5d3;
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: 0.83rem;
   font-weight: 500;
-  letter-spacing: -0.04em;
 }
 
-.detailGrid {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-width: 880px;
-  margin-bottom: 30px;
-  border-block: 1px solid rgb(198 155 87 / 18%);
+.latestResult p,
+.emptyState {
+  margin: 0;
+  color: #9ca99e;
+  font-size: 0.67rem;
+  line-height: 1.5;
 }
 
-.detailGrid > div {
-  min-width: 0;
-  padding: 15px 22px 15px 0;
-}
-
-.detailGrid dd {
-  font-size: 1rem;
-  overflow-wrap: anywhere;
-}
-
-.voyagePanel > .primaryButton {
-  position: relative;
-  z-index: 1;
-  min-width: 190px;
-}
-
-.resultPanel {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.45fr) minmax(300px, 1.55fr);
-  align-items: center;
-  gap: 28px;
-  margin-top: 16px;
-  padding: 20px 24px;
-  box-shadow: inset 3px 0 var(--color-success);
+.emptyState {
+  margin-top: 14px;
+  padding: 13px;
+  border: 1px dashed rgb(201 155 75 / 25%);
+  text-align: center;
 }
 
 .stateScreen {
   display: grid;
+  min-height: 100vh;
   place-items: center;
-  padding: 24px;
-  background: radial-gradient(circle at 50% 35%, rgb(35 86 91 / 32%), transparent 30rem), var(--color-ocean-950);
+  padding: 22px;
+  background: radial-gradient(circle at 50% 35%, rgb(45 105 116 / 32%), transparent 28rem), var(--color-ocean-950);
 }
 
 .stateCard {
   width: min(520px, 100%);
-  padding: clamp(28px, 6vw, 54px);
-  border: 1px solid var(--color-line);
-  background: rgb(9 29 33 / 90%);
-  box-shadow: 0 30px 90px rgb(0 0 0 / 28%);
+  padding: clamp(28px, 6vw, 52px);
+  border: 1px solid var(--color-brass-soft);
+  background: #0a242a;
+  box-shadow:
+    0 28px 80px rgb(0 0 0 / 32%),
+    inset 0 0 0 4px rgb(201 155 75 / 7%);
+}
+
+.stateScreen .kicker {
+  color: var(--color-brass);
 }
 
 .stateCard h1 {
-  margin: 7px 0 12px;
+  margin: 5px 0 12px;
   font-family: var(--font-serif);
-  font-size: clamp(2rem, 7vw, 3.5rem);
+  font-size: clamp(2rem, 7vw, 3.4rem);
   font-weight: 500;
   letter-spacing: -0.04em;
 }
 
-.stateCard > p:not(.eyebrow) {
-  margin: 0 0 24px;
+.stateCard > p:not(.kicker) {
+  margin: 0 0 22px;
   color: var(--color-muted);
   line-height: 1.6;
 }
 
-@media (max-width: 1100px) {
-  .topBar {
-    grid-template-columns: minmax(180px, auto) 1fr;
+@media (max-width: 1320px) {
+  .hudGrid {
+    grid-template-columns: 220px minmax(520px, 1fr) 285px;
   }
 
-  .resourceStrip {
-    justify-content: flex-end;
+  .sidebarSection,
+  .ledgerSection {
+    padding: 17px 14px;
   }
 
-  .saveState {
-    grid-column: 1 / -1;
-    min-height: 30px;
-    padding: 5px 20px;
-    border-top: 1px solid rgb(198 155 87 / 12%);
-    border-left: 0;
+  .mainColumn {
+    padding: 13px;
   }
 
-  .dashboard {
-    padding-inline: 22px;
+  .cityCommands button {
+    padding-inline: 8px;
   }
 
-  .portOverview {
-    grid-template-columns: minmax(240px, 0.75fr) minmax(430px, 1.4fr);
+  .commandIcon {
+    width: 34px;
+    height: 34px;
   }
 
-  .workspace {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas:
-      "market market"
-      "cargo provisioning"
-      "routes routes";
+  .supplyManagementList > li {
+    grid-template-columns: 34px minmax(100px, 1fr) minmax(76px, auto);
   }
 
-  .tradeList {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .supplyManagementList .actionButtons {
+    grid-column: 2 / -1;
   }
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1040px) {
+  .topBar {
+    grid-template-columns: minmax(220px, 0.7fr) minmax(420px, 1.3fr);
+  }
+
+  .saveStatus {
+    grid-column: 1 / -1;
+    min-height: 29px;
+    padding-block: 4px;
+    border-top: 1px solid rgb(201 155 75 / 14%);
+  }
+
+  .hudGrid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  .leftSidebar {
+    position: static;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid rgb(201 155 75 / 35%);
+  }
+
+  .sidebarSection {
+    border-right: 1px solid rgb(201 155 75 / 18%);
+    border-bottom: 0;
+  }
+
+  .rightSidebar {
+    top: 91px;
+    max-height: calc(100vh - 91px);
+  }
+
+  .mainColumn {
+    grid-column: 1;
+  }
+
+  .rightSidebar {
+    grid-column: 2;
+  }
+
+  .marketGrid,
+  .harborRoutes {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
   .topBar {
     position: static;
-  }
-
-  .resourceStrip {
-    gap: 18px;
-    padding-inline: 18px;
-  }
-
-  .dashboard {
-    padding: 18px 16px 0;
-  }
-
-  .portOverview {
     grid-template-columns: 1fr;
   }
 
-  .portIdentity {
+  .brandBlock {
     border-right: 0;
-    border-bottom: 1px solid var(--color-line);
+    border-bottom: 1px solid rgb(201 155 75 / 18%);
   }
 
-  .summaryGrid > div:nth-child(odd) {
-    border-left: 0;
+  .globalResources {
+    border-bottom: 1px solid rgb(201 155 75 / 18%);
   }
 
-  .workspace {
+  .globalResources > div:last-child {
+    border-right: 0;
+  }
+
+  .saveStatus {
+    grid-column: auto;
+    justify-content: flex-start;
+  }
+
+  .hudGrid {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "market"
-      "cargo"
-      "provisioning"
-      "routes";
   }
 
-  .tradeList {
+  .leftSidebar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .migrationPanel,
-  .resultPanel {
+  .leftSidebar .sidebarSection:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .rightSidebar,
+  .mainColumn {
+    grid-column: 1;
+  }
+
+  .rightSidebar {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
+    border-top: 1px solid rgb(201 155 75 / 35%);
+    border-left: 0;
+  }
+
+  .ledgerSection {
+    border-right: 1px solid rgb(201 155 75 / 18%);
+    border-bottom: 0;
+  }
+
+  .scenePanel {
+    min-height: 270px;
+  }
+
+  .cityCommands {
     grid-template-columns: 1fr;
   }
 
-  .migrationPanel {
-    align-items: flex-start;
-    flex-direction: column;
+  .cityCommands button {
+    min-height: 54px;
   }
 
-  .detailGrid {
-    grid-template-columns: 1fr;
+  .priceLedger {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .detailGrid > div:not(:last-child) {
-    border-bottom: 1px solid rgb(198 155 87 / 13%);
-  }
-}
-
-@media (max-width: 560px) {
-  .shell {
-    padding-bottom: 28px;
+  .supplyManagementList > li {
+    grid-template-columns: 34px minmax(0, 1fr);
   }
 
-  .topBar {
-    grid-template-columns: 1fr;
-  }
-
-  .brand {
-    padding: 12px 16px;
-    border-right: 0;
-    border-bottom: 1px solid var(--color-line);
-  }
-
-  .resourceStrip {
-    justify-content: space-between;
-    gap: 10px;
-    padding: 11px 16px;
-    font-size: 0.82rem;
-  }
-
-  .resourceStrip span {
-    display: block;
-  }
-
-  .resourceStrip small {
-    display: block;
-    margin-bottom: 2px;
-  }
-
-  .saveState {
-    grid-column: auto;
-    justify-content: flex-start;
+  .supplyPrice {
+    grid-column: 2;
     text-align: left;
   }
 
-  .portIdentity,
-  .panel,
-  .voyagePanel {
-    padding: 20px;
+  .supplyManagementList .actionButtons {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .globalResources > div {
+    display: block;
+    padding: 9px 8px;
+    text-align: center;
   }
 
-  .summaryGrid {
-    grid-template-columns: 1fr;
-    padding: 10px 20px;
+  .globalResources dd {
+    margin-top: 3px;
+    font-size: 0.78rem;
   }
 
-  .summaryGrid > div,
-  .summaryGrid > div:nth-child(n + 3) {
-    padding: 12px 0;
-    border-top: 1px solid rgb(198 155 87 / 14%);
-    border-left: 0;
-  }
-
-  .summaryGrid > div:first-child {
-    border-top: 0;
-  }
-
-  .tradeList {
+  .leftSidebar,
+  .rightSidebar {
     grid-template-columns: 1fr;
   }
 
-  .panelHeading,
-  .cardHeading,
-  .supplyHeading,
-  .manifestList li,
-  .manifestAction {
+  .leftSidebar .sidebarSection:last-child,
+  .ledgerSection {
+    grid-column: auto;
+    border-right: 0;
+    border-bottom: 1px solid rgb(201 155 75 / 18%);
+  }
+
+  .mainColumn {
+    padding: 9px;
+  }
+
+  .scenePanel {
+    min-height: 250px;
+  }
+
+  .sceneCopy {
+    top: 12px;
+    left: 12px;
+    max-width: calc(100% - 24px);
+  }
+
+  .sceneCopy h2 {
+    font-size: 1.15rem;
+  }
+
+  .buildingOne {
+    left: -10%;
+  }
+
+  .buildingTwo {
+    left: 22%;
+  }
+
+  .buildingThree,
+  .harborTower,
+  .dockCrane {
+    display: none;
+  }
+
+  .dockedShip {
+    right: -5%;
+  }
+
+  .voyageShip {
+    right: 22%;
+    transform: scale(0.8);
+    transform-origin: bottom;
+  }
+
+  .actionPanel,
+  .activityPanel {
+    padding: 14px;
+  }
+
+  .actionPanelHeading,
+  .voyageHeader,
+  .workspaceHeading,
+  .activityHeading {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .manifestAction {
+  .actionWorkspace {
+    padding: 12px;
+  }
+
+  .migrationPanel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .migrationPanel .secondaryButton {
     width: 100%;
   }
 
-  .manifestAction .secondaryButton,
-  .migrationPanel .secondaryButton,
-  .stateCard .primaryButton,
-  .voyagePanel > .primaryButton {
-    width: 100%;
+  .latestResult {
+    grid-template-columns: 1fr;
   }
 
-  .voyageRoute {
-    margin-top: 30px;
+  .priceContext {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .voyagePanel::after {
-    opacity: 0.5;
+  .marketGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .harborRoutes dl,
+  .voyageFacts {
+    grid-template-columns: 1fr;
+  }
+
+  .voyageFacts > div {
+    border-right: 0;
+    border-bottom: 1px solid rgb(201 155 75 / 12%);
+  }
+
+  .routeTrack {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .routeTrack i:nth-of-type(2),
+  .routeTrack span:last-child {
+    display: none;
+  }
+
+  .activityList li {
+    grid-template-columns: 47px minmax(0, 1fr);
+  }
+
+  .activityList p {
+    grid-column: 1 / -1;
+    padding-left: 57px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pixelWater span {
+    animation: waterDrift 5s steps(5, end) infinite alternate;
+  }
+
+  .shipFlag {
+    animation: flagFlutter 1.4s steps(2, end) infinite alternate;
+  }
+
+  .shell[data-voyage-state="transit"] .voyageShip {
+    animation: shipBob 2.4s steps(3, end) infinite alternate;
+  }
+}
+
+@keyframes waterDrift {
+  to {
+    transform: translateX(22px);
+  }
+}
+
+@keyframes flagFlutter {
+  to {
+    transform: scaleX(0.78);
+  }
+}
+
+@keyframes shipBob {
+  to {
+    translate: 0 4px;
   }
 }

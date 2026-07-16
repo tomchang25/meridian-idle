@@ -51,6 +51,23 @@ describe("useGameStore", () => {
     expect(result.current.state.fleet.products.cod.quantity).toBe(1);
   });
 
+  it("reports loading until repository hydration settles", async () => {
+    let resolveLoad: (value: null) => void = () => undefined;
+    const pendingRepository = repository();
+    pendingRepository.loadRaw = vi.fn(
+      () =>
+        new Promise<null>((resolve) => {
+          resolveLoad = resolve;
+        }),
+    );
+    const { result } = renderHook(() => useGameStore({ repository: pendingRepository, now: () => 10 }));
+
+    expect(result.current.saveStatus).toBe("loading");
+
+    await act(async () => resolveLoad(null));
+    expect(result.current.saveStatus).toBe("saved");
+  });
+
   it("rejects departure atomically when injected secure randomness is unavailable", async () => {
     const unavailableSeed: SeedSource = { isAvailable: () => false, nextSeed: () => null };
     const dependencies: GameStoreDependencies = {
@@ -71,7 +88,7 @@ describe("useGameStore", () => {
     expect(result.current.commandError).toBe("Secure randomness is unavailable; Voyage departure was not changed.");
   });
 
-  it("cleans up replayed timers and applies one offline arrival in Strict Mode", async () => {
+  it("reschedules after clock rollback and applies one arrival in Strict Mode", async () => {
     vi.useFakeTimers();
     let currentNow = 100;
     let state = buySupply(createInitialGameState(0), "food", 1, 1).state;
@@ -88,9 +105,15 @@ describe("useGameStore", () => {
     await settleHydration();
     expect(result.current.state.voyage?.plannedArrivesAt).toBe(2_100);
 
-    currentNow = 2_100;
+    currentNow = 50;
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(result.current.state.voyage?.destinationPortId).toBe("faro");
+
+    currentNow = 2_100;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_050);
     });
 
     expect(result.current.state.fleet.locationPortId).toBe("faro");
