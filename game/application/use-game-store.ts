@@ -1,116 +1,73 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getActionDefinition } from "@/game/domain/content/actions";
-import type { ActionFilter, GameLogEntry, GameState } from "@/game/domain/models/game";
-import { getActionStatus } from "@/game/domain/rules/action-selectors";
-import { resolveElapsedAction } from "@/game/domain/rules/offline-resolver";
 import { createInitialGameState } from "@/game/domain/state/initial-game-state";
+import { loadSave } from "@/game/infrastructure/persistence/save-migrations";
 import { IndexedDbSaveRepository } from "@/game/infrastructure/persistence/indexed-db-save-repository";
+import type { V5GameState } from "@/game/domain/models/game";
 
-export type SaveStatus = "loading" | "saved" | "saving" | "unavailable";
+export type SaveStatus = "loading" | "saved" | "saving" | "unavailable" | "corrupt";
 
 export function useGameStore() {
   const repository = useMemo(() => new IndexedDbSaveRepository(), []);
-  const [state, setState] = useState<GameState>(() => createInitialGameState());
-  const [now, setNow] = useState(() => Date.now());
-  const [hydrated, setHydrated] = useState(false);
+  const [state, setState] = useState<V5GameState>(() => createInitialGameState(Date.now()));
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("loading");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
+    let active = true;
     void repository
-      .load()
-      .then((save) => {
-        if (cancelled) return;
-        const currentTime = Date.now();
-        const loaded = save?.state ?? createInitialGameState(currentTime);
-        const resolution = resolveElapsedAction(loaded, currentTime);
-        setState({ ...resolution.state, lastSavedAt: currentTime });
-        setNow(currentTime);
-        setSaveStatus(repository.isAvailable() ? "saved" : "unavailable");
+      .loadRaw()
+      .then((raw) => {
+        if (!active) return;
+        if (raw === null) {
+          setState(createInitialGameState(Date.now()));
+          setSaveStatus("saved");
+        } else {
+          const loaded = loadSave(raw, Date.now());
+          if (loaded.kind === "corrupt") setSaveStatus("corrupt");
+          else {
+            setState(loaded.envelope.state);
+            setSaveStatus("saved");
+          }
+        }
         setHydrated(true);
       })
       .catch(() => {
-        if (cancelled) return;
-        setSaveStatus("unavailable");
-        setHydrated(true);
+        if (active) {
+          setSaveStatus("unavailable");
+          setHydrated(true);
+        }
       });
-
     return () => {
-      cancelled = true;
+      active = false;
     };
   }, [repository]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      const currentTime = Date.now();
-      setNow(currentTime);
-      setState((current) => resolveElapsedAction(current, currentTime).state);
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated || !repository.isAvailable()) return;
+    if (!hydrated || saveStatus === "unavailable" || saveStatus === "corrupt") return;
     const timer = window.setTimeout(() => {
       setSaveStatus("saving");
       void repository
-        .save(state)
+        .save(state, Date.now())
         .then(() => setSaveStatus("saved"))
         .catch(() => setSaveStatus("unavailable"));
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [hydrated, repository, state]);
+  }, [hydrated, repository, saveStatus, state]);
 
-  const startAction = useCallback((actionId: string) => {
-    setState((current) => {
-      const action = getActionDefinition(actionId);
-      if (!action || getActionStatus(action, current) === "locked") return current;
-      const startedAt = Date.now();
-      const logEntry: GameLogEntry = {
-        id: `start-${startedAt}`,
-        at: startedAt,
-        message: `開始執行：${action.name}`,
-        tone: "info",
-      };
-      return {
-        ...current,
-        currentAction: {
-          actionId,
-          startedAt,
-          cycleStartedAt: startedAt,
-          cycleEndsAt: startedAt + action.durationSec * 1000,
-        },
-        eventLog: [logEntry, ...current.eventLog].slice(0, 24),
-      };
-    });
-  }, []);
-
-  const stopAction = useCallback(() => {
-    setState((current) => {
-      const stoppedAt = Date.now();
-      const logEntry: GameLogEntry = {
-        id: `stop-${stoppedAt}`,
-        at: stoppedAt,
-        message: "目前行動已停止。",
-        tone: "warning",
-      };
-      return {
-        ...current,
-        currentAction: null,
-        eventLog: [logEntry, ...current.eventLog].slice(0, 24),
-      };
-    });
-  }, []);
-
-  const selectRegion = useCallback((regionId: string) => {
-    setState((current) => ({ ...current, selectedRegionId: regionId }));
-  }, []);
-
-  const selectCategory = useCallback((category: ActionFilter) => {
-    setState((current) => ({ ...current, selectedCategory: category }));
-  }, []);
-
-  return { state, now, saveStatus, startAction, stopAction, selectRegion, selectCategory };
+  const acknowledgeMigration = useCallback(
+    () =>
+      setState((current) =>
+        current.migrationReport
+          ? { ...current, migrationReport: { ...current.migrationReport, acknowledged: true } }
+          : current,
+      ),
+    [],
+  );
+  const startNewGame = useCallback(() => {
+    setState(createInitialGameState(Date.now()));
+    setSaveStatus(repository.isAvailable() ? "saved" : "unavailable");
+  }, [repository]);
+  return { state, saveStatus, acknowledgeMigration, startNewGame };
 }

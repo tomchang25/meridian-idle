@@ -1,5 +1,5 @@
-import { createSaveEnvelope, migrateSave, type SaveEnvelope } from "@/game/infrastructure/persistence/save-migrations";
-import type { GameState } from "@/game/domain/models/game";
+import { createSaveEnvelope } from "@/game/infrastructure/persistence/save-migrations";
+import type { V5GameState } from "@/game/domain/models/game";
 
 const DATABASE_NAME = "meridian-idle";
 const STORE_NAME = "game-saves";
@@ -24,25 +24,25 @@ export class IndexedDbSaveRepository {
   isAvailable(): boolean {
     return typeof indexedDB !== "undefined";
   }
-
-  async load(): Promise<SaveEnvelope | null> {
-    if (!this.isAvailable()) return null;
+  async loadRaw(): Promise<unknown | null> {
+    if (!this.isAvailable()) throw new Error("IndexedDB unavailable");
     const database = await openDatabase();
     try {
-      const transaction = database.transaction(STORE_NAME, "readonly");
-      const raw = await requestToPromise(transaction.objectStore(STORE_NAME).get(SAVE_KEY));
-      return migrateSave(raw);
+      return await requestToPromise(database.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(SAVE_KEY));
     } finally {
       database.close();
     }
   }
-
-  async save(state: GameState): Promise<void> {
-    if (!this.isAvailable()) return;
+  async save(state: V5GameState, now: number): Promise<void> {
+    if (!this.isAvailable()) throw new Error("IndexedDB unavailable");
     const database = await openDatabase();
     try {
-      const transaction = database.transaction(STORE_NAME, "readwrite");
-      await requestToPromise(transaction.objectStore(STORE_NAME).put(createSaveEnvelope(state), SAVE_KEY));
+      await requestToPromise(
+        database
+          .transaction(STORE_NAME, "readwrite")
+          .objectStore(STORE_NAME)
+          .put(createSaveEnvelope(state, now), SAVE_KEY),
+      );
     } finally {
       database.close();
     }

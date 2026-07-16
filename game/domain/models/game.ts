@@ -1,91 +1,48 @@
-export type ActionCategory = "trade" | "exploration" | "navigation" | "combat" | "expedition";
+export const SUPPLY_IDS = ["food", "water", "medicine", "rope", "sails"] as const;
 
-export type ActionFilter = "all" | ActionCategory;
-export type ActionStatus = "available" | "locked" | "running";
-export type RequirementType =
-  "knowledgeLevel" | "skillLevel" | "masteryLevel" | "regionFamiliarity" | "officerLanguage" | "shipStat" | "item";
+export type SupplyId = (typeof SUPPLY_IDS)[number];
+export type ActivityTone = "info" | "success" | "warning";
 
-export type RewardType = "gold" | "fame" | "knowledgeExp" | "skillExp" | "masteryExp" | "item";
-
-export type Requirement = {
-  type: RequirementType;
-  targetId: string;
-  label: string;
-  requiredValue: number | string;
+export type CargoStack = {
+  quantity: number;
+  totalCostBasis: number;
 };
 
-export type RewardPreview = {
-  type: RewardType;
-  targetId?: string;
-  label: string;
-  minAmount: number;
-  maxAmount: number;
+export type Fleet = {
+  locationPortId: "lisbon";
+  gold: number;
+  cargoCapacity: number;
+  hp: number;
+  maxHp: number;
+  attack: number;
+  products: Record<string, CargoStack>;
+  supplies: Record<SupplyId, CargoStack>;
 };
 
-export type GameActionDefinition = {
-  id: string;
-  name: string;
-  description: string;
-  regionId: string;
-  category: ActionCategory;
-  durationSec: number;
-  skillId: string;
-  eventRequirement: number;
-  difficultyThreshold: number;
-  requirements: Requirement[];
-  rewards: RewardPreview[];
-  nextMasteryNode?: { level: number; label: string };
+export type PortProgress = {
+  xp: number;
 };
 
-export type RegionDefinition = {
-  id: string;
-  name: string;
-  tier: number;
-  familiarity: number;
-  nextTierAt: number;
+export type MigrationReport = {
+  fromVersion: 1;
+  migratedAt: number;
+  droppedFields: string[];
+  acknowledged: boolean;
 };
 
-export type RunningAction = {
-  actionId: string;
-  startedAt: number;
-  cycleStartedAt: number;
-  cycleEndsAt: number;
-};
-
-export type GameLogEntry = {
+export type ActivityEntry = {
   id: string;
   at: number;
   message: string;
-  tone: "info" | "success" | "warning";
+  tone: ActivityTone;
 };
 
-export type GameState = {
-  captain: {
-    name: string;
-    rank: string;
-    level: number;
-  };
-  resources: {
-    gold: number;
-    fame: number;
-  };
-  knowledge: Record<string, number>;
-  skills: Record<string, number>;
-  mastery: Record<string, number>;
-  selectedRegionId: string;
-  selectedCategory: ActionFilter;
-  currentAction: RunningAction | null;
-  eventLog: GameLogEntry[];
-  lastSavedAt: number;
-};
-
-export type CheckBreakdown = {
-  successRate: number;
-  greatSuccessRate: number;
-  baseScore: number;
-  rollMin: number;
-  rollMax: number;
-  skillId: string;
-  skillValue: number;
-  eventRequirement: number;
+export type V5GameState = {
+  schemaVersion: 2;
+  createdAt: number;
+  world: { knownPortIds: ["lisbon"] };
+  fleet: Fleet;
+  portProgress: { lisbon: PortProgress };
+  migrationReport: MigrationReport | null;
+  activity: ActivityEntry[];
 };
