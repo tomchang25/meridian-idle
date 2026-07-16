@@ -5,7 +5,7 @@ import { createInitialGameState } from "@/game/domain/state/initial-game-state";
 import { loadSave } from "@/game/infrastructure/persistence/save-migrations";
 import { IndexedDbSaveRepository } from "@/game/infrastructure/persistence/indexed-db-save-repository";
 import type { V5GameState } from "@/game/domain/models/game";
-import { buySupply as applySupplyPurchase } from "@/game/domain/rules/cargo";
+import { buySupply as applySupplyPurchase, discardSupply as applySupplyDiscard } from "@/game/domain/rules/cargo";
 import type { SupplyId } from "@/game/domain/models/game";
 
 export type SaveStatus = "loading" | "saved" | "saving" | "unavailable" | "corrupt";
@@ -76,5 +76,10 @@ export function useGameStore() {
       setState((current) => applySupplyPurchase(current, supplyId, quantity, Date.now()).state),
     [],
   );
-  return { state, saveStatus, acknowledgeMigration, startNewGame, buySupply };
+  const discardSupply = useCallback(
+    (supplyId: SupplyId, quantity: number) =>
+      setState((current) => applySupplyDiscard(current, supplyId, quantity).state),
+    [],
+  );
+  return { state, saveStatus, acknowledgeMigration, startNewGame, buySupply, discardSupply };
 }

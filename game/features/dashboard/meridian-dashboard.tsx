@@ -2,10 +2,10 @@
 
 import { useGameStore } from "@/game/application/use-game-store";
 import { SUPPLY_IDS } from "@/game/domain/models/game";
-import { getPort } from "@/game/domain/content/core-content";
+import { getPort, getProduct } from "@/game/domain/content/core-content";
 
 export function MeridianDashboard() {
-  const { state, saveStatus, acknowledgeMigration, startNewGame, buySupply } = useGameStore();
+  const { state, saveStatus, acknowledgeMigration, startNewGame, buySupply, discardSupply } = useGameStore();
   if (saveStatus === "loading") return <main aria-busy="true">Loading your logbook…</main>;
   if (saveStatus === "corrupt")
     return (
@@ -60,6 +60,21 @@ export function MeridianDashboard() {
               <button type="button" onClick={() => buySupply(supplyId, 1)}>
                 Buy 1
               </button>
+              <button
+                type="button"
+                disabled={state.fleet.supplies[supplyId].quantity === 0}
+                onClick={() => discardSupply(supplyId, 1)}
+              >
+                Discard 1
+              </button>
+            </li>
+          ))}
+        </ul>
+        <h3>Port catalog</h3>
+        <ul>
+          {getPort(state.fleet.locationPortId)?.catalog.map((entry) => (
+            <li key={entry.productId}>
+              {getProduct(entry.productId)?.name} · unlocks at Level {entry.unlockLevel}
             </li>
           ))}
         </ul>

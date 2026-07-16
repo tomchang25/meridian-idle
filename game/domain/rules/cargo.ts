@@ -38,3 +38,29 @@ export function buySupply(
     },
   };
 }
+
+export function discardSupply(
+  state: V5GameState,
+  supplyId: SupplyId,
+  quantity: number,
+): { state: V5GameState; error?: string } {
+  const stack = state.fleet.supplies[supplyId];
+  if (!Number.isSafeInteger(quantity) || quantity <= 0 || quantity > stack.quantity)
+    return { state, error: "Not enough Supply to discard." };
+  const removedCost =
+    quantity === stack.quantity
+      ? stack.totalCostBasis
+      : Math.floor((stack.totalCostBasis * quantity) / stack.quantity + 0.5);
+  return {
+    state: {
+      ...state,
+      fleet: {
+        ...state.fleet,
+        supplies: {
+          ...state.fleet.supplies,
+          [supplyId]: { quantity: stack.quantity - quantity, totalCostBasis: stack.totalCostBasis - removedCost },
+        },
+      },
+    },
+  };
+}

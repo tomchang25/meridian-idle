@@ -25,6 +25,7 @@ const store = {
   acknowledgeMigration: vi.fn(),
   startNewGame: vi.fn(),
   buySupply: vi.fn(),
+  discardSupply: vi.fn(),
 };
 
 vi.mock("@/game/application/use-game-store", () => ({ useGameStore: () => store }));

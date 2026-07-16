@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGameState } from "@/game/domain/state/initial-game-state";
-import { buySupply, usedCargo } from "@/game/domain/rules/cargo";
+import { buySupply, discardSupply, usedCargo } from "@/game/domain/rules/cargo";
 
 describe("supply provisioning", () => {
   it("atomically adds supply quantity and cost basis", () => {
@@ -17,5 +17,12 @@ describe("supply provisioning", () => {
     expect(buySupply(state, "food", 0, 1).state).toBe(state);
     state.fleet.supplies.food.quantity = 60;
     expect(buySupply(state, "water", 1, 1).state).toBe(state);
+  });
+
+  it("removes proportional cost basis without a refund", () => {
+    const purchased = buySupply(createInitialGameState(0), "food", 2, 1).state;
+    const discarded = discardSupply(purchased, "food", 1).state;
+    expect(discarded.fleet.gold).toBe(purchased.fleet.gold);
+    expect(discarded.fleet.supplies.food).toEqual({ quantity: 1, totalCostBasis: 8 });
   });
 });
