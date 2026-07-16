@@ -41,10 +41,10 @@ Before implementing each Child, the agent creates the required live-code-verifie
 
 These subsections record corrective work discovered by reviewing the experiment outcome. They do not retroactively change the Phase 00–05 gates or represent those phases as accepted.
 
-| Subsection           | Focus                                                                                      | Current document                                     |
-| -------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| HUD recovery         | Restore the disconnected responsive maritime presentation and complete human visual review | [Sketch](v5-core-mvp_hud-recovery.sketch.md)         |
-| Smoke journey repair | Replace the misleading one-path smoke with truthful Child 01–05 final-acceptance journeys  | [Sketch](v5-core-mvp_smoke-journey-repair.sketch.md) |
+| Subsection           | Focus                                                                                      | Current document                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| HUD recovery         | Restore the disconnected responsive maritime presentation and complete human visual review | [Implementation Spec](v5-core-mvp_hud-recovery.implementation_spec.md) |
+| Smoke journey repair | Paused; retain the proposed final-acceptance browser work without executing it             | [Paused Sketch](v5-core-mvp_smoke-journey-repair.sketch.md)            |
 
 ### Phase 00 Baseline
 
