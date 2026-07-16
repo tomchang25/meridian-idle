@@ -26,14 +26,14 @@ The experiment is blocked, rather than partially simulated, when it cannot creat
 
 ### Phase Order
 
-| Phase | Scope                                      | Required outcome before the next phase                                                                                                 |
-| ----- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 00    | Automation baseline and MVP content ledger | CI executes repository verification; all initial content and deterministic choices are durable and reviewable |
-| 01    | V5 bootstrap and migration                 | New, migrated, corrupt, absent, and unavailable-save states meet Child 01 acceptance criteria                                          |
-| 02    | Product, cargo, and provisioning           | Authored catalog, shared cargo capacity, supply transactions, and persisted cost basis meet Child 02 acceptance criteria               |
-| 03    | Market session and manual trade            | Persisted pricing, atomic buy and sell, price classification, and sale accounting meet Child 03 acceptance criteria                    |
-| 04    | Port progression and specialty supply      | Different-Port settlement, level-derived unlocks, and finite specialty supply meet Child 04 acceptance criteria                        |
-| 05    | Voyage and offline arrival                 | One deterministic foreground, resume, reload, and offline arrival path meets Child 05 acceptance criteria                              |
+| Phase | Scope                                      | Required outcome before the next phase                                                                                   |
+| ----- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| 00    | Automation baseline and MVP content ledger | CI executes repository verification; all initial content and deterministic choices are durable and reviewable            |
+| 01    | V5 bootstrap and migration                 | New, migrated, corrupt, absent, and unavailable-save states meet Child 01 acceptance criteria                            |
+| 02    | Product, cargo, and provisioning           | Authored catalog, shared cargo capacity, supply transactions, and persisted cost basis meet Child 02 acceptance criteria |
+| 03    | Market session and manual trade            | Persisted pricing, atomic buy and sell, price classification, and sale accounting meet Child 03 acceptance criteria      |
+| 04    | Port progression and specialty supply      | Different-Port settlement, level-derived unlocks, and finite specialty supply meet Child 04 acceptance criteria          |
+| 05    | Voyage and offline arrival                 | One deterministic foreground, resume, reload, and offline arrival path meets Child 05 acceptance criteria                |
 
 Before implementing each Child, the agent creates the required live-code-verified implementation spec. The spec replaces that Child's sketch as the parent plan's single executable handoff. Each Child's closeout is part of its Phase and completes before that Phase's terminal verification gate. This experiment adds delivery gates but does not replace planning, verification, or closeout ownership.
 
