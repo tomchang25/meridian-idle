@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:smoke": "vinext build && playwright test",
     "lint": "eslint . --max-warnings=0",
     "verify": "npm run governance:check && prettier --check . && tsc --noEmit && eslint . --max-warnings=0 && vitest run && vinext build"
   },
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "4.2.1",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.0",
