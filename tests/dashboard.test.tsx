@@ -58,6 +58,18 @@ describe("MeridianDashboard", () => {
     expect(store.buyProduct).toHaveBeenCalledWith("cod");
   });
 
+  it("keeps the main column between the left and right sidebars", () => {
+    render(<MeridianDashboard />);
+
+    const leftSidebar = screen.getByRole("complementary", { name: "Long-term status" });
+    const rightSidebar = screen.getByRole("complementary", { name: "Short-term status" });
+    const mainColumn = screen
+      .getByRole("heading", { name: "Port operations at Lisbon" })
+      .closest("section")?.parentElement;
+
+    expect(Array.from(leftSidebar.parentElement!.children)).toEqual([leftSidebar, mainColumn, rightSidebar]);
+  });
+
   it("switches city actions and wires Product, Supply, and Harbor commands", () => {
     store.state.fleet.products = { cod: { quantity: 1, totalCostBasis: 20 } };
     store.state.fleet.supplies.food = { quantity: 2, totalCostBasis: 16 };
