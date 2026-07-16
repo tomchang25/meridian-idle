@@ -1,38 +1,32 @@
-# Standards Enforcement
+# Meridian Governance Enforcement
 
-Governance prose 只有在能防止重要契約被靜默刪除時才可靠。`dev/tools/check-governance.mjs` 保護文件分層、canonical work lifecycle、TODO pointer integrity、active plan shape 與 package-script integration。
+`dev/foundation/tools/verify_consumer.py` verifies the selected foundation layer and required project-local operation contracts. `dev/tools/check-governance.mjs` verifies Meridian-owned discovery, addenda, TODO pointers, and active plan shape. Neither validator replaces prose review.
 
 ## What is enforced
 
-- Required canonical governance files 存在，且保留 load-bearing sections/phrases。
-- `work_lifecycle.md` 保留完整 canonical flow 與每個 transition gate，而 artifact standards 會指回它。
-- 七個 `workflows/commands/` operational contracts 存在、從 trigger map/lifecycle 可發現，並不回流 Godot-specific commands 或 file types。
-- `dev/README.md` trigger map 指向實際存在的 Web skills 與 workflows。
-- `TODO.md` 保留 Active、Plan、Chore、Bug 與 Draft sections，不建立 Done tier。
-- TODO 中的 plan reference 指向實際 active plan file。
-- Child sketch/spec 擁有 `Parent Plan` marker，而且 parent 存在。
-- Active Main Plan 保留 Goal、Requirements 與 Acceptance Criteria，不保留 completed checklists 或 implemented/superseded status。
-- V3 product schema 不回流到 generic state standard。
-- `package.json` 提供 `governance:check`，且 `verify` 會執行它。
+- `dev/foundation.config.json` selects the schema-2 Web React foundation with no profile.
+- Meridian provides the required local startup, Git, and test operation contracts, and they point to their canonical foundation owners.
+- Shared governance compatibility copies are absent; shared workflows, Web standards, agent rules, and skills are read from `dev/foundation/`.
+- Meridian's README, local addenda, product-doc tracking, and package scripts point to discoverable owners.
+- TODO, plan-pointer, child-parent, and active-main-plan integrity remain protected locally.
+- `package.json` runs both foundation and Meridian governance verification before full application verification.
 
 ## What remains prose-reviewed
 
-- Architecture 決策是否正確，而不只是 heading 存在。
-- Plan requirements 是否完整且沒有混入 implementation coordinates。
-- Spec Relational Context 是否覆蓋實際 blast radius。
-- Skill 是否仍是具體 task reference、format recipe 或 hazard card，而不是第二份 architecture standard。
-- Closeout 是否真的達成 acceptance criteria。
+- Architecture and product decisions, including whether a proposed addendum is genuinely project-specific.
+- Plan requirements, implementation-spec relational context, review depth, and closeout evidence.
+- Whether a new local skill is a real Meridian-specific hazard rather than a duplicate foundation rule.
 
 ## Adding a machine-checkable rule
 
-1. 只在規則有過靜默遺失風險、可以準確判斷，且 false positive 低時加入 linter。
-2. 在 canonical document 先寫人類可讀規則，再讓 linter 保護該契約；linter 不成為唯一文件。
-3. 錯誤訊息要指出檔案、遺失契約與修正方向。
-4. 不用字串檢查強迫架構偏好、文案措辭或可透過 TypeScript/ESLint/tests 更準確驗證的事。
-5. 修改 checker 後執行 `npm run governance:check` 與 `npm run verify`。
+1. First assign the rule to its canonical owner using `dev/foundation/core/standards/governance_structure_standard.md`.
+2. Add a local checker assertion only when the contract is Meridian-owned, has silent-loss risk, and can be judged accurately with low false positives.
+3. Keep the human-readable rule in its canonical document; the checker is protection, not the sole source of truth.
+4. Modify `dev/tools/check-governance.mjs` only for local contracts. Change foundation-wide rules upstream.
+5. After changing the checker or package scripts, run `npm run governance:check` and `npm run verify`.
 
 ## Verification scope
 
-- Docs-only 或 TODO-only change：執行 changed-file Prettier check 與 `npm run governance:check`。
-- Governance checker 或 package scripts 變更：執行完整 `npm run verify`。
-- Program change：`npm run verify` 會先執行 governance checker，再執行 format、typecheck、lint、tests 與 build。
+- Docs-only or tracking-only change: run Prettier against changed Markdown files and `npm run governance:check`.
+- Local checker or package-script change: run `npm run verify`.
+- Program change: `npm run verify` runs governance, formatting, typecheck, lint, tests, and production build.

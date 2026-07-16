@@ -1,33 +1,30 @@
-# Agent Startup
+# Meridian Idle Agent Startup
+
+Read `dev/foundation/core/agent_rules/foundation_startup.md` and `dev/foundation/platforms/web-react/platform_startup.md` before this file. This is Meridian Idle's authoritative project-local startup layer.
 
 ## Project snapshot
 
-- Product: maritime incremental / management game
-- Runtime: browser
-- Language: TypeScript with strict mode
-- UI: React, semantic HTML, CSS Modules
-- Persistence: IndexedDB through repository adapters
-- Primary build: Web/PWA
-- Tests: Vitest and React Testing Library
+- Product: maritime incremental / management game.
+- Platform: Web React; TypeScript strict mode, semantic HTML, and CSS Modules.
+- Persistence: IndexedDB through repository adapters.
+- Primary build: Web/PWA through Vinext.
+- Tests: Vitest and React Testing Library.
 
-## Execution defaults
+## Required operation contracts
 
-- 使用現有 package manager 與 lockfile，不自行切換。
-- 優先修改既有 feature，不為假設性的未來重用建立 abstraction。
-- 使用繁體中文或英文撰寫溝通與專案文件。
-- 文件中的 code identifiers、file paths 與 command names 保留實際英文字串。
+- Read `dev/agent_rules/git_operations.md` before any Git mutation or when Git state is unreliable.
+- Read `dev/agent_rules/test_operations.md` before any test, build, format check, browser validation, or other verification operation.
 
-## Reading behavior
+## Project-local discovery
 
-- 先依 `dev/README.md` trigger map 載入相關文件，不一次讀完所有 standards 或 skills。
-- 被觸發的文件必須完整讀取，不只讀 heading 或擷要。
-- 若文件指向另一個 canonical owner，讀取 canonical owner，不從 pointer 猜測規則。
-- 直接修改此 governance 層時，先讀 `dev/standards/standards_enforcement.md`。
+- Use `dev/README.md` for Meridian's trigger map. It routes shared rules directly to `dev/foundation/` and project-specific deltas to the correct local document.
+- Read `dev/standards/standards_enforcement.md` before changing local governance or `dev/tools/check-governance.mjs`.
+- Read `dev/standards/project_structure.md` before changing Meridian's runtime folder layout.
+- Read `dev/standards/state_management.md` and `dev/skills/offline-time-resolution.md` for Meridian-specific state and elapsed-time behavior.
+- Product decisions live in `dev/docs/design/`; active planning lives in `dev/docs/plans/`; `TODO.md` owns forward work and `CHANGELOG.md` owns shipped history.
 
-## Documentation ownership
+## Local defaults
 
-- Product decisions: `dev/docs/design/`
-- Architecture and code contracts: `dev/standards/`
-- Active implementation planning: `dev/docs/plans/`
-- Shipped changes: root `CHANGELOG.md`
-- Forward work: root `TODO.md`
+- Use the existing npm lockfile and package manager; do not switch package managers.
+- Prefer existing feature ownership over speculative abstractions.
+- Write project-local communication and documentation in Traditional Chinese or English. Keep code identifiers, file paths, and command names in their actual spelling.

@@ -3,6 +3,7 @@
 .wrangler/
 coverage/
 dist/
+dev/foundation/
 node_modules/
 out/
 outputs/

@@ -7,164 +7,98 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const errors = [];
 
-const REQUIRED_CONTRACTS = {
-  "AGENTS.md": ["dev/README.md", "npm run verify"],
+const REQUIRED_LOCAL_CONTRACTS = {
+  "AGENTS.md": [
+    "dev/foundation/core/agent_rules/foundation_startup.md",
+    "dev/foundation/platforms/web-react/platform_startup.md",
+    "dev/agent_rules/agent_startup.md",
+    "dev/agent_rules/test_operations.md",
+  ],
   "dev/README.md": [
-    "## Placement",
-    "## Trigger map",
-    "workflows/work_lifecycle.md",
-    "workflows/sketch_standard.md",
-    "skills/react-strict-mode-effects.md",
-    "skills/indexeddb-upgrade-transactions.md",
-    "skills/offline-time-resolution.md",
-    "skills/service-worker-cache-versioning.md",
-    "workflows/commands/research-context.md",
-    "workflows/commands/spec-discuss.md",
-    "workflows/commands/spec-build.md",
-    "workflows/commands/stage-review.md",
-    "workflows/commands/closeout.md",
-    "workflows/commands/commit-msg.md",
-    "workflows/commands/pr-review.md",
+    "foundation/core/agent_rules/foundation_startup.md",
+    "foundation/platforms/web-react/platform_startup.md",
+    "foundation/core/workflows/work_lifecycle.md",
+    "standards/project_structure.md",
+    "standards/state_management.md",
   ],
-  "dev/agent_rules/agent_startup.md": ["## Reading behavior", "dev/README.md", "standards_enforcement.md"],
-  "dev/agent_rules/git_operations.md": ["read-only", "git reset --hard", "mutation 失敗"],
-  "dev/agent_rules/save_migrations.md": [
-    "append-only",
-    "v1 → v2 → v3",
-    "declared compatibility break",
-    "degraded/dropped data",
+  "dev/agent_rules/agent_startup.md": [
+    "dev/foundation/core/agent_rules/foundation_startup.md",
+    "dev/foundation/platforms/web-react/platform_startup.md",
+    "git_operations.md",
+    "test_operations.md",
   ],
-  "dev/workflows/plan_standard.md": [
-    "work_lifecycle.md",
-    "## Child decomposition",
-    ".sketch.md",
-    ".implementation_spec.md",
-    "Child 只由 parent overview 指向",
-  ],
-  "dev/workflows/sketch_standard.md": [
-    "work_lifecycle.md",
-    "Parent Plan: `<plan_filename.md>`",
-    "Candidate files to inspect",
-    "provisional context",
-  ],
-  "dev/workflows/implementation_spec_standard.md": [
-    "work_lifecycle.md",
-    "Parent Plan: none (standalone spec)",
-    "### 2. Summary",
-    "### 4. Relational Context",
-    "### 7. Execution Outline",
-    "### 10. Verification",
-  ],
-  "dev/workflows/review_standard.md": [
-    "## Finding priority",
-    "### Stale/redundant check",
-    "### Robustness check",
-    "## Per-file review summary",
-  ],
-  "dev/workflows/closeout.md": [
-    "work_lifecycle.md",
-    "## Child closeout",
-    "## Flow closeout",
-    "CHANGELOG.md",
-    "dev/docs/archived/",
-  ],
-  "dev/workflows/work_lifecycle.md": [
-    "## Canonical flow",
-    "TODO Draft",
-    "→ Child Implementation Spec",
-    "### TODO Draft → Main Plan",
-    "### Main Plan → Child Sketch",
-    "### Sketch → Implementation Spec",
-    "### Implementation Spec → Implementation",
-    "### Implementation → Verify",
-    "### Verify → Child Closeout",
-    "### Child Closeout → Main Plan Closeout",
-    "## Review position",
-    "## Operational commands",
-    "commands/research-context.md",
-    "commands/spec-discuss.md",
-    "commands/spec-build.md",
-    "commands/stage-review.md",
-    "commands/closeout.md",
-    "commands/commit-msg.md",
-    "commands/pr-review.md",
-    "## Tracking states",
-  ],
-  "dev/workflows/commands/research-context.md": [
-    "read-only",
-    "Relevant Codebase Context",
-    "Spec-Time Decisions",
-    "不寫 Plan",
-  ],
-  "dev/workflows/commands/spec-discuss.md": ["read-only", "/spec-build", "Locked Decisions", "Build Readiness"],
-  "dev/workflows/commands/spec-build.md": [
-    "## Decision gate",
-    "Relational Context",
-    "npm run governance:check",
-    "不實作程式",
-  ],
-  "dev/workflows/commands/stage-review.md": [
-    "git diff --cached --check",
-    "git show :<path>",
-    "per-file summary",
-    "needs changes",
-  ],
-  "dev/workflows/commands/closeout.md": [
-    "documentation/tracking cleanup",
-    "## Detect scope",
-    "Child Closeout",
-    "/commit-msg",
-  ],
-  "dev/workflows/commands/commit-msg.md": [
-    "git diff --cached --name-status",
-    "conventional-commits.md",
-    "不讀 unstaged/untracked changes",
-  ],
-  "dev/workflows/commands/pr-review.md": [
-    "git diff <base>...HEAD",
-    "review_standard.md",
-    "pr-convention.md",
-    "不開 PR",
-  ],
-  "dev/docs/README.md": [
-    "## Tracking ownership",
-    "## TODO maturity",
-    "## Plan lifecycle",
-    "dev/workflows/work_lifecycle.md",
-    "CHANGELOG.md",
-  ],
+  "dev/agent_rules/git_operations.md": ["dev/foundation/core/agent_rules/git_operations.md"],
+  "dev/agent_rules/test_operations.md": ["# Test Operations", "npm run governance:check", "npm run verify"],
+  "dev/docs/README.md": ["dev/foundation/core/workflows/work_lifecycle.md", "CHANGELOG.md"],
   "dev/standards/standards_enforcement.md": [
+    "dev/foundation/tools/verify_consumer.py",
     "dev/tools/check-governance.mjs",
-    "workflows/commands/",
-    "## What is enforced",
-    "## Adding a machine-checkable rule",
+    "npm run governance:check",
   ],
-  "dev/standards/change_summary_standard.md": ["## Core rule", "durable outcome", "## Scope by artifact"],
-  "dev/skills/README.md": [
-    "repository-local task references",
-    "不是 Codex",
-    "## Current cards",
-    "conventional-commits.md",
-    "pr-convention.md",
+  "dev/standards/react_component.addendum.md": [
+    "dev/foundation/platforms/web-react/standards/react_component_standard.md",
+    '"use client"',
   ],
-  "dev/skills/conventional-commits.md": ["<type>[optional scope][!]", "BREAKING CHANGE", "## Types"],
-  "dev/skills/pr-convention.md": ["## Summary", "## Changes", "## Testing", "## Breaking changes"],
-  "dev/skills/react-strict-mode-effects.md": ["## Hazard", "## Safe shape"],
-  "dev/skills/indexeddb-upgrade-transactions.md": ["## Hazard", "versionchange"],
+  "dev/standards/persistence.addendum.md": [
+    "dev/foundation/core/standards/persistence_standard.md",
+    "dev/foundation/platforms/web-react/standards/browser_persistence_standard.md",
+    "SaveEnvelope",
+  ],
+  "dev/standards/web_platform.addendum.md": [
+    "dev/foundation/platforms/web-react/standards/web_platform_standard.md",
+    "Chromium",
+    "service worker",
+  ],
+  "dev/skills/README.md": ["Meridian-specific", "offline-time-resolution.md"],
   "dev/skills/offline-time-resolution.md": ["## Hazard", "同一 resolver"],
-  "dev/skills/service-worker-cache-versioning.md": ["## Hazard", "Cache names"],
 };
 
-function read(relativePath) {
-  const absolutePath = path.join(ROOT, relativePath);
-  if (!fs.existsSync(absolutePath)) {
-    errors.push(`missing required governance file: ${relativePath}`);
-    return null;
-  }
-  return fs.readFileSync(absolutePath, "utf8");
+const LEGACY_SHARED_FILES = [
+  "dev/agent_rules/lint_before_finish.md",
+  "dev/agent_rules/save_migrations.md",
+  "dev/standards/accessibility_standard.md",
+  "dev/standards/change_summary_standard.md",
+  "dev/standards/naming_conventions.md",
+  "dev/standards/persistence_standard.md",
+  "dev/standards/react_component_standard.md",
+  "dev/standards/runtime_ownership.md",
+  "dev/standards/testing_standard.md",
+  "dev/standards/web_platform_standard.md",
+  "dev/skills/conventional-commits.md",
+  "dev/skills/indexeddb-upgrade-transactions.md",
+  "dev/skills/pr-convention.md",
+  "dev/skills/react-strict-mode-effects.md",
+  "dev/skills/service-worker-cache-versioning.md",
+];
+
+const LOCAL_GOVERNANCE_DOCS = [
+  "AGENTS.md",
+  "dev/README.md",
+  "dev/agent_rules/agent_startup.md",
+  "dev/agent_rules/git_operations.md",
+  "dev/agent_rules/test_operations.md",
+  "dev/docs/README.md",
+  "dev/standards/standards_enforcement.md",
+  "dev/standards/react_component.addendum.md",
+  "dev/standards/persistence.addendum.md",
+  "dev/standards/web_platform.addendum.md",
+  "dev/skills/README.md",
+];
+
+function absolute(relativePath) {
+  return path.join(ROOT, relativePath);
 }
 
-for (const [relativePath, fragments] of Object.entries(REQUIRED_CONTRACTS)) {
+function read(relativePath) {
+  const target = absolute(relativePath);
+  if (!fs.existsSync(target)) {
+    errors.push(`missing required Meridian governance file: ${relativePath}`);
+    return null;
+  }
+  return fs.readFileSync(target, "utf8");
+}
+
+for (const [relativePath, fragments] of Object.entries(REQUIRED_LOCAL_CONTRACTS)) {
   const contents = read(relativePath);
   if (contents === null) continue;
 
@@ -175,35 +109,47 @@ for (const [relativePath, fragments] of Object.entries(REQUIRED_CONTRACTS)) {
   }
 }
 
-const COMMAND_PATHS = [
-  "dev/workflows/commands/research-context.md",
-  "dev/workflows/commands/spec-discuss.md",
-  "dev/workflows/commands/spec-build.md",
-  "dev/workflows/commands/stage-review.md",
-  "dev/workflows/commands/closeout.md",
-  "dev/workflows/commands/commit-msg.md",
-  "dev/workflows/commands/pr-review.md",
-];
-const GODOT_ONLY_COMMAND_FRAGMENTS = [
-  ".gd",
-  ".tscn",
-  "/godot-test",
-  "python dev/tools/lint_standards.py",
-  "GDScript",
-  "SceneRouter",
-  "CLAUDE.md",
-];
+if (!fs.existsSync(absolute("dev/foundation/consumer_manifest.json"))) {
+  errors.push("dev/foundation is missing or uninitialized; run git submodule update --init --recursive");
+}
 
-for (const relativePath of COMMAND_PATHS) {
+try {
+  const foundationConfig = JSON.parse(fs.readFileSync(absolute("dev/foundation.config.json"), "utf8"));
+  if (foundationConfig.schema_version !== 2) {
+    errors.push("dev/foundation.config.json: schema_version must be 2");
+  }
+  if (foundationConfig.platform !== "web-react") {
+    errors.push("dev/foundation.config.json: platform must be web-react");
+  }
+  if (!Array.isArray(foundationConfig.profiles) || foundationConfig.profiles.length !== 0) {
+    errors.push("dev/foundation.config.json: Meridian must select no foundation profile");
+  }
+} catch (error) {
+  errors.push(`dev/foundation.config.json: invalid JSON (${error.message})`);
+}
+
+for (const relativePath of LEGACY_SHARED_FILES) {
+  if (fs.existsSync(absolute(relativePath))) {
+    errors.push(`${relativePath}: shared foundation compatibility copy must be removed`);
+  }
+}
+
+const legacyWorkflowsDirectory = absolute("dev/workflows");
+function containsFile(directory) {
+  return fs.readdirSync(directory, { withFileTypes: true }).some((entry) => {
+    if (entry.isFile()) return true;
+    return entry.isDirectory() && containsFile(path.join(directory, entry.name));
+  });
+}
+
+if (fs.existsSync(legacyWorkflowsDirectory) && containsFile(legacyWorkflowsDirectory)) {
+  errors.push("dev/workflows: shared foundation compatibility files must be removed");
+}
+
+for (const relativePath of LOCAL_GOVERNANCE_DOCS) {
   const contents = read(relativePath);
-  if (contents === null) continue;
-
-  for (const fragment of GODOT_ONLY_COMMAND_FRAGMENTS) {
-    if (contents.includes(fragment)) {
-      errors.push(
-        `${relativePath}: Godot-specific command contract leaked into Web governance: ${JSON.stringify(fragment)}`,
-      );
-    }
+  if (contents?.includes("dev/workflows/")) {
+    errors.push(`${relativePath}: use the canonical foundation workflow path instead of dev/workflows/`);
   }
 }
 
@@ -232,13 +178,13 @@ if (todo !== null) {
 
   for (const match of todo.matchAll(/\[ref plans\/([^\]<\s]+)\]/gu)) {
     const relativePlanPath = path.join("dev/docs/plans", match[1]);
-    if (!fs.existsSync(path.join(ROOT, relativePlanPath))) {
+    if (!fs.existsSync(absolute(relativePlanPath))) {
       errors.push(`TODO.md: plan pointer has no active target: ${relativePlanPath}`);
     }
   }
 }
 
-const plansDirectory = path.join(ROOT, "dev/docs/plans");
+const plansDirectory = absolute("dev/docs/plans");
 if (fs.existsSync(plansDirectory)) {
   for (const entry of fs.readdirSync(plansDirectory, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
@@ -277,16 +223,21 @@ if (fs.existsSync(plansDirectory)) {
   }
 }
 
-const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
-const governanceScript = packageJson.scripts?.["governance:check"] ?? "";
-const verifyScript = packageJson.scripts?.verify ?? "";
-if (!governanceScript.includes("dev/tools/check-governance.mjs")) {
-  errors.push("package.json: governance:check must execute dev/tools/check-governance.mjs");
+const packageJson = JSON.parse(fs.readFileSync(absolute("package.json"), "utf8"));
+const foundationCheck = packageJson.scripts?.["foundation:check"] ?? "";
+const governanceCheck = packageJson.scripts?.["governance:check"] ?? "";
+const verify = packageJson.scripts?.verify ?? "";
+if (!foundationCheck.includes("python dev/foundation/tools/verify_consumer.py --root .")) {
+  errors.push("package.json: foundation:check must execute the pinned consumer verifier");
 }
-if (!verifyScript.includes("node dev/tools/check-governance.mjs")) {
-  errors.push(
-    "package.json: verify must execute dev/tools/check-governance.mjs without relying on a nested package runner",
-  );
+if (
+  !governanceCheck.includes("npm run foundation:check") ||
+  !governanceCheck.includes("node dev/tools/check-governance.mjs")
+) {
+  errors.push("package.json: governance:check must run foundation and Meridian governance verification");
+}
+if (!verify.includes("npm run governance:check")) {
+  errors.push("package.json: verify must execute governance:check before application verification");
 }
 
 if (errors.length > 0) {
@@ -295,5 +246,5 @@ if (errors.length > 0) {
   }
   process.exitCode = 1;
 } else {
-  console.log(`governance: OK (${Object.keys(REQUIRED_CONTRACTS).length} canonical documents)`);
+  console.log("governance: OK (Meridian local contracts)");
 }

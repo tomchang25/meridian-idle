@@ -1,12 +1,14 @@
 # Git Operations
 
-Git 預設視為 read-only。只有使用者明確要求對應 mutation 時，才執行 staging、commit、branch、tag 或 remote 操作。
+This file is Meridian's authoritative project-local Git operations contract. The shared default lives at `dev/foundation/core/agent_rules/git_operations.md`.
 
-## Rules
+## Project policy
 
-- 可直接執行 read-only commands：`status`、`diff`、`log`、`show`、`ls-files`、`cat-file`、`check-ignore`。
-- 未獲明確要求時，不執行 `add`、`commit`、`restore`、`reset`、`stash`、`checkout`、`switch`、`branch`、`tag`、`rebase`、`rm`、`mv`、`push` 或任何 remote mutation。
-- 不得把 unrelated working-tree changes 納入自己的修改、formatting 或 closeout。
-- 不使用 `git reset --hard`、`git checkout -- <file>` 或其他破壞性方式清除使用者內容。
-- Git mutation 失敗後不換一種 mutation 「再試一次」；停止並回報。
-- 使用者要求 commit message 時讀取 `dev/workflows/commands/commit-msg.md` 與 `dev/skills/conventional-commits.md`，並以實際交付結果而不是檔案清單命名。
+Meridian inherits the shared default: Git is read-only unless the user explicitly requests the corresponding mutation.
+
+- Read-only inspection is allowed, including `status`, `diff`, `log`, `show`, `ls-files`, `cat-file`, and `check-ignore`.
+- Without explicit authorization, do not stage, commit, branch, tag, restore, reset, stash, switch, rebase, remove, move, push, or mutate a remote.
+- Do not include unrelated working-tree changes in formatting, closeout, staging, or commits.
+- Never use `git reset --hard`, `git checkout -- <file>`, or another destructive operation to remove user content.
+- If a Git mutation fails, do not retry it through another mutation path; stop and report the failure.
+- When asked for a commit message, read `dev/foundation/core/workflows/commands/commit-msg.md`, `dev/foundation/core/standards/change_summary_standard.md`, and `dev/foundation/core/skills/conventional_commits.md`.

@@ -34,7 +34,7 @@
 
 ## Plan lifecycle
 
-完整的 `Draft → Plan → Sketch → Spec → Implementation → Verify → Closeout` 狀態機由 `dev/workflows/work_lifecycle.md` 唯一定義。本文件只擁有 TODO、active plans、archived docs 與 CHANGELOG 的 tracking 位置。
+完整的 `Draft → (Probe) → Plan → Sketch → Implementation Spec → Implementation → Verify → Closeout` 狀態機由 `dev/foundation/core/workflows/work_lifecycle.md` 唯一定義。本文件只擁有 TODO、active plans、archived docs 與 CHANGELOG 的 tracking 位置。
 
 Plan child sketch/spec 只由 parent plan 指向，不另建 TODO 條目。Active plan 不保留 checked-off completed phases；shipped history 只存在於 CHANGELOG。
 

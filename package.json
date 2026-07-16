@@ -10,14 +10,15 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "vinext start",
-    "governance:check": "node dev/tools/check-governance.mjs",
+    "foundation:check": "python dev/foundation/tools/verify_consumer.py --root .",
+    "governance:check": "npm run foundation:check && node dev/tools/check-governance.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint . --max-warnings=0",
-    "verify": "node dev/tools/check-governance.mjs && prettier --check . && tsc --noEmit && eslint . --max-warnings=0 && vitest run && vinext build"
+    "verify": "npm run governance:check && prettier --check . && tsc --noEmit && eslint . --max-warnings=0 && vitest run && vinext build"
   },
   "dependencies": {
     "next": "16.2.6",
