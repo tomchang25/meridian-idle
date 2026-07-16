@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createInitialGameState } from "@/game/domain/state/initial-game-state";
 import { loadSave } from "@/game/infrastructure/persistence/save-migrations";
 import { IndexedDbSaveRepository } from "@/game/infrastructure/persistence/indexed-db-save-repository";
@@ -15,15 +15,26 @@ export type SaveStatus = "loading" | "saved" | "saving" | "unavailable" | "corru
 export function useGameStore() {
   const repository = useMemo(() => new IndexedDbSaveRepository(), []);
   const [state, setState] = useState<V5GameState>(() => createInitialGameState(Date.now()));
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("loading");
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [hydrated, setHydrated] = useState(false);
+  const lastSavedState = useRef<V5GameState | null>(null);
 
   useEffect(() => {
     let active = true;
+    let settled = false;
+    const finishUnavailable = () => {
+      if (!active || settled) return;
+      settled = true;
+      setSaveStatus("unavailable");
+      setHydrated(true);
+    };
+    const timeout = window.setTimeout(finishUnavailable, 1_500);
     void repository
       .loadRaw()
       .then((raw) => {
-        if (!active) return;
+        if (!active || settled) return;
+        settled = true;
+        window.clearTimeout(timeout);
         if (raw === null) {
           setState(createInitialGameState(Date.now()));
           setSaveStatus("saved");
@@ -38,18 +49,18 @@ export function useGameStore() {
         setHydrated(true);
       })
       .catch(() => {
-        if (active) {
-          setSaveStatus("unavailable");
-          setHydrated(true);
-        }
+        finishUnavailable();
       });
     return () => {
       active = false;
+      window.clearTimeout(timeout);
     };
   }, [repository]);
 
   useEffect(() => {
     if (!hydrated || saveStatus === "unavailable" || saveStatus === "corrupt") return;
+    if (lastSavedState.current === state) return;
+    lastSavedState.current = state;
     const timer = window.setTimeout(() => {
       setSaveStatus("saving");
       void repository
@@ -58,7 +69,7 @@ export function useGameStore() {
         .catch(() => setSaveStatus("unavailable"));
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [hydrated, repository, state]);
+  }, [hydrated, repository, saveStatus, state]);
 
   const acknowledgeMigration = useCallback(
     () =>
