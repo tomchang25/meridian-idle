@@ -10,8 +10,7 @@ Nothing currently in progress.
 
 ## Plan
 
-- [product] 建立安全且可離線運作的 V4 手動跨港貿易核心 — [ref plans/v4-manual-trade-core.md]
-- [product] 在手動貿易核心上加入 deterministic 航行風險與完整結果回饋 — [ref plans/v4-voyage-risk-and-feedback.md]
+- [product] 建立 V5 手動 Product 貿易、Port progression、航行風險、Items、戰鬥與 Expedition 核心 — [ref plans/v5-core.md]
 
 ## Chore
 
@@ -26,6 +25,4 @@ No known bugs.
 
 ## Draft
 
-### Deferred V4 Systems
-
-Skills 整體延後；Regional Guild Automation、Warehouse、Workshop、八格 Trade Plan、Patrol 與 Expedition 等核心手動貿易與航行風險驗證後再分別規劃。
+No drafts. Frozen V5 extension designs remain outside forward work until explicitly resumed.

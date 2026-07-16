@@ -12,9 +12,14 @@
 
 ## Current design index
 
-- `design/meridian-idle_v4.md`：目前產品設計基準，GDD v4.0。
+- `design/meridian-idle_v5.md`：目前產品設計基準，GDD v5.0 Core。
+- `design/meridian-idle_v5_automation-and-logistics.md`：Frozen Automation and Logistics extension。
+- `design/meridian-idle_v5_skills.md`：Frozen Skills extension。
+- `design/meridian-idle_v5_quality-trade.md`：Frozen Quality Trade extension。
+- `design/meridian-idle_v5_pirate-danger-and-patrol.md`：Frozen Pirate Danger and Patrol extension。
+- `design/meridian-idle_v4.md`：歷史設計，GDD v4.0。
 - `design/meridian-idle_v3.md`：歷史設計，GDD v3.0。
-- `design/meridian-idle_layout.md`：舊版 Web layout 參考；與 V4 衝突時以 V4 GDD 與新 plan 為準。
+- `design/meridian-idle_layout.md`：舊版 Web layout 參考；與 V5 衝突時以 V5 GDD 與新 plan 為準。
 
 ## Tracking ownership
 
