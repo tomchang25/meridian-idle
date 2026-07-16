@@ -8,4 +8,4 @@ Routes own duration, risk, Food, and Water requirements. Departure writes one im
 
 ## Verification
 
-Focused voyage tests cover departure validation, exact Supply consumption, elapsed arrival, and replay no-op; browser smoke covers provision, departure, and arrival.
+Focused voyage tests cover departure validation, exact Supply consumption, elapsed arrival, and replay no-op. Browser smoke is deferred to final main-plan acceptance or an explicit user request.

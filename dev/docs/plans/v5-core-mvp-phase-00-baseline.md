@@ -9,7 +9,7 @@ Record the reproducible delivery baseline for the autonomous V5 Core MVP experim
 ## Requirements
 
 1. Record the authorized branch, base revision, remote, worktree baseline, and available local automation capability.
-2. Establish one reproducible CI and browser-smoke path that Phase 01 through Phase 05 can extend without changing its delivery gate.
+2. Establish one reproducible CI path for intermediate phases and retain a browser-smoke path for final main-plan acceptance or an explicit user request.
 3. Keep baseline records separate from the V5 product-design authority and from unrelated user worktree changes.
 
 ## Design
@@ -34,10 +34,10 @@ This plan captures the delivery baseline for the autonomous V5 Core MVP experime
 
 ## Automation Baseline
 
-- Phase 00 adds one Playwright Chromium smoke suite that starts the production-equivalent application server and fails non-zero on an unavailable or unbootable application.
-- Local and CI smoke use the same `npm run test:smoke` script; Playwright owns server startup through its `webServer` configuration.
-- CI checks out submodules recursively, installs the locked dependencies, installs Chromium, runs `npm run verify`, then runs the browser smoke suite.
-- Browser reports and traces are CI artifacts for failure diagnosis. The suite is deliberately expanded at each completed Phase instead of treating Phase 00 boot coverage as proof of gameplay behavior.
+- Phase 00 retains one Playwright Chromium smoke suite for final main-plan acceptance or an explicit user request. It starts the production-equivalent application server and fails non-zero on an unavailable or unbootable application.
+- Intermediate phases do not run local browser smoke or install browser dependencies in CI. They use focused unit tests, `npm run verify`, and the normal remote CI workflow.
+- CI checks out submodules recursively, installs locked dependencies, and runs `npm run verify`.
+- Browser reports and traces are available only when final-acceptance smoke is explicitly invoked. The suite may then cover the completed player journey without making intermediate phases wait on browser automation.
 
 ## Manual-Only Baseline
 
@@ -52,6 +52,6 @@ Phase 00 automation does not prove assistive-technology output, visual appearanc
 ## Acceptance Criteria
 
 1. The branch base, remote, authority, and pre-existing worktree changes are durably recorded.
-2. Local and CI execution use the same browser-smoke command against a production-equivalent application server.
-3. CI initializes submodules, installs locked dependencies and Chromium, and fails for repository verification or browser-smoke failure.
+2. A reproducible browser-smoke command remains available for final acceptance, without becoming an intermediate delivery gate.
+3. CI initializes submodules, installs locked dependencies, and fails for repository verification failure.
 4. Manual-only verification boundaries are explicitly recorded for later Phase reports.
