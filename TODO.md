@@ -1,28 +1,68 @@
 # TODO
 
-本檔案是唯一 forward surface。已完成工作從這裡刪除，並只記錄於 `CHANGELOG.md`。需要順序、相依或驗收邊界的工作放在 `dev/docs/plans/`，此處只留一行指針。
+The single forward surface — open this and you see everything: open work and brewing ideas. Every forward item lives in **exactly one** section here (or, once it earns a file, in `dev/docs/plans/`). There is deliberately **no "Done" tier** — done means delete the line; its record lives in `CHANGELOG.md`.
 
-可執行條目格式：`[scope] 一句話 — [ref plans/<file>.md]`。
+> **Language rule:** Write every TODO heading, instruction, and work item in English. Keep code identifiers, file paths, commands, and product names in their actual spelling.
+>
+> **The one rule (now about sections, not files):** The actionable tiers (`Plan` / `Chore` / `Bug`) are **one line each** — no paragraphs, no tables, no why. The moment an item needs real reasoning, it belongs in `## Draft` as its own `###` sub-section. When a Draft entry grows sub-structure, becomes actionable, or needs to be linked from elsewhere, it graduates to its own file in `dev/docs/plans/`.
+>
+> Within `## Draft`, no `####` headings or `**label:**` bold-label patterns — use plain-text labels (em dash, colon) and lists for sub-structure.
+>
+> **Tag format:** The `[scope]` tag in actionable lines is snake_case — a short lowercase identifier with no spaces, parentheses, or mixed case (for example, `[feature]` and `[bugfix]`).
+
+Actionable line format: `[scope] one sentence — [ref plans/<file>.md if any]`
+
+In-flight and ready-to-implement work lives in `## Active` — promoted from `## Plan` when building starts or the plan is ready to build; more than one entry is fine.
+
+---
 
 ## Active
 
-- [v5] 修正 V5 MVP content ownership、command feedback、seed 與 Voyage deterministic verification — [ref plans/v5-core-mvp_correctness-repair.implementation_spec.md]
+> Do not delete this reminder text.
+> Flows currently being built or ready to implement may hold more than one entry. Keep one-line pointers in the same format as `## Plan`; promote them here when building starts or the plan is ready to build.
+> Phase detail and progress live in the linked `dev/docs/plans/` file.
+> Ship a phase: remove it from that file and append `CHANGELOG.md`, leaving this line untouched.
+> When all phases ship: archive the plan file and delete this line.
+
+- [v5] Repair V5 MVP content ownership, command feedback, seed handling, and deterministic Voyage verification — [ref plans/v5-core-mvp_correctness-repair.implementation_spec.md]
+- [market] Add batch Goods trading, Cargo-complete selling, and target-based Supplies management — [ref plans/market_batch-trade-controls.implementation_spec.md]
+
+---
 
 ## Plan
 
-- [product] 建立 V5 手動 Product 貿易、Port progression、航行風險、Items、戰鬥與 Expedition 核心 — [ref plans/v5-core.md]
+Queued work, large enough to have a pre-plan file in `dev/docs/plans/`. Promote a line to `## Active` when building starts; if it goes stale here, retire it to `## Draft`.
+
+- [product] Build the V5 manual Product trade, Port progression, voyage risk, Items, combat, and Expedition core — [ref plans/v5-core.md]
+
+---
 
 ## Chore
 
-- [platform] 加入 save export / import。
-- [platform] 定義 multi-tab ownership 與衝突策略。
-- [platform] 建立 production asset pipeline。
-- [platform] 補齊 PWA 192px / 512px raster icons。
+One line, no reasoning, no backing document.
+
+- [platform] Add save export and import.
+- [platform] Define multi-tab ownership and conflict resolution.
+- [platform] Build the production asset pipeline.
+- [platform] Add PWA 192px and 512px raster icons.
+
+---
 
 ## Bug
 
-No known bugs.
+One line, no reasoning, no backing document.
+
+- [market] Market Exchange does not explain the `Reference` price meaning or its relationship to Buy and Sell prices.
+- [ledger] The short-term ledger separates Product Cargo from Provisioning, obscuring their combined cargo ratio and distribution.
+- [ledger] Product Cargo `Basis` and `Local sale` show totals instead of comparable weighted-average unit cost and local unit sale price.
+- [harbor] Harbor does not show other known Ports' specialties or relative locations, and Port tier appears only in the Known waters sidebar.
+- [map] The Known waters map is a static three-point, single-route display rather than a Port departure command surface or complete nautical-chart narrative — [ref dev/screenshot/chrome_jT1DlpoTqu.png].
+- [ui] Letter and graphic positioning is misaligned within circular Fleet, Supplies, and related icons — [ref dev/screenshot/chrome_mJEaeOB6ku.png, dev/screenshot/chrome_5NoHV8Q3NZ.png].
+
+---
 
 ## Draft
+
+Preliminary concepts — larger than a one-liner, but a single `###` sub-section says enough. They are not necessarily actionable yet. Use one `###` heading per idea. When an idea outgrows its sub-section, becomes actionable, or needs a stable link, move it to its own `dev/docs/plans/<file>.md` and delete it here. Delete stale ideas that never grow.
 
 No drafts. Frozen V5 extension designs remain outside forward work until explicitly resumed.
