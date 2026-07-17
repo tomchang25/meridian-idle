@@ -54,6 +54,7 @@ describe("MeridianDashboard", () => {
     expect(store.acknowledgeMigration).toHaveBeenCalledOnce();
 
     const marketPanel = screen.getByRole("heading", { name: "Market Exchange" }).closest("section");
+    expect(within(marketPanel!).queryByText("Reference")).not.toBeInTheDocument();
     const codCard = within(marketPanel!).getByText("Cod").closest("li");
     expect(codCard).not.toBeNull();
     fireEvent.change(within(codCard!).getByRole("spinbutton", { name: "Cod buy quantity" }), {
@@ -75,10 +76,21 @@ describe("MeridianDashboard", () => {
     expect(Array.from(leftSidebar.parentElement!.children)).toEqual([leftSidebar, mainColumn, rightSidebar]);
   });
 
+  it("shows Product Cargo cost basis and local sale as unit prices", () => {
+    store.state.fleet.products = { cod: { quantity: 9, totalCostBasis: 293 } };
+    render(<MeridianDashboard />);
+
+    const cargoPanel = screen.getByRole("heading", { name: "Product Cargo" }).closest("section");
+    expect(within(cargoPanel!).getByText("Avg cost")).toBeVisible();
+    expect(within(cargoPanel!).getByText("32.56 Gold / unit")).toBeVisible();
+    expect(within(cargoPanel!).getByText("Local sale")).toBeVisible();
+    expect(within(cargoPanel!).getAllByText(/Gold \/ unit/)).toHaveLength(2);
+  });
+
   it("switches city actions and wires cargo-complete Product, Supply, and Harbor commands", () => {
     store.state.fleet.products = {
-      cod: { quantity: 1, totalCostBasis: 20 },
-      tuna: { quantity: 2, totalCostBasis: 40 },
+      cod: { quantity: 1, totalCostBasis: 100 },
+      tuna: { quantity: 2, totalCostBasis: 2 },
     };
     store.state.fleet.supplies.food = { quantity: 2, totalCostBasis: 16 };
     store.state.fleet.supplies.water = { quantity: 2, totalCostBasis: 8 };
@@ -87,7 +99,12 @@ describe("MeridianDashboard", () => {
 
     const marketPanel = screen.getByRole("heading", { name: "Market Exchange" }).closest("section");
     fireEvent.click(within(marketPanel!).getByRole("button", { name: "Sell Cargo" }));
+    const codCard = within(marketPanel!).getByText("Cod").closest("li");
     const tunaCard = within(marketPanel!).getByText("Tuna").closest("li");
+    expect(within(tunaCard!).getByText("Avg cost")).toBeVisible();
+    expect(within(tunaCard!).getByText("1.00 Gold / unit")).toBeVisible();
+    expect(within(tunaCard!).getByText(/^\+\d+ Gold$/)).toHaveAttribute("data-profit", "positive");
+    expect(within(codCard!).getByText(/^-\d+ Gold$/)).toHaveAttribute("data-profit", "negative");
     fireEvent.click(within(tunaCard!).getByRole("button", { name: "Sell 1" }));
     expect(store.sellProduct).toHaveBeenCalledWith("tuna", 1);
     expect(within(marketPanel!).getByText("Local product. Low local sale value.")).toBeVisible();

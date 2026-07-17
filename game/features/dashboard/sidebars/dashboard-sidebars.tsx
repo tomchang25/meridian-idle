@@ -1,9 +1,9 @@
 import { getPort, getProduct } from "@/game/domain/content/core-content";
 import { SUPPLY_IDS, type V5GameState } from "@/game/domain/models/game";
-import { usedCargo } from "@/game/domain/rules/cargo";
+import { averageUnitCost, usedCargo } from "@/game/domain/rules/cargo";
 import { sellPrice } from "@/game/domain/rules/market";
 import { portLevel, xpThreshold } from "@/game/domain/rules/progression";
-import { displayName, SUPPLY_LABELS } from "../dashboard-helpers";
+import { displayName, formatUnitGold, SUPPLY_LABELS } from "../dashboard-helpers";
 import styles from "../meridian-dashboard.module.css";
 
 type DashboardSidebarProps = {
@@ -149,12 +149,12 @@ export function ShortTermSidebar({ state }: DashboardSidebarProps) {
                   </div>
                   <dl>
                     <div>
-                      <dt>Basis</dt>
-                      <dd>{stack.totalCostBasis}</dd>
+                      <dt>Avg cost</dt>
+                      <dd>{formatUnitGold(averageUnitCost(stack))}</dd>
                     </div>
                     <div>
                       <dt>Local sale</dt>
-                      <dd>{price ? price.unitPrice * stack.quantity : "-"}</dd>
+                      <dd>{formatUnitGold(price?.unitPrice ?? null)}</dd>
                     </div>
                   </dl>
                 </li>

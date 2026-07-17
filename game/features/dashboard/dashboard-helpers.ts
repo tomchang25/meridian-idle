@@ -29,3 +29,8 @@ export function formatRemaining(milliseconds: number) {
   const seconds = totalSeconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
+
+export function formatUnitGold(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return "-";
+  return `${(Math.floor(value * 100 + 0.5) / 100).toFixed(2)} Gold / unit`;
+}

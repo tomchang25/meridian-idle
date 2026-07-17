@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { getPort, getProduct, getProductFamilyForProduct } from "@/game/domain/content/core-content";
+import { averageUnitCost, removedCostBasis } from "@/game/domain/rules/cargo";
 import { buyPrice, maximumProductPurchaseQuantity, productPurchaseError, sellPrice } from "@/game/domain/rules/market";
 import { portLevel } from "@/game/domain/rules/progression";
-import { displayName } from "../dashboard-helpers";
+import { displayName, formatUnitGold } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";
 import styles from "../meridian-dashboard.module.css";
 import { QuantityControl } from "./quantity-control";
@@ -63,9 +64,13 @@ export function MarketPanel({ store }: MarketPanelProps) {
           const product = getProduct(productId);
           const family = getProductFamilyForProduct(productId);
           const price = mode === "buy" ? buyPrice(state, productId) : sellPrice(state, productId);
-          const held = state.fleet.products[productId]?.quantity ?? 0;
+          const stack = state.fleet.products[productId];
+          const averageCost = mode === "sell" ? averageUnitCost(stack) : null;
+          const held = stack?.quantity ?? 0;
           const maximum = mode === "buy" ? maximumProductPurchaseQuantity(state, productId) : held;
           const quantity = Math.min(drafts[productId] ?? (maximum > 0 ? 1 : 0), maximum);
+          const profit =
+            mode === "sell" && price && stack ? price.unitPrice * quantity - removedCostBasis(stack, quantity) : null;
           const locked = mode === "buy" && !!entry && level < entry.unlockLevel;
           const purchaseError = mode === "buy" ? productPurchaseError(state, productId, 1) : null;
           const reason = purchaseError ?? (maximum === 0 ? "No units are available for this transaction." : null);
@@ -84,13 +89,15 @@ export function MarketPanel({ store }: MarketPanelProps) {
               </div>
               <dl className={styles.priceLedger}>
                 <div>
-                  <dt>Reference</dt>
-                  <dd>{price?.reference ?? "-"}</dd>
-                </div>
-                <div>
                   <dt>Unit price</dt>
                   <dd>{price?.unitPrice ?? "-"}</dd>
                 </div>
+                {mode === "sell" && (
+                  <div>
+                    <dt>Avg cost</dt>
+                    <dd>{formatUnitGold(averageCost)}</dd>
+                  </div>
+                )}
                 <div>
                   <dt>Quantity</dt>
                   <dd>{quantity}</dd>
@@ -100,6 +107,18 @@ export function MarketPanel({ store }: MarketPanelProps) {
                   <dd>{price ? `${price.unitPrice * quantity} Gold` : "-"}</dd>
                 </div>
               </dl>
+              {mode === "sell" && (
+                <p className={styles.tradePreview}>
+                  Profit:{" "}
+                  <span
+                    data-profit={
+                      profit === null ? undefined : profit > 0 ? "positive" : profit < 0 ? "negative" : "neutral"
+                    }
+                  >
+                    {profit === null ? "-" : `${profit > 0 ? "+" : ""}${profit} Gold`}
+                  </span>
+                </p>
+              )}
               <div className={styles.priceContext}>
                 <span>{price?.label ?? "Trade unavailable"}</span>
                 <span>Session net {state.marketSession.netTrade[productId] ?? 0}</span>

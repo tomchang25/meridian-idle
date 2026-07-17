@@ -1254,6 +1254,14 @@
   color: #5d503b;
 }
 
+.tradePreview [data-profit="positive"] {
+  color: #26733d;
+}
+
+.tradePreview [data-profit="negative"] {
+  color: #9c3e35;
+}
+
 .supplyManagementList {
   display: grid;
   gap: 7px;

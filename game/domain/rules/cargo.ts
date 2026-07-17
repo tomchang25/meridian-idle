@@ -15,6 +15,9 @@ export function removedCostBasis(stack: CargoStack, quantity: number): number {
   if (quantity >= stack.quantity) return stack.totalCostBasis;
   return Math.min(stack.totalCostBasis, roundHalfUp((stack.totalCostBasis * quantity) / stack.quantity));
 }
+export function averageUnitCost(stack: CargoStack | undefined): number | null {
+  return stack && stack.quantity > 0 ? stack.totalCostBasis / stack.quantity : null;
+}
 export function usedCargo(state: V5GameState): number {
   return [...Object.values(state.fleet.products), ...Object.values(state.fleet.supplies)].reduce(
     (sum, stack) => sum + stack.quantity,
