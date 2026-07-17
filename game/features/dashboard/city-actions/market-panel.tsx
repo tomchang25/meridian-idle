@@ -65,7 +65,7 @@ export function MarketPanel({ store }: MarketPanelProps) {
           const family = getProductFamilyForProduct(productId);
           const price = mode === "buy" ? buyPrice(state, productId) : sellPrice(state, productId);
           const stack = state.fleet.products[productId];
-          const averageCost = mode === "sell" ? averageUnitCost(stack) : null;
+          const averageCost = averageUnitCost(stack);
           const held = stack?.quantity ?? 0;
           const maximum = mode === "buy" ? maximumProductPurchaseQuantity(state, productId) : held;
           const quantity = Math.min(drafts[productId] ?? (maximum > 0 ? 1 : 0), maximum);
@@ -92,7 +92,7 @@ export function MarketPanel({ store }: MarketPanelProps) {
                   <dt>Unit price</dt>
                   <dd>{price?.unitPrice ?? "-"}</dd>
                 </div>
-                {mode === "sell" && (
+                {averageCost !== null && (
                   <div>
                     <dt>Avg cost</dt>
                     <dd>{formatUnitGold(averageCost)}</dd>

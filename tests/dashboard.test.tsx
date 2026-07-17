@@ -94,6 +94,16 @@ describe("MeridianDashboard", () => {
     expect(within(cargoPanel!).getAllByText(/Gold \/ unit/)).toHaveLength(2);
   });
 
+  it("shows a held Product's average cost while buying", () => {
+    store.state.fleet.products = { cod: { quantity: 9, totalCostBasis: 293 } };
+    render(<MeridianDashboard />);
+
+    const marketPanel = screen.getByRole("heading", { name: "Market Exchange" }).closest("section");
+    const codCard = within(marketPanel!).getByText("Cod").closest("li");
+    expect(within(codCard!).getByText("Avg cost")).toBeVisible();
+    expect(within(codCard!).getByText("32.56 Gold / unit")).toBeVisible();
+  });
+
   it("switches city actions and wires cargo-complete Product, Supply, and Harbor commands", () => {
     store.state.fleet.products = {
       cod: { quantity: 1, totalCostBasis: 100 },

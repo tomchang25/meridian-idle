@@ -16,6 +16,7 @@
 - 2026-07-17 — [supplies] Supply prices are now fixed globally and no longer vary by Port or time.
 - 2026-07-16 — [v5] The playable dashboard now uses a responsive city-command HUD with state-driven pixel scenes, focused Port operations, automatic Voyage progress, and separate Fleet ledgers.
 - 2026-07-17 — [market] Market Exchange now hides internal Reference values and previews average acquisition cost plus color-coded projected profit for selected Cargo sales.
+- 2026-07-17 — [market] Market Buy now shows a held Product's average acquisition cost.
 - 2026-07-17 — [ledger] Product Cargo now compares weighted-average acquisition cost with the current local unit sale price.
 - 2026-07-17 — [ledger] Cargo Hold now shows Supplies, Products, and free capacity together with proportional group distributions.
 - 2026-07-17 — [ui] Circular Fleet and Provisioning icons now center legible glyphs.
