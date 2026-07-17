@@ -1,4 +1,4 @@
-export const SUPPLY_IDS = ["food", "water", "medicine", "rope", "sails"] as const;
+export const SUPPLY_IDS = ["food", "water", "medicine", "munitions", "spares"] as const;
 export const CATEGORY_IDS = ["food", "textile", "metal", "luxury", "livestock"] as const;
 
 export type SupplyId = (typeof SUPPLY_IDS)[number];
@@ -47,7 +47,7 @@ export type MigrationReport = { fromVersion: 1; migratedAt: number; droppedField
 export type ActivityEntry = { id: string; at: number; message: string; tone: ActivityTone };
 
 export type V5GameState = {
-  schemaVersion: 2;
+  schemaVersion: 3;
   createdAt: number;
   world: { knownPortIds: string[] };
   fleet: Fleet;

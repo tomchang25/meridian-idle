@@ -12,8 +12,8 @@ export const SUPPLY_LABELS: Record<SupplyId, string> = {
   food: "Food",
   water: "Water",
   medicine: "Medicine",
-  rope: "Rope",
-  sails: "Sails",
+  munitions: "Munitions",
+  spares: "Spares",
 };
 
 export function displayName(id: string) {

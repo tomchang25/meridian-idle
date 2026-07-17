@@ -91,7 +91,7 @@ export const PORTS: Port[] = [
       "ceramic",
       "glassware",
     ]),
-    supplyPrices: { food: 8, water: 4, medicine: 30, rope: 18, sails: 24 },
+    supplyPrices: { food: 8, water: 4, medicine: 30, munitions: 18, spares: 24 },
   },
   {
     id: "faro",
@@ -101,7 +101,7 @@ export const PORTS: Port[] = [
       "iron-ingot",
       "glassware",
     ]),
-    supplyPrices: { food: 7, water: 4, medicine: 28, rope: 17, sails: 23 },
+    supplyPrices: { food: 7, water: 4, medicine: 28, munitions: 17, spares: 23 },
   },
   {
     id: "tangier",
@@ -113,7 +113,7 @@ export const PORTS: Port[] = [
       "tangier-dyed-leather",
       ["iron-ingot", "ceramic"],
     ),
-    supplyPrices: { food: 9, water: 5, medicine: 32, rope: 20, sails: 27 },
+    supplyPrices: { food: 9, water: 5, medicine: 32, munitions: 20, spares: 27 },
   },
 ];
 export const ROUTES: Route[] = [

@@ -18,13 +18,13 @@ The initial world unlocks the Iberian Atlantic and Maghreb Coast regions. Lisbon
 | Supply inventory  |            Five empty stacks |
 | Active operation  |                         None |
 
-All three known Ports begin at Level 1 with 0 XP. The starting Market Session is Lisbon. Each Port uses the same Supply identities: Food, Water, Medicine, Rope, and Sails. Supplies consume one Cargo Unit each and have these unit prices:
+All three known Ports begin at Level 1 with 0 XP. The starting Market Session is Lisbon. Each Port uses the same Supply identities: Food, Water, Medicine, Munitions, and Spares. Supplies consume one Cargo Unit each and have these unit prices:
 
-| Port    | Food | Water | Medicine | Rope | Sails |
-| ------- | ---: | ----: | -------: | ---: | ----: |
-| Lisbon  |    8 |     4 |       30 |   18 |    24 |
-| Faro    |    7 |     4 |       28 |   17 |    23 |
-| Tangier |    9 |     5 |       32 |   20 |    27 |
+| Port    | Food | Water | Medicine | Munitions | Spares |
+| ------- | ---: | ----: | -------: | --------: | -----: |
+| Lisbon  |    8 |     4 |       30 |        18 |     24 |
+| Faro    |    7 |     4 |       28 |        17 |     23 |
+| Tangier |    9 |     5 |       32 |        20 |     27 |
 
 ## Product Content
 

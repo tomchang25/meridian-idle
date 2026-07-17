@@ -91,6 +91,8 @@ describe("MeridianDashboard", () => {
     fireEvent.click(screen.getByRole("button", { name: /Supplies Management/ }));
     const supplyPanel = screen.getByRole("heading", { name: "Provision Stores" }).closest("section");
     expect(supplyPanel).not.toBeNull();
+    expect(within(supplyPanel!).getByText("Munitions")).toBeVisible();
+    expect(within(supplyPanel!).getByText("Spares")).toBeVisible();
     const foodRow = within(supplyPanel!).getByText("Food").closest("li");
     fireEvent.change(within(foodRow!).getByRole("spinbutton", { name: "Food target quantity" }), {
       target: { value: "4" },

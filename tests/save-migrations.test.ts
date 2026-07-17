@@ -27,4 +27,31 @@ describe("V5 save migration", () => {
     });
     expect(loadSave({ version: 1, state: { resources: { gold: Number.NaN } } }, 300)).toEqual({ kind: "corrupt" });
   });
+
+  it("migrates V2 Rope and Sails stacks to Munitions and Spares without losing their cost basis", () => {
+    const state = createInitialGameState(100);
+    const v2State = {
+      ...state,
+      schemaVersion: 2 as const,
+      fleet: {
+        ...state.fleet,
+        supplies: {
+          food: { quantity: 1, totalCostBasis: 8 },
+          water: { quantity: 2, totalCostBasis: 8 },
+          medicine: { quantity: 3, totalCostBasis: 90 },
+          rope: { quantity: 4, totalCostBasis: 72 },
+          sails: { quantity: 5, totalCostBasis: 120 },
+        },
+      },
+    };
+
+    const result = loadSave({ version: 2, savedAt: 200, state: v2State }, 300);
+
+    expect(result.kind).toBe("migrated");
+    if (result.kind !== "migrated") return;
+    expect(result.envelope).toMatchObject({ version: 3, savedAt: 300 });
+    expect(result.envelope.state.fleet.supplies.munitions).toEqual({ quantity: 4, totalCostBasis: 72 });
+    expect(result.envelope.state.fleet.supplies.spares).toEqual({ quantity: 5, totalCostBasis: 120 });
+    expect(result.envelope.state.activity[0].message).toContain("renamed without changing");
+  });
 });

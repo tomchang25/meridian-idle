@@ -65,4 +65,6 @@ One line, no reasoning, no backing document.
 
 Preliminary concepts — larger than a one-liner, but a single `###` sub-section says enough. They are not necessarily actionable yet. Use one `###` heading per idea. When an idea outgrows its sub-section, becomes actionable, or needs a stable link, move it to its own `dev/docs/plans/<file>.md` and delete it here. Delete stale ideas that never grow.
 
-No drafts. Frozen V5 extension designs remain outside forward work until explicitly resumed.
+### Supply event consequences
+
+Food must mitigate starvation risk, with fishing, whaling, and island landings as alternative recovery paths. Water must mitigate dehydration risk, with water-storage equipment and island landings as alternatives. Medicine must treat disease and wounded crew. Munitions must avoid a severe naval-combat penalty. Spares must repair Fleet damage. Future Event resolution may consume the matching Supply or impose its defined adverse consequence when unavailable.
