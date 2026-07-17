@@ -42,13 +42,30 @@ describe("useGameStore", () => {
     const { result } = renderHook(() => useGameStore(dependencies));
     await settleHydration();
 
-    act(() => result.current.buyProduct("lisbon-cork"));
+    act(() => result.current.buyProduct("lisbon-cork", 2));
     expect(result.current.commandError).toBe("Unlocks at Port Level 50.");
     expect(result.current.state.fleet.products).toEqual({});
 
-    act(() => result.current.buyProduct("cod"));
+    act(() => result.current.buyProduct("cod", 2));
     expect(result.current.commandError).toBeNull();
-    expect(result.current.state.fleet.products.cod.quantity).toBe(1);
+    expect(result.current.state.fleet.products.cod.quantity).toBe(2);
+  });
+
+  it("applies Supply targets against the latest canonical stack", async () => {
+    const dependencies: GameStoreDependencies = { repository: repository(), now: () => 10 };
+    const { result } = renderHook(() => useGameStore(dependencies));
+    await settleHydration();
+
+    act(() => result.current.applySupplyTarget("food", 3));
+    expect(result.current.state.fleet.supplies.food.quantity).toBe(3);
+    expect(result.current.state.fleet.gold).toBe(2_000 - 24);
+
+    act(() => result.current.applySupplyTarget("food", 1));
+    expect(result.current.state.fleet.supplies.food.quantity).toBe(1);
+    expect(result.current.state.fleet.gold).toBe(2_000 - 24);
+
+    act(() => result.current.applySupplyTarget("food", 1));
+    expect(result.current.commandError).toBe("Supply target already matches the quantity aboard.");
   });
 
   it("reports loading until repository hydration settles", async () => {
@@ -78,8 +95,8 @@ describe("useGameStore", () => {
     const { result } = renderHook(() => useGameStore(dependencies));
     await settleHydration();
 
-    act(() => result.current.buySupply("food", 1));
-    act(() => result.current.buySupply("water", 1));
+    act(() => result.current.applySupplyTarget("food", 1));
+    act(() => result.current.applySupplyTarget("water", 1));
     const suppliesBefore = result.current.state.fleet.supplies;
     act(() => result.current.departVoyage("lisbon-faro"));
 

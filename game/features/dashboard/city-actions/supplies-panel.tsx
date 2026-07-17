@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { getPort } from "@/game/domain/content/core-content";
 import { SUPPLY_IDS } from "@/game/domain/models/game";
 import { supplyPurchaseError, usedCargo } from "@/game/domain/rules/cargo";
 import { SUPPLY_LABELS } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";
 import styles from "../meridian-dashboard.module.css";
+import { QuantityControl } from "./quantity-control";
 
 type SuppliesPanelProps = {
   store: DashboardStore;
@@ -11,6 +13,7 @@ type SuppliesPanelProps = {
 
 export function SuppliesPanel({ store }: SuppliesPanelProps) {
   const { state } = store;
+  const [targets, setTargets] = useState<Record<string, number>>({});
   const port = getPort(state.fleet.locationPortId);
   const cargo = usedCargo(state);
 
@@ -19,7 +22,7 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
       <div className={styles.workspaceHeading}>
         <div>
           <p>Fleet stores</p>
-          <h3>Provision Stores</h3>
+          <h3 id="supplies-command">Provision Stores</h3>
         </div>
         <div className={styles.marketPulse}>
           <span>Capacity free</span>
@@ -32,9 +35,11 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
       <ul className={styles.supplyManagementList}>
         {SUPPLY_IDS.map((supplyId) => {
           const stack = state.fleet.supplies[supplyId];
-          const purchaseError = supplyPurchaseError(state, supplyId, 1);
-          const purchaseReasonId = `buy-${supplyId}-reason`;
-          const discardReasonId = `discard-${supplyId}-reason`;
+          const target = Math.min(targets[supplyId] ?? stack.quantity, state.fleet.cargoCapacity);
+          const delta = target - stack.quantity;
+          const purchaseError = delta > 0 ? supplyPurchaseError(state, supplyId, delta) : null;
+          const reason = purchaseError ?? (delta === 0 ? "Target already matches the quantity aboard." : null);
+          const reasonId = `supply-${supplyId}-reason`;
           return (
             <li key={supplyId}>
               <span className={styles.supplyIcon} aria-hidden="true">
@@ -50,34 +55,34 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
                 <span>Local price</span>
                 <strong>{port?.supplyPrices[supplyId] ?? "-"} Gold</strong>
               </div>
-              <div className={styles.actionButtons}>
+              <QuantityControl
+                label={`${SUPPLY_LABELS[supplyId]} target quantity`}
+                value={target}
+                min={0}
+                max={state.fleet.cargoCapacity}
+                onChange={(nextTarget) => setTargets((current) => ({ ...current, [supplyId]: nextTarget }))}
+              />
+              <div className={styles.supplyApply}>
+                <p className={styles.tradePreview}>
+                  {delta > 0
+                    ? `Buy ${delta} · Total: ${(port?.supplyPrices[supplyId] ?? 0) * delta} Gold`
+                    : delta < 0
+                      ? `Discard ${-delta}`
+                      : "No change"}
+                </p>
                 <button
                   className={styles.primaryButton}
                   type="button"
-                  disabled={purchaseError !== null}
-                  aria-describedby={purchaseError ? purchaseReasonId : undefined}
-                  onClick={() => store.buySupply(supplyId, 1)}
+                  disabled={delta === 0 || purchaseError !== null}
+                  aria-describedby={reason ? reasonId : undefined}
+                  onClick={() => store.applySupplyTarget(supplyId, target)}
                 >
-                  Buy 1
-                </button>
-                <button
-                  className={styles.secondaryButton}
-                  type="button"
-                  disabled={stack.quantity === 0}
-                  aria-describedby={stack.quantity === 0 ? discardReasonId : undefined}
-                  onClick={() => store.discardSupply(supplyId, 1)}
-                >
-                  Discard 1
+                  Apply
                 </button>
               </div>
-              {purchaseError && (
-                <p className={styles.unavailableReason} id={purchaseReasonId}>
-                  {purchaseError}
-                </p>
-              )}
-              {stack.quantity === 0 && (
-                <p className={styles.unavailableReason} id={discardReasonId}>
-                  No units are aboard to discard.
+              {reason && (
+                <p className={styles.unavailableReason} id={reasonId}>
+                  {reason}
                 </p>
               )}
             </li>

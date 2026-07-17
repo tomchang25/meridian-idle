@@ -103,6 +103,15 @@ export function productPurchaseError(state: V5GameState, productId: string, quan
   if (quantity > remainingCapacity) return `Requires ${quantity} Cargo Capacity; only ${remainingCapacity} remains.`;
   return null;
 }
+export function maximumProductPurchaseQuantity(state: V5GameState, productId: string): number {
+  if (productPurchaseError(state, productId, 1)) return 0;
+  const port = currentPort(state)!;
+  const price = buyPrice(state, productId)!;
+  const product = getProduct(productId)!;
+  const capacity = state.fleet.cargoCapacity - usedCargo(state);
+  const specialtySupply = product.specialtyOriginPortId === port.id ? state.marketSession.specialtySupply : Infinity;
+  return Math.max(0, Math.min(Math.floor(state.fleet.gold / price.unitPrice), capacity, specialtySupply));
+}
 export function buyProduct(state: V5GameState, productId: string, quantity: number, now = 0): RuleResult {
   const error = productPurchaseError(state, productId, quantity);
   if (error) return { state, error };

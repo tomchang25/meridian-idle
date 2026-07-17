@@ -15,8 +15,7 @@ const store = {
   canGenerateVoyageSeed: true,
   acknowledgeMigration: vi.fn(),
   startNewGame: vi.fn(),
-  buySupply: vi.fn(),
-  discardSupply: vi.fn(),
+  applySupplyTarget: vi.fn(),
   buyProduct: vi.fn(),
   sellProduct: vi.fn(),
   departVoyage: vi.fn(),
@@ -54,8 +53,11 @@ describe("MeridianDashboard", () => {
     const marketPanel = screen.getByRole("heading", { name: "Market Exchange" }).closest("section");
     const codCard = within(marketPanel!).getByText("Cod").closest("li");
     expect(codCard).not.toBeNull();
-    fireEvent.click(within(codCard!).getByRole("button", { name: "Buy 1" }));
-    expect(store.buyProduct).toHaveBeenCalledWith("cod");
+    fireEvent.change(within(codCard!).getByRole("spinbutton", { name: "Cod buy quantity" }), {
+      target: { value: "3" },
+    });
+    fireEvent.click(within(codCard!).getByRole("button", { name: "Buy 3" }));
+    expect(store.buyProduct).toHaveBeenCalledWith("cod", 3);
   });
 
   it("keeps the main column between the left and right sidebars", () => {
@@ -70,25 +72,32 @@ describe("MeridianDashboard", () => {
     expect(Array.from(leftSidebar.parentElement!.children)).toEqual([leftSidebar, mainColumn, rightSidebar]);
   });
 
-  it("switches city actions and wires Product, Supply, and Harbor commands", () => {
-    store.state.fleet.products = { cod: { quantity: 1, totalCostBasis: 20 } };
+  it("switches city actions and wires cargo-complete Product, Supply, and Harbor commands", () => {
+    store.state.fleet.products = {
+      cod: { quantity: 1, totalCostBasis: 20 },
+      tuna: { quantity: 2, totalCostBasis: 40 },
+    };
     store.state.fleet.supplies.food = { quantity: 2, totalCostBasis: 16 };
     store.state.fleet.supplies.water = { quantity: 2, totalCostBasis: 8 };
     render(<MeridianDashboard />);
 
     const marketPanel = screen.getByRole("heading", { name: "Market Exchange" }).closest("section");
-    const codCard = within(marketPanel!).getByText("Cod").closest("li");
-    fireEvent.click(within(codCard!).getByRole("button", { name: "Sell 1" }));
-    expect(store.sellProduct).toHaveBeenCalledWith("cod");
+    fireEvent.click(within(marketPanel!).getByRole("button", { name: "Sell Cargo" }));
+    const tunaCard = within(marketPanel!).getByText("Tuna").closest("li");
+    fireEvent.click(within(tunaCard!).getByRole("button", { name: "Sell 1" }));
+    expect(store.sellProduct).toHaveBeenCalledWith("tuna", 1);
+    expect(within(marketPanel!).getByText("Local product. Low local sale value.")).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: /Supplies Management/ }));
     const supplyPanel = screen.getByRole("heading", { name: "Provision Stores" }).closest("section");
     expect(supplyPanel).not.toBeNull();
     const foodRow = within(supplyPanel!).getByText("Food").closest("li");
-    fireEvent.click(within(foodRow!).getByRole("button", { name: "Buy 1" }));
-    fireEvent.click(within(foodRow!).getByRole("button", { name: "Discard 1" }));
-    expect(store.buySupply).toHaveBeenCalledWith("food", 1);
-    expect(store.discardSupply).toHaveBeenCalledWith("food", 1);
+    fireEvent.change(within(foodRow!).getByRole("spinbutton", { name: "Food target quantity" }), {
+      target: { value: "4" },
+    });
+    expect(within(foodRow!).getByText("Buy 2 · Total: 16 Gold")).toBeVisible();
+    fireEvent.click(within(foodRow!).getByRole("button", { name: "Apply" }));
+    expect(store.applySupplyTarget).toHaveBeenCalledWith("food", 4);
 
     fireEvent.click(screen.getByRole("button", { name: /Harbor/ }));
     expect(screen.getByRole("heading", { name: "Choose Next Port" })).toBeVisible();
@@ -101,16 +110,19 @@ describe("MeridianDashboard", () => {
     render(<MeridianDashboard />);
 
     const codCard = screen.getByText("Cod").closest("li");
-    const productBuy = within(codCard!).getByRole("button", { name: "Buy 1" });
+    const productBuy = within(codCard!).getByRole("button", { name: "Buy 0" });
     expect(productBuy).toBeDisabled();
     expect(productBuy).toHaveAccessibleDescription(/Requires 20 Gold; only 0 is available/);
 
     fireEvent.click(screen.getByRole("button", { name: /Supplies Management/ }));
     const supplyPanel = screen.getByRole("heading", { name: "Provision Stores" }).closest("section");
     const foodRow = within(supplyPanel!).getByText("Food").closest("li");
-    const supplyBuy = within(foodRow!).getByRole("button", { name: "Buy 1" });
-    expect(supplyBuy).toBeDisabled();
-    expect(supplyBuy).toHaveAccessibleDescription(/Requires 8 Gold; only 0 is available/);
+    fireEvent.change(within(foodRow!).getByRole("spinbutton", { name: "Food target quantity" }), {
+      target: { value: "1" },
+    });
+    const supplyApply = within(foodRow!).getByRole("button", { name: "Apply" });
+    expect(supplyApply).toBeDisabled();
+    expect(supplyApply).toHaveAccessibleDescription(/Requires 8 Gold; only 0 is available/);
   });
 
   it("announces command errors without replacing the selected city operation", () => {

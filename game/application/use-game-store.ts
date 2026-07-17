@@ -113,22 +113,30 @@ export function useGameStore({
     setRuntime({ state: createInitialGameState(now()), commandError: null });
     setSaveStatus(repository.isAvailable() ? "saved" : "unavailable");
   }, [now, repository]);
-  const buySupply = useCallback(
-    (supplyId: SupplyId, quantity: number) =>
-      setRuntime((current) => commandResult(applySupplyPurchase(current.state, supplyId, quantity, now()))),
+  const applySupplyTarget = useCallback(
+    (supplyId: SupplyId, target: number) =>
+      setRuntime((current) => {
+        if (!Number.isSafeInteger(target) || target < 0)
+          return { ...current, commandError: "Supply target must be a non-negative whole number." };
+        const quantity = current.state.fleet.supplies[supplyId].quantity;
+        if (target === quantity)
+          return { ...current, commandError: "Supply target already matches the quantity aboard." };
+        return commandResult(
+          target > quantity
+            ? applySupplyPurchase(current.state, supplyId, target - quantity, now())
+            : applySupplyDiscard(current.state, supplyId, quantity - target),
+        );
+      }),
     [now],
   );
-  const discardSupply = useCallback(
-    (supplyId: SupplyId, quantity: number) =>
-      setRuntime((current) => commandResult(applySupplyDiscard(current.state, supplyId, quantity))),
-    [],
-  );
   const buyProduct = useCallback(
-    (productId: string) => setRuntime((current) => commandResult(applyProductBuy(current.state, productId, 1, now()))),
+    (productId: string, quantity: number) =>
+      setRuntime((current) => commandResult(applyProductBuy(current.state, productId, quantity, now()))),
     [now],
   );
   const sellProduct = useCallback(
-    (productId: string) => setRuntime((current) => commandResult(applyProductSell(current.state, productId, 1, now()))),
+    (productId: string, quantity: number) =>
+      setRuntime((current) => commandResult(applyProductSell(current.state, productId, quantity, now()))),
     [now],
   );
   const departVoyage = useCallback(
@@ -181,8 +189,7 @@ export function useGameStore({
     canGenerateVoyageSeed,
     acknowledgeMigration,
     startNewGame,
-    buySupply,
-    discardSupply,
+    applySupplyTarget,
     buyProduct,
     sellProduct,
     departVoyage,

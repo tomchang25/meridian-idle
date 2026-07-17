@@ -4,6 +4,7 @@ import {
   buyPrice,
   buyProduct,
   createMarketSession,
+  maximumProductPurchaseQuantity,
   productPurchaseError,
   sellPrice,
   sellProduct,
@@ -50,5 +51,23 @@ describe("market", () => {
     noSpecialty.marketSession = createMarketSession("lisbon", 50, 1);
     noSpecialty.marketSession.specialtySupply = 0;
     expect(productPurchaseError(noSpecialty, "lisbon-cork", 1)).toBe("Only 0 Specialty units remain.");
+  });
+  it("derives the maximum purchase quantity from Gold, Cargo, unlock, and Specialty stock", () => {
+    const goldLimited = createInitialGameState(0);
+    goldLimited.fleet.gold = 45;
+    expect(maximumProductPurchaseQuantity(goldLimited, "cod")).toBe(2);
+
+    const cargoLimited = createInitialGameState(0);
+    cargoLimited.fleet.supplies.food.quantity = cargoLimited.fleet.cargoCapacity - 3;
+    expect(maximumProductPurchaseQuantity(cargoLimited, "cod")).toBe(3);
+
+    const locked = createInitialGameState(0);
+    expect(maximumProductPurchaseQuantity(locked, "lisbon-cork")).toBe(0);
+
+    const specialtyLimited = createInitialGameState(0);
+    specialtyLimited.portProgress.lisbon.xp = 7_900;
+    specialtyLimited.marketSession = createMarketSession("lisbon", 50, 1);
+    specialtyLimited.marketSession.specialtySupply = 2;
+    expect(maximumProductPurchaseQuantity(specialtyLimited, "lisbon-cork")).toBe(2);
   });
 });
