@@ -14,3 +14,7 @@
 ### Changed
 
 - 2026-07-16 — [v5] The playable dashboard now uses a responsive city-command HUD with state-driven pixel scenes, focused Port operations, automatic Voyage progress, and separate Fleet ledgers.
+
+### Supply Replenishment Policy and Arrival Auto-Restock
+
+- 2026-07-17 — [supplies] Fleet Supply targets now support atomic manual restocking and optional destination-priced replenishment after Voyage arrival.

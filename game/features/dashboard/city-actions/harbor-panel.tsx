@@ -1,5 +1,5 @@
 import { getPort, ROUTES } from "@/game/domain/content/core-content";
-import { voyageDepartureError } from "@/game/domain/rules/voyage";
+import { voyageDepartureError, voyageSupplyReadiness } from "@/game/domain/rules/voyage";
 import { displayName, formatRemaining } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";
 import styles from "../meridian-dashboard.module.css";
@@ -34,6 +34,7 @@ export function HarborPanel({ store }: HarborPanelProps) {
           const departureError = voyageDepartureError(state, route.id);
           const unavailableReason = !store.canGenerateVoyageSeed ? "Secure randomness is unavailable." : departureError;
           const departureReasonId = `depart-${route.id}-reason`;
+          const readiness = voyageSupplyReadiness(state, route.id);
           return (
             <li key={route.id}>
               <div className={styles.routeCompass} aria-hidden="true">
@@ -56,19 +57,25 @@ export function HarborPanel({ store }: HarborPanelProps) {
                 <div>
                   <dt>Supplies</dt>
                   <dd>
-                    Food {route.requiredSupplies.food} / Water {route.requiredSupplies.water}
+                    Food {readiness?.food.required} required / {readiness?.food.aboard} aboard
+                    {readiness?.food.missing ? ` / Missing ${readiness.food.missing}` : " / Ready"}
+                    <br />
+                    Water {readiness?.water.required} required / {readiness?.water.aboard} aboard
+                    {readiness?.water.missing ? ` / Missing ${readiness.water.missing}` : " / Ready"}
                   </dd>
                 </div>
               </dl>
-              <button
-                className={styles.primaryButton}
-                type="button"
-                disabled={unavailableReason !== null}
-                aria-describedby={unavailableReason ? departureReasonId : undefined}
-                onClick={() => store.departVoyage(route.id)}
-              >
-                Depart for {routeDestination?.name ?? "destination"}
-              </button>
+              <div className={styles.harborRouteActions}>
+                <button
+                  className={styles.primaryButton}
+                  type="button"
+                  disabled={unavailableReason !== null}
+                  aria-describedby={unavailableReason ? departureReasonId : undefined}
+                  onClick={() => store.departVoyage(route.id)}
+                >
+                  Depart for {routeDestination?.name ?? "destination"}
+                </button>
+              </div>
               {unavailableReason && (
                 <p className={styles.unavailableReason} id={departureReasonId}>
                   {unavailableReason}

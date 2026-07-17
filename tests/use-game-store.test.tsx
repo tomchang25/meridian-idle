@@ -51,21 +51,41 @@ describe("useGameStore", () => {
     expect(result.current.state.fleet.products.cod.quantity).toBe(2);
   });
 
-  it("applies Supply targets against the latest canonical stack", async () => {
+  it("persists Supply targets and applies them against the latest canonical stack", async () => {
     const dependencies: GameStoreDependencies = { repository: repository(), now: () => 10 };
     const { result } = renderHook(() => useGameStore(dependencies));
     await settleHydration();
 
-    act(() => result.current.applySupplyTarget("food", 3));
+    act(() => result.current.setSupplyTarget("food", 3));
+    expect(result.current.state.fleet.supplyTargets.food).toBe(3);
+    expect(result.current.state.fleet.supplies.food.quantity).toBe(0);
+    act(() => result.current.applySupplyTarget("food"));
     expect(result.current.state.fleet.supplies.food.quantity).toBe(3);
     expect(result.current.state.fleet.gold).toBe(2_000 - 24);
 
-    act(() => result.current.applySupplyTarget("food", 1));
+    act(() => result.current.setSupplyTarget("food", 1));
+    act(() => result.current.applySupplyTarget("food"));
     expect(result.current.state.fleet.supplies.food.quantity).toBe(1);
     expect(result.current.state.fleet.gold).toBe(2_000 - 24);
 
-    act(() => result.current.applySupplyTarget("food", 1));
+    act(() => result.current.applySupplyTarget("food"));
     expect(result.current.commandError).toBe("Supply target already matches the quantity aboard.");
+  });
+
+  it("updates arrival automation and restocks all persisted deficits in one command", async () => {
+    const dependencies: GameStoreDependencies = { repository: repository(), now: () => 10 };
+    const { result } = renderHook(() => useGameStore(dependencies));
+    await settleHydration();
+
+    act(() => result.current.setSupplyTarget("food", 2));
+    act(() => result.current.setSupplyTarget("water", 1));
+    act(() => result.current.setAutoRestockOnArrival(true));
+    act(() => result.current.restockAllSupplies());
+
+    expect(result.current.state.fleet.autoRestockOnArrival).toBe(true);
+    expect(result.current.state.fleet.supplies.food.quantity).toBe(2);
+    expect(result.current.state.fleet.supplies.water.quantity).toBe(1);
+    expect(result.current.state.fleet.gold).toBe(1_980);
   });
 
   it("reports loading until repository hydration settles", async () => {
@@ -95,8 +115,10 @@ describe("useGameStore", () => {
     const { result } = renderHook(() => useGameStore(dependencies));
     await settleHydration();
 
-    act(() => result.current.applySupplyTarget("food", 1));
-    act(() => result.current.applySupplyTarget("water", 1));
+    act(() => result.current.setSupplyTarget("food", 1));
+    act(() => result.current.setSupplyTarget("water", 1));
+    act(() => result.current.applySupplyTarget("food"));
+    act(() => result.current.applySupplyTarget("water"));
     const suppliesBefore = result.current.state.fleet.supplies;
     act(() => result.current.departVoyage("lisbon-faro"));
 

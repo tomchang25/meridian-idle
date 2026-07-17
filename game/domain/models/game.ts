@@ -15,6 +15,8 @@ export type Fleet = {
   attack: number;
   products: Record<string, CargoStack>;
   supplies: Record<SupplyId, CargoStack>;
+  supplyTargets: Record<SupplyId, number>;
+  autoRestockOnArrival: boolean;
 };
 export type PortProgress = { xp: number };
 export type MarketSession = {
@@ -47,7 +49,7 @@ export type MigrationReport = { fromVersion: 1; migratedAt: number; droppedField
 export type ActivityEntry = { id: string; at: number; message: string; tone: ActivityTone };
 
 export type V5GameState = {
-  schemaVersion: 3;
+  schemaVersion: 4;
   createdAt: number;
   world: { knownPortIds: string[] };
   fleet: Fleet;

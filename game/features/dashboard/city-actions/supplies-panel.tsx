@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { getPort } from "@/game/domain/content/core-content";
 import { SUPPLY_IDS } from "@/game/domain/models/game";
-import { supplyPurchaseError, usedCargo } from "@/game/domain/rules/cargo";
+import { supplyPurchaseError, supplyRestockPlan, supplyTargetMaximum, usedCargo } from "@/game/domain/rules/cargo";
 import { SUPPLY_LABELS } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";
 import styles from "../meridian-dashboard.module.css";
@@ -13,9 +12,10 @@ type SuppliesPanelProps = {
 
 export function SuppliesPanel({ store }: SuppliesPanelProps) {
   const { state } = store;
-  const [targets, setTargets] = useState<Record<string, number>>({});
   const port = getPort(state.fleet.locationPortId);
   const cargo = usedCargo(state);
+  const restockPlan = supplyRestockPlan(state);
+  const restockReason = restockPlan.error ?? (restockPlan.totalQuantity === 0 ? "Targets already met." : null);
 
   return (
     <section aria-labelledby="supplies-command">
@@ -32,10 +32,45 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
       <p className={styles.workspaceIntro}>
         Supplies share the Fleet Cargo Capacity. Discarded stores are not refunded.
       </p>
+      <label className={styles.autoRestockControl}>
+        <input
+          type="checkbox"
+          checked={state.fleet.autoRestockOnArrival}
+          onChange={(event) => store.setAutoRestockOnArrival(event.target.checked)}
+        />
+        <span>
+          <strong>Auto-restock on Voyage arrival</strong>
+          <small>Buys target deficits at the destination Port. It never discards Supplies.</small>
+        </span>
+      </label>
+      <div className={styles.restockAll}>
+        <div>
+          <strong>Fleet replenishment</strong>
+          <p className={styles.tradePreview}>
+            {restockPlan.totalQuantity > 0
+              ? `Buy ${restockPlan.totalQuantity} · Total: ${restockPlan.totalCost} Gold`
+              : "Targets already met"}
+          </p>
+        </div>
+        <button
+          className={styles.primaryButton}
+          type="button"
+          disabled={restockReason !== null}
+          aria-describedby={restockReason ? "restock-all-reason" : undefined}
+          onClick={store.restockAllSupplies}
+        >
+          Restock all now
+        </button>
+        {restockReason && (
+          <p className={styles.unavailableReason} id="restock-all-reason">
+            {restockReason}
+          </p>
+        )}
+      </div>
       <ul className={styles.supplyManagementList}>
         {SUPPLY_IDS.map((supplyId) => {
           const stack = state.fleet.supplies[supplyId];
-          const target = Math.min(targets[supplyId] ?? stack.quantity, state.fleet.cargoCapacity);
+          const target = state.fleet.supplyTargets[supplyId];
           const delta = target - stack.quantity;
           const purchaseError = delta > 0 ? supplyPurchaseError(state, supplyId, delta) : null;
           const reason = purchaseError ?? (delta === 0 ? "Target already matches the quantity aboard." : null);
@@ -59,8 +94,8 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
                 label={`${SUPPLY_LABELS[supplyId]} target quantity`}
                 value={target}
                 min={0}
-                max={state.fleet.cargoCapacity}
-                onChange={(nextTarget) => setTargets((current) => ({ ...current, [supplyId]: nextTarget }))}
+                max={supplyTargetMaximum(state, supplyId)}
+                onChange={(nextTarget) => store.setSupplyTarget(supplyId, nextTarget)}
               />
               <div className={styles.supplyApply}>
                 <p className={styles.tradePreview}>
@@ -75,7 +110,7 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
                   type="button"
                   disabled={delta === 0 || purchaseError !== null}
                   aria-describedby={reason ? reasonId : undefined}
-                  onClick={() => store.applySupplyTarget(supplyId, target)}
+                  onClick={() => store.applySupplyTarget(supplyId)}
                 >
                   Apply
                 </button>

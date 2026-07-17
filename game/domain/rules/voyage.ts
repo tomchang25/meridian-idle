@@ -1,6 +1,6 @@
 import { getRoute } from "@/game/domain/content/core-content";
 import type { SupplyId, V5GameState, Voyage } from "@/game/domain/models/game";
-import { removedCostBasis, type RuleResult } from "@/game/domain/rules/cargo";
+import { removedCostBasis, restockSupplies, supplyRestockPlan, type RuleResult } from "@/game/domain/rules/cargo";
 import { settlePortEntry } from "@/game/domain/rules/progression";
 
 function consumeSupply(state: V5GameState, id: SupplyId, quantity: number) {
@@ -60,13 +60,51 @@ export function voyageDepartureError(state: V5GameState, routeId: string): strin
     return `Requires Food ${food} and Water ${water} before departure.`;
   return null;
 }
+export function voyageSupplyReadiness(state: V5GameState, routeId: string) {
+  const route = getRoute(routeId);
+  if (!route) return null;
+  const { food, water } = route.requiredSupplies;
+  return {
+    food: {
+      required: food,
+      aboard: state.fleet.supplies.food.quantity,
+      missing: Math.max(0, food - state.fleet.supplies.food.quantity),
+    },
+    water: {
+      required: water,
+      aboard: state.fleet.supplies.water.quantity,
+      missing: Math.max(0, water - state.fleet.supplies.water.quantity),
+    },
+  };
+}
 export function resolveVoyage(state: V5GameState, now: number): RuleResult {
   const voyage = state.voyage;
   if (!voyage || now < voyage.plannedArrivesAt) return { state };
   const arrival = settlePortEntry({ ...state, voyage: null }, voyage.destinationPortId, voyage.seed);
+  let settledState = arrival.state;
+  if (settledState.fleet.autoRestockOnArrival) {
+    const plan = supplyRestockPlan(settledState);
+    if (plan.totalQuantity > 0) {
+      const restock = restockSupplies(settledState, voyage.plannedArrivesAt, `${voyage.id}-restocked`);
+      settledState = restock.error
+        ? {
+            ...settledState,
+            activity: [
+              {
+                id: `${voyage.id}-restock-failed`,
+                at: voyage.plannedArrivesAt,
+                message: `Auto-restock failed: ${restock.error}`,
+                tone: "warning" as const,
+              },
+              ...settledState.activity,
+            ].slice(0, 24),
+          }
+        : restock.state;
+    }
+  }
   return {
     state: {
-      ...arrival.state,
+      ...settledState,
       voyage: null,
       latestVoyageResult: {
         voyageId: voyage.id,
@@ -82,7 +120,7 @@ export function resolveVoyage(state: V5GameState, now: number): RuleResult {
           message: `Arrived at ${voyage.destinationPortId}.`,
           tone: "success" as const,
         },
-        ...arrival.state.activity,
+        ...settledState.activity,
       ].slice(0, 24),
     },
   };

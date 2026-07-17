@@ -25,7 +25,33 @@ describe("V5 save migration", () => {
       kind: "current",
       envelope: { savedAt: 200 },
     });
+    const malformedCurrent = createSaveEnvelope(state, 200);
+    malformedCurrent.state.fleet.supplyTargets.food = 0.5;
+    expect(loadSave(malformedCurrent, 300)).toEqual({ kind: "corrupt" });
     expect(loadSave({ version: 1, state: { resources: { gold: Number.NaN } } }, 300)).toEqual({ kind: "corrupt" });
+  });
+
+  it("migrates V3 Supply quantities into targets without enabling arrival automation", () => {
+    const current = createInitialGameState(100);
+    const { supplyTargets, autoRestockOnArrival, ...fleet } = current.fleet;
+    expect(supplyTargets.food).toBe(0);
+    expect(autoRestockOnArrival).toBe(false);
+    const v3State = {
+      ...current,
+      schemaVersion: 3 as const,
+      fleet: {
+        ...fleet,
+        supplies: { ...fleet.supplies, food: { quantity: 3, totalCostBasis: 24 } },
+      },
+    };
+
+    const result = loadSave({ version: 3, savedAt: 200, state: v3State }, 300);
+
+    expect(result.kind).toBe("migrated");
+    if (result.kind !== "migrated") return;
+    expect(result.envelope).toMatchObject({ version: 4, savedAt: 300 });
+    expect(result.envelope.state.fleet.supplyTargets.food).toBe(3);
+    expect(result.envelope.state.fleet.autoRestockOnArrival).toBe(false);
   });
 
   it("migrates V2 Rope and Sails stacks to Munitions and Spares without losing their cost basis", () => {
@@ -49,9 +75,10 @@ describe("V5 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 3, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 4, savedAt: 300 });
     expect(result.envelope.state.fleet.supplies.munitions).toEqual({ quantity: 4, totalCostBasis: 72 });
     expect(result.envelope.state.fleet.supplies.spares).toEqual({ quantity: 5, totalCostBasis: 120 });
+    expect(result.envelope.state.fleet.supplyTargets).toMatchObject({ munitions: 4, spares: 5 });
     expect(result.envelope.state.activity[0].message).toContain("renamed without changing");
   });
 });

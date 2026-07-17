@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SeedSource } from "@/game/application/seed-source";
 import type { SupplyId, V5GameState } from "@/game/domain/models/game";
-import { buySupply as applySupplyPurchase, discardSupply as applySupplyDiscard } from "@/game/domain/rules/cargo";
+import {
+  buySupply as applySupplyPurchase,
+  discardSupply as applySupplyDiscard,
+  restockSupplies as applySupplyRestock,
+  setAutoRestockOnArrival as applyAutoRestockSetting,
+  setSupplyTarget as applySupplyTargetSetting,
+} from "@/game/domain/rules/cargo";
 import type { RuleResult } from "@/game/domain/rules/cargo";
 import { buyProduct as applyProductBuy, sellProduct as applyProductSell } from "@/game/domain/rules/market";
 import {
@@ -114,10 +120,9 @@ export function useGameStore({
     setSaveStatus(repository.isAvailable() ? "saved" : "unavailable");
   }, [now, repository]);
   const applySupplyTarget = useCallback(
-    (supplyId: SupplyId, target: number) =>
+    (supplyId: SupplyId) =>
       setRuntime((current) => {
-        if (!Number.isSafeInteger(target) || target < 0)
-          return { ...current, commandError: "Supply target must be a non-negative whole number." };
+        const target = current.state.fleet.supplyTargets[supplyId];
         const quantity = current.state.fleet.supplies[supplyId].quantity;
         if (target === quantity)
           return { ...current, commandError: "Supply target already matches the quantity aboard." };
@@ -127,6 +132,19 @@ export function useGameStore({
             : applySupplyDiscard(current.state, supplyId, quantity - target),
         );
       }),
+    [now],
+  );
+  const setSupplyTarget = useCallback(
+    (supplyId: SupplyId, target: number) =>
+      setRuntime((current) => commandResult(applySupplyTargetSetting(current.state, supplyId, target))),
+    [],
+  );
+  const setAutoRestockOnArrival = useCallback(
+    (enabled: boolean) => setRuntime((current) => commandResult(applyAutoRestockSetting(current.state, enabled))),
+    [],
+  );
+  const restockAllSupplies = useCallback(
+    () => setRuntime((current) => commandResult(applySupplyRestock(current.state, now()))),
     [now],
   );
   const buyProduct = useCallback(
@@ -189,7 +207,10 @@ export function useGameStore({
     canGenerateVoyageSeed,
     acknowledgeMigration,
     startNewGame,
+    setSupplyTarget,
+    setAutoRestockOnArrival,
     applySupplyTarget,
+    restockAllSupplies,
     buyProduct,
     sellProduct,
     departVoyage,

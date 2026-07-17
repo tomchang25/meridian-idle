@@ -7,6 +7,8 @@
 
 Automation and Logistics 是玩家已理解手動貿易後，將重複工作交給組織、設施與固定運輸的未來擴充。它不屬於 V5 Core，不建立 runtime state、空 UI、save placeholder 或 active implementation plan。
 
+Fleet-owned Supply targets and optional arrival-time deficit restocking are dockside provisioning quality-of-life, not an Automatic Trade Route, background logistics system, Warehouse, or Long-Term Supply.
+
 恢復開發時，Core 的單 Fleet、Product、Market Session、Port Progression、Cargo、Financial Accounting 與 Voyage contract 仍是唯一基礎；extension 不得另造免費背景 Fleet、第二套價格或第二套 inventory accounting。
 
 ## 預定系統

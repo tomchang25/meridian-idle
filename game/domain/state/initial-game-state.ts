@@ -7,7 +7,7 @@ function emptyStack(): CargoStack {
 
 export function createInitialGameState(now: number): V5GameState {
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     createdAt: now,
     world: { knownPortIds: ["lisbon", "faro", "tangier"] },
     fleet: {
@@ -19,6 +19,8 @@ export function createInitialGameState(now: number): V5GameState {
       attack: 10,
       products: {},
       supplies: Object.fromEntries(SUPPLY_IDS.map((id) => [id, emptyStack()])) as V5GameState["fleet"]["supplies"],
+      supplyTargets: Object.fromEntries(SUPPLY_IDS.map((id) => [id, 0])) as V5GameState["fleet"]["supplyTargets"],
+      autoRestockOnArrival: false,
     },
     portProgress: { lisbon: { xp: 0 }, faro: { xp: 0 }, tangier: { xp: 0 } },
     marketSession: createMarketSession("lisbon", 1, 1),

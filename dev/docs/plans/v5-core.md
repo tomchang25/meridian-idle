@@ -27,7 +27,7 @@ Replace the V3 action prototype with a complete manual maritime trading game bui
 
 ### Release Boundary
 
-The plan is complete only when a player can start or migrate, trade manually across Ports, grow Port Levels, cycle finite Specialty supply, survive or recover from voyage risk, obtain Items, and complete the West Africa Expedition. Automation, logistics, Skills, Quality, dynamic Pirate Danger, Patrol, dynamic supply and demand, Port conditions, distance-based Specialty value, and spoilage remain outside this release.
+The plan is complete only when a player can start or migrate, trade manually across Ports, grow Port Levels, cycle finite Specialty supply, survive or recover from voyage risk, obtain Items, and complete the West Africa Expedition. Automation, logistics, Skills, Quality, dynamic Pirate Danger, Patrol, dynamic supply and demand, Port conditions, distance-based Specialty value, and spoilage remain outside this release. Fleet-owned Supply targets and optional dockside arrival-time deficit restocking remain manual provisioning quality-of-life, not excluded trade-route automation or background logistics.
 
 The first content set may be smaller than the final world catalog, but it must include Lisbon, a same-Region trading partner, a cross-Region destination, coherent route content, at least one Product Category with meaningful price variation, one Regional Specialty, recoverable Pirate Combat, Item rewards, and the West Africa Expedition path.
 

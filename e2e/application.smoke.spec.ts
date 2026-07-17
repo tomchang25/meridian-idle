@@ -12,11 +12,11 @@ test("boots, provisions, departs, and arrives at a different port", async ({ pag
   const food = provisioning.getByText("Food", { exact: true }).locator("xpath=ancestor::li[1]");
   const water = provisioning.getByText("Water", { exact: true }).locator("xpath=ancestor::li[1]");
   await food.getByRole("spinbutton", { name: "Food target quantity" }).fill("1");
-  await food.getByRole("button", { name: "Apply" }).click();
-  await expect(food.getByText("1 aboard", { exact: false })).toBeVisible();
   await water.getByRole("spinbutton", { name: "Water target quantity" }).fill("1");
-  await water.getByRole("button", { name: "Apply" }).click();
+  await provisioning.getByRole("button", { name: "Restock all now" }).click();
+  await expect(food.getByText("1 aboard", { exact: false })).toBeVisible();
   await expect(water.getByText("1 aboard", { exact: false })).toBeVisible();
+  await provisioning.getByRole("checkbox", { name: /Auto-restock on Voyage arrival/ }).check();
   await page.getByRole("button", { name: /Harbor/ }).click();
   await page.getByRole("button", { name: "Depart for Faro" }).click();
   await expect(page.getByRole("heading", { name: "Lisbon to Faro" })).toBeVisible();

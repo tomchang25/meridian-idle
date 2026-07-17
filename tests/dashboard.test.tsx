@@ -15,7 +15,10 @@ const store = {
   canGenerateVoyageSeed: true,
   acknowledgeMigration: vi.fn(),
   startNewGame: vi.fn(),
+  setSupplyTarget: vi.fn(),
+  setAutoRestockOnArrival: vi.fn(),
   applySupplyTarget: vi.fn(),
+  restockAllSupplies: vi.fn(),
   buyProduct: vi.fn(),
   sellProduct: vi.fn(),
   departVoyage: vi.fn(),
@@ -79,6 +82,7 @@ describe("MeridianDashboard", () => {
     };
     store.state.fleet.supplies.food = { quantity: 2, totalCostBasis: 16 };
     store.state.fleet.supplies.water = { quantity: 2, totalCostBasis: 8 };
+    store.state.fleet.supplyTargets.food = 4;
     render(<MeridianDashboard />);
 
     const marketPanel = screen.getByRole("heading", { name: "Market Exchange" }).closest("section");
@@ -95,20 +99,28 @@ describe("MeridianDashboard", () => {
     expect(within(supplyPanel!).getByText("Spares")).toBeVisible();
     const foodRow = within(supplyPanel!).getByText("Food").closest("li");
     fireEvent.change(within(foodRow!).getByRole("spinbutton", { name: "Food target quantity" }), {
-      target: { value: "4" },
+      target: { value: "3" },
     });
-    expect(within(foodRow!).getByText("Buy 2 · Total: 16 Gold")).toBeVisible();
+    expect(store.setSupplyTarget).toHaveBeenCalledWith("food", 3);
     fireEvent.click(within(foodRow!).getByRole("button", { name: "Apply" }));
-    expect(store.applySupplyTarget).toHaveBeenCalledWith("food", 4);
+    expect(store.applySupplyTarget).toHaveBeenCalledWith("food");
+
+    fireEvent.click(within(supplyPanel!).getByRole("checkbox", { name: /Auto-restock on Voyage arrival/ }));
+    expect(store.setAutoRestockOnArrival).toHaveBeenCalledWith(true);
+    fireEvent.click(within(supplyPanel!).getByRole("button", { name: "Restock all now" }));
+    expect(store.restockAllSupplies).toHaveBeenCalledOnce();
 
     fireEvent.click(screen.getByRole("button", { name: /Harbor/ }));
     expect(screen.getByRole("heading", { name: "Choose Next Port" })).toBeVisible();
+    expect(screen.getByText(/Food 1 required \/ 2 aboard \/ Ready/)).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Manage Supplies/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Depart for Faro" }));
     expect(store.departVoyage).toHaveBeenCalledWith("lisbon-faro");
   });
 
   it("associates visible Product and Supply purchase reasons with disabled controls", () => {
     store.state.fleet.gold = 0;
+    store.state.fleet.supplyTargets.food = 1;
     render(<MeridianDashboard />);
 
     const codCard = screen.getByText("Cod").closest("li");

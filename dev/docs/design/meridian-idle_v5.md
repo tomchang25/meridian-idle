@@ -410,19 +410,22 @@ Supply stack 保存 Quantity 與 Total Acquisition Cost Basis。消耗 Supplies 
 
 卸除 Supplies 代表丟棄：不退款、不產生 Sale Revenue，也不回復 cost basis。
 
+玩家可為每類 Supply 設定持久化的 Fleet target，並選擇在 Voyage 抵達後自動補給。Target 本身不交易；手動整批補給與自動補給只會購買低於 target 的缺口，會先驗證全部缺口的 Gold 與 Cargo Capacity，不能完整補足時不做部分購買。自動補給在目的港 settlement 後依目的港價格執行，失敗不回滾已完成的抵達，且不會自動丟棄高於 target 的 Supply。
+
 ---
 
 ## 八、Manual Port Operations
 
 Manual operation 從遊戲開始即可使用。只有 Fleet 目前停靠的 Port 能執行 mutation。
 
-| Action        | 規則                                               |
-| ------------- | -------------------------------------------------- |
-| Buy Product   | 購買目前 Port 已解鎖且有供應的 Product             |
-| Sell Product  | 所有 Product 都可出售；依目的港 Sale Modifier 計價 |
-| Buy Supplies  | 依 Port content price 補給五類 Supplies            |
-| Discard Cargo | 丟棄 Product 或 Supplies，不產生收入               |
-| Repair        | 支付 Gold，恢復 Fleet HP；實際費用記入 accounting  |
+| Action        | 規則                                                    |
+| ------------- | ------------------------------------------------------- |
+| Buy Product   | 購買目前 Port 已解鎖且有供應的 Product                  |
+| Sell Product  | 所有 Product 都可出售；依目的港 Sale Modifier 計價      |
+| Buy Supplies  | 依 Port content price 補給五類 Supplies                 |
+| Restock Fleet | 一次購買全部 Supply target 缺口；可選擇在抵達時自動執行 |
+| Discard Cargo | 丟棄 Product 或 Supplies，不產生收入                    |
+| Repair        | 支付 Gold，恢復 Fleet HP；實際費用記入 accounting       |
 
 Manual Port Operations 不需要額外 Action Timer。Voyage、Repair duration（若 content 設為非零）與 Expedition 才消耗主要時間。
 

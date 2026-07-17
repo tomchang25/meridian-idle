@@ -1160,7 +1160,7 @@
 }
 
 .actionButtons button,
-.harborRoutes > li > button {
+.harborRouteActions button {
   min-height: 36px;
   border: 1px solid #70572f;
   background: linear-gradient(#264f5e, #183845);
@@ -1169,7 +1169,7 @@
 }
 
 .actionButtons button:disabled,
-.harborRoutes > li > button:disabled {
+.harborRouteActions button:disabled {
   opacity: 0.78;
   cursor: not-allowed;
 }
@@ -1257,6 +1257,54 @@
 .supplyManagementList {
   display: grid;
   gap: 7px;
+}
+
+.autoRestockControl,
+.restockAll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgb(95 77 50 / 42%);
+  background: rgb(255 247 224 / 42%);
+}
+
+.autoRestockControl {
+  margin: 12px 0 7px;
+  cursor: pointer;
+}
+
+.autoRestockControl input {
+  width: 18px;
+  height: 18px;
+  accent-color: #294f5e;
+}
+
+.autoRestockControl strong,
+.autoRestockControl small {
+  display: block;
+}
+
+.autoRestockControl small {
+  margin-top: 3px;
+  color: #6f644f;
+  font-size: 0.59rem;
+  line-height: 1.4;
+}
+
+.restockAll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin-bottom: 10px;
+}
+
+.restockAll .tradePreview {
+  margin: 3px 0 0;
+}
+
+.restockAll .unavailableReason {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 .supplyManagementList > li {
@@ -1362,8 +1410,14 @@
 }
 
 .harborRoutes dl,
-.harborRoutes > li > button {
+.harborRouteActions {
   grid-column: 1 / -1;
+}
+
+.harborRouteActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
 }
 
 .harborRoutes dl {
