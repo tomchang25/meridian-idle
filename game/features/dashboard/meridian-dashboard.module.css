@@ -298,11 +298,11 @@
 }
 
 .fleetName strong,
-.fleetName span,
+.fleetName > div > span,
 .supplyIdentity strong,
 .supplyIdentity span,
 .provisionLedger strong,
-.provisionLedger span {
+.provisionLedger li > div > span {
   display: block;
 }
 
@@ -1350,7 +1350,11 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  font-size: 0.69rem;
+  background: radial-gradient(circle, #e1c477 0 28%, #8e6530 30% 35%, #102f3a 37%);
+  color: #102a31;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .supplyIdentity strong {
