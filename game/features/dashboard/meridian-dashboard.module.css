@@ -445,7 +445,6 @@
 }
 
 .portProgressList li > div,
-.capacityLabels,
 .productHeading,
 .cargoLedger li > div:first-child {
   display: flex;
@@ -465,7 +464,6 @@
 }
 
 .portProgressList progress,
-.capacityProgress,
 .voyageProgress {
   display: block;
   width: 100%;
@@ -480,19 +478,16 @@
 }
 
 .portProgressList progress::-webkit-progress-bar,
-.capacityProgress::-webkit-progress-bar,
 .voyageProgress::-webkit-progress-bar {
   background: #041519;
 }
 
 .portProgressList progress::-webkit-progress-value,
-.capacityProgress::-webkit-progress-value,
 .voyageProgress::-webkit-progress-value {
   background: linear-gradient(90deg, #735124, #d0a34f);
 }
 
 .portProgressList progress::-moz-progress-bar,
-.capacityProgress::-moz-progress-bar,
 .voyageProgress::-moz-progress-bar {
   background: linear-gradient(90deg, #735124, #d0a34f);
 }
@@ -1612,19 +1607,128 @@
   white-space: nowrap;
 }
 
-.capacityProgress {
-  height: 9px;
+.cargoCapacityBar,
+.cargoDistributionBar {
+  display: flex;
+  overflow: hidden;
   border: 1px solid #66502f;
+  background: #041519;
 }
 
-.capacityLabels {
-  margin-top: 6px;
-  color: #778786;
+.cargoCapacityBar {
+  height: 10px;
+}
+
+.cargoCapacityBar span,
+.cargoDistributionBar span {
+  min-width: 0;
+}
+
+.cargoCapacityBar span[data-cargo="supplies"],
+.capacityLegend i[data-cargo="supplies"] {
+  background: #6fa280;
+}
+
+.cargoCapacityBar span[data-cargo="products"],
+.capacityLegend i[data-cargo="products"] {
+  background: #c99b4b;
+}
+
+.cargoCapacityBar span[data-cargo="free"],
+.capacityLegend i[data-cargo="free"] {
+  background: #294950;
+}
+
+.capacityLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  margin-top: 7px;
+  color: #9aa69b;
   font-size: 0.58rem;
 }
 
-.cargoLedger {
-  margin-top: 16px;
+.capacityLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.capacityLegend i {
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgb(231 215 178 / 42%);
+}
+
+.capacityLegend strong {
+  color: #dfd2b7;
+  font-family: var(--font-serif);
+  font-size: 0.65rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.cargoGroup {
+  margin-top: 19px;
+}
+
+.cargoGroupHeading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cargoGroupHeading p {
+  margin: 0;
+  color: #758585;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cargoGroupHeading h3 {
+  margin: 3px 0 0;
+  color: #e7d9ba;
+  font-family: var(--font-serif);
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.cargoGroupHeading > strong {
+  color: #d9c7a2;
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cargoDistributionBar {
+  height: 6px;
+  margin-bottom: 9px;
+}
+
+.cargoDistributionBar span {
+  border-right: 1px solid rgb(4 21 25 / 72%);
+  background: #c99b4b;
+}
+
+.cargoDistributionBar span:nth-child(2n) {
+  background: #d9bd72;
+}
+
+.cargoDistributionBar span:nth-child(3n) {
+  background: #96763a;
+}
+
+.cargoDistributionBar span:nth-child(4n) {
+  background: #8baf92;
+}
+
+.cargoDistributionBar span:nth-child(5n) {
+  background: #557f81;
 }
 
 .cargoLedger > li {

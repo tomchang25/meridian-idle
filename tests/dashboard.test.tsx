@@ -45,8 +45,9 @@ describe("MeridianDashboard", () => {
 
     expect(screen.getByRole("heading", { name: "Port operations at Lisbon" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Market Exchange" })).toBeVisible();
-    expect(screen.getByRole("heading", { name: "Product Cargo" })).toBeVisible();
-    expect(screen.getByRole("heading", { name: "Provisioning" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Cargo Hold" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Products" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Supplies" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Activity Log" })).toBeVisible();
     expect(screen.getByText("Captain records are not available in V5 Core.")).toBeVisible();
 
@@ -76,11 +77,17 @@ describe("MeridianDashboard", () => {
     expect(Array.from(leftSidebar.parentElement!.children)).toEqual([leftSidebar, mainColumn, rightSidebar]);
   });
 
-  it("shows Product Cargo cost basis and local sale as unit prices", () => {
+  it("shows combined Cargo Hold allocation and Product unit prices", () => {
     store.state.fleet.products = { cod: { quantity: 9, totalCostBasis: 293 } };
+    store.state.fleet.supplies.food = { quantity: 3, totalCostBasis: 24 };
     render(<MeridianDashboard />);
 
-    const cargoPanel = screen.getByRole("heading", { name: "Product Cargo" }).closest("section");
+    const cargoPanel = screen.getByRole("heading", { name: "Cargo Hold" }).closest("section");
+    expect(
+      within(cargoPanel!).getByRole("img", { name: "Cargo hold: 3 Supply units, 9 Product units, 48 units free." }),
+    ).toBeVisible();
+    expect(within(cargoPanel!).getByRole("img", { name: "Supply distribution: Food 3." })).toBeVisible();
+    expect(within(cargoPanel!).getByRole("img", { name: "Product distribution: Cod 9." })).toBeVisible();
     expect(within(cargoPanel!).getByText("Avg cost")).toBeVisible();
     expect(within(cargoPanel!).getByText("32.56 Gold / unit")).toBeVisible();
     expect(within(cargoPanel!).getByText("Local sale")).toBeVisible();

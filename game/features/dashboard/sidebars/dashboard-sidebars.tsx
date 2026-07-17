@@ -110,6 +110,16 @@ export function ShortTermSidebar({ state }: DashboardSidebarProps) {
   const port = getPort(state.fleet.locationPortId);
   const cargo = usedCargo(state);
   const level = portLevel(state, state.fleet.locationPortId);
+  const products = Object.entries(state.fleet.products);
+  const productsCargo = products.reduce((sum, [, stack]) => sum + stack.quantity, 0);
+  const suppliesCargo = SUPPLY_IDS.reduce((sum, id) => sum + state.fleet.supplies[id].quantity, 0);
+  const freeCargo = state.fleet.cargoCapacity - cargo;
+  const suppliesDistribution = SUPPLY_IDS.filter((id) => state.fleet.supplies[id].quantity > 0)
+    .map((id) => `${SUPPLY_LABELS[id]} ${state.fleet.supplies[id].quantity}`)
+    .join(", ");
+  const productsDistribution = products
+    .map(([id, stack]) => `${getProduct(id)?.name ?? id} ${stack.quantity}`)
+    .join(", ");
 
   return (
     <aside className={styles.rightSidebar} aria-label="Short-term status">
@@ -117,80 +127,117 @@ export function ShortTermSidebar({ state }: DashboardSidebarProps) {
         <div className={styles.ledgerHeading}>
           <div>
             <p>Short-term ledger</p>
-            <h2 id="cargo-details">Product Cargo</h2>
+            <h2 id="cargo-details">Cargo Hold</h2>
           </div>
           <strong>
             {cargo} / {state.fleet.cargoCapacity}
           </strong>
         </div>
-        <progress
-          className={styles.capacityProgress}
-          aria-label="Cargo capacity"
-          max={state.fleet.cargoCapacity}
-          value={cargo}
+        <div
+          className={styles.cargoCapacityBar}
+          aria-label={`Cargo hold: ${suppliesCargo} Supply units, ${productsCargo} Product units, ${freeCargo} units free.`}
+          role="img"
         >
-          {cargo} of {state.fleet.cargoCapacity}
-        </progress>
-        <div className={styles.capacityLabels}>
-          <span>{Math.round((cargo / state.fleet.cargoCapacity) * 100)}% occupied</span>
-          <span>{state.fleet.cargoCapacity - cargo} units free</span>
+          {suppliesCargo > 0 && <span data-cargo="supplies" style={{ flexGrow: suppliesCargo }} />}
+          {productsCargo > 0 && <span data-cargo="products" style={{ flexGrow: productsCargo }} />}
+          {freeCargo > 0 && <span data-cargo="free" style={{ flexGrow: freeCargo }} />}
         </div>
-        {Object.keys(state.fleet.products).length === 0 ? (
-          <p className={styles.emptyState}>No Product Cargo is held.</p>
-        ) : (
-          <ul className={styles.cargoLedger}>
-            {Object.entries(state.fleet.products).map(([productId, stack]) => {
-              const price = sellPrice(state, productId);
+        <div className={styles.capacityLegend}>
+          <span>
+            <i data-cargo="supplies" aria-hidden="true" /> Supplies <strong>{suppliesCargo}</strong>
+          </span>
+          <span>
+            <i data-cargo="products" aria-hidden="true" /> Products <strong>{productsCargo}</strong>
+          </span>
+          <span>
+            <i data-cargo="free" aria-hidden="true" /> Free <strong>{freeCargo}</strong>
+          </span>
+        </div>
+        <section className={styles.cargoGroup} aria-labelledby="supply-details">
+          <div className={styles.cargoGroupHeading}>
+            <div>
+              <p>Voyage stores</p>
+              <h3 id="supply-details">Supplies</h3>
+            </div>
+            <strong>{suppliesCargo} units</strong>
+          </div>
+          <div
+            className={styles.cargoDistributionBar}
+            aria-label={`Supply distribution: ${suppliesDistribution || "no Supplies held"}.`}
+            role="img"
+          >
+            {SUPPLY_IDS.map((supplyId) => {
+              const quantity = state.fleet.supplies[supplyId].quantity;
+              return quantity > 0 ? <span key={supplyId} style={{ flexGrow: quantity }} /> : null;
+            })}
+          </div>
+          <ul className={styles.provisionLedger}>
+            {SUPPLY_IDS.map((supplyId) => {
+              const stack = state.fleet.supplies[supplyId];
               return (
-                <li key={productId}>
+                <li key={supplyId}>
+                  <span className={styles.supplyIcon} aria-hidden="true">
+                    {SUPPLY_LABELS[supplyId].slice(0, 1)}
+                  </span>
                   <div>
-                    <strong>{getProduct(productId)?.name ?? productId}</strong>
-                    <span>{stack.quantity} units</span>
+                    <strong>{SUPPLY_LABELS[supplyId]}</strong>
+                    <span>
+                      {stack.totalCostBasis} Gold basis / {port?.supplyPrices[supplyId] ?? "-"} local
+                    </span>
                   </div>
-                  <dl>
-                    <div>
-                      <dt>Avg cost</dt>
-                      <dd>{formatUnitGold(averageUnitCost(stack))}</dd>
-                    </div>
-                    <div>
-                      <dt>Local sale</dt>
-                      <dd>{formatUnitGold(price?.unitPrice ?? null)}</dd>
-                    </div>
-                  </dl>
+                  <b>{stack.quantity}</b>
                 </li>
               );
             })}
           </ul>
-        )}
-      </section>
-
-      <section className={styles.ledgerSection} aria-labelledby="provision-details">
-        <div className={styles.ledgerHeading}>
-          <div>
-            <p>Voyage stores</p>
-            <h2 id="provision-details">Provisioning</h2>
+        </section>
+        <section className={styles.cargoGroup} aria-labelledby="product-details">
+          <div className={styles.cargoGroupHeading}>
+            <div>
+              <p>Trade inventory</p>
+              <h3 id="product-details">Products</h3>
+            </div>
+            <strong>{productsCargo} units</strong>
           </div>
-          <strong>{SUPPLY_IDS.reduce((sum, id) => sum + state.fleet.supplies[id].quantity, 0)} units</strong>
-        </div>
-        <ul className={styles.provisionLedger}>
-          {SUPPLY_IDS.map((supplyId) => {
-            const stack = state.fleet.supplies[supplyId];
-            return (
-              <li key={supplyId}>
-                <span className={styles.supplyIcon} aria-hidden="true">
-                  {SUPPLY_LABELS[supplyId].slice(0, 1)}
-                </span>
-                <div>
-                  <strong>{SUPPLY_LABELS[supplyId]}</strong>
-                  <span>
-                    {stack.totalCostBasis} Gold basis / {port?.supplyPrices[supplyId] ?? "-"} local
-                  </span>
-                </div>
-                <b>{stack.quantity}</b>
-              </li>
-            );
-          })}
-        </ul>
+          {products.length === 0 ? (
+            <p className={styles.emptyState}>No Product Cargo is held.</p>
+          ) : (
+            <>
+              <div
+                className={styles.cargoDistributionBar}
+                aria-label={`Product distribution: ${productsDistribution}.`}
+                role="img"
+              >
+                {products.map(([productId, stack]) => (
+                  <span key={productId} style={{ flexGrow: stack.quantity }} />
+                ))}
+              </div>
+              <ul className={styles.cargoLedger}>
+                {products.map(([productId, stack]) => {
+                  const price = sellPrice(state, productId);
+                  return (
+                    <li key={productId}>
+                      <div>
+                        <strong>{getProduct(productId)?.name ?? productId}</strong>
+                        <span>{stack.quantity} units</span>
+                      </div>
+                      <dl>
+                        <div>
+                          <dt>Avg cost</dt>
+                          <dd>{formatUnitGold(averageUnitCost(stack))}</dd>
+                        </div>
+                        <div>
+                          <dt>Local sale</dt>
+                          <dd>{formatUnitGold(price?.unitPrice ?? null)}</dd>
+                        </div>
+                      </dl>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+        </section>
         <div className={styles.progressCard}>
           <span>Current Port standing</span>
           <strong>

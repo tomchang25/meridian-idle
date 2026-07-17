@@ -52,7 +52,6 @@ One line, no reasoning, no backing document.
 
 One line, no reasoning, no backing document.
 
-- [ledger] The short-term ledger separates Product Cargo from Provisioning, obscuring their combined cargo ratio and distribution.
 - [harbor] Harbor does not show other known Ports' specialties or relative locations, and Port tier appears only in the Known waters sidebar.
 - [map] The Known waters map is a static three-point, single-route display rather than a Port departure command surface or complete nautical-chart narrative — [ref dev/screenshot/chrome_jT1DlpoTqu.png].
 
