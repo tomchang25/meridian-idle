@@ -404,13 +404,13 @@ Product 與 Supplies 共用 Cargo Capacity，全部使用正整數 Cargo Unit。
 
 ### Provisioning
 
-每個 Port 的 Supply unit price 由 content data 定義。Provisioning 不寫入 Product Market Session net trade，也不提供 Port XP。
+每類 Supply 使用全世界固定的 unit price，由 content data 定義；價格不隨 Port 或時間浮動。Provisioning 不寫入 Product Market Session net trade，也不提供 Port XP。
 
 Supply stack 保存 Quantity 與 Total Acquisition Cost Basis。消耗 Supplies 時，按 stack 的 weighted average unit cost 移除相應 cost basis，並將實際消耗列入 Voyage 或 Expedition Result。
 
 卸除 Supplies 代表丟棄：不退款、不產生 Sale Revenue，也不回復 cost basis。
 
-玩家可為每類 Supply 設定持久化的 Fleet target，並選擇在 Voyage 抵達後自動補給。Target 本身不交易；手動整批補給與自動補給只會購買低於 target 的缺口，會先驗證全部缺口的 Gold 與 Cargo Capacity，不能完整補足時不做部分購買。自動補給在目的港 settlement 後依目的港價格執行，失敗不回滾已完成的抵達，且不會自動丟棄高於 target 的 Supply。
+玩家可為每類 Supply 設定持久化的 Fleet target，並選擇在 Voyage 抵達後自動補給。Target 本身不交易；手動整批補給與自動補給只會購買低於 target 的缺口，會先驗證全部缺口的 Gold 與 Cargo Capacity，不能完整補足時不做部分購買。自動補給在目的港 settlement 後以固定全球價格執行，失敗不回滾已完成的抵達，且不會自動丟棄高於 target 的 Supply。
 
 ---
 

@@ -18,7 +18,6 @@ export type Port = {
   name: string;
   regionId: string;
   catalog: PortCatalogEntry[];
-  supplyPrices: Record<SupplyId, number>;
 };
 export type Route = {
   id: string;
@@ -28,6 +27,14 @@ export type Route = {
   durationMilliseconds: number;
   staticRisk: number;
   requiredSupplies: { food: number; water: number };
+};
+
+export const SUPPLY_PRICES: Record<SupplyId, number> = {
+  food: 8,
+  water: 4,
+  medicine: 30,
+  munitions: 18,
+  spares: 24,
 };
 
 export const PRODUCT_FAMILIES: ProductFamily[] = [
@@ -91,7 +98,6 @@ export const PORTS: Port[] = [
       "ceramic",
       "glassware",
     ]),
-    supplyPrices: { food: 8, water: 4, medicine: 30, munitions: 18, spares: 24 },
   },
   {
     id: "faro",
@@ -101,7 +107,6 @@ export const PORTS: Port[] = [
       "iron-ingot",
       "glassware",
     ]),
-    supplyPrices: { food: 7, water: 4, medicine: 28, munitions: 17, spares: 23 },
   },
   {
     id: "tangier",
@@ -113,7 +118,6 @@ export const PORTS: Port[] = [
       "tangier-dyed-leather",
       ["iron-ingot", "ceramic"],
     ),
-    supplyPrices: { food: 9, water: 5, medicine: 32, munitions: 20, spares: 27 },
   },
 ];
 export const ROUTES: Route[] = [
@@ -211,9 +215,9 @@ export function validateContent(): string[] {
     const specialty = port.catalog.find((entry) => entry.unlockLevel === 50);
     if (!specialty || getProduct(specialty.productId)?.specialtyOriginPortId !== port.id)
       errors.push(`${port.id}: invalid specialty`);
-    if (SUPPLY_IDS.some((id) => !Number.isFinite(port.supplyPrices[id]) || port.supplyPrices[id] <= 0))
-      errors.push(`${port.id}: invalid supply price`);
   }
+  if (SUPPLY_IDS.some((id) => !Number.isFinite(SUPPLY_PRICES[id]) || SUPPLY_PRICES[id] <= 0))
+    errors.push("invalid Supply price");
   if (PRODUCT_FAMILIES.some((family) => !CATEGORY_IDS.includes(family.category) || family.basePrice <= 0))
     errors.push("invalid Product Family metadata");
   return errors;

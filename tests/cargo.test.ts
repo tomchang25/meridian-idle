@@ -20,6 +20,15 @@ describe("supply provisioning", () => {
     expect(usedCargo(result.state)).toBe(2);
   });
 
+  it("uses fixed Supply prices at every Port", () => {
+    const state = createInitialGameState(0);
+    state.fleet.locationPortId = "faro";
+
+    const result = buySupply(state, "food", 2, 1);
+    expect(result.state.fleet.gold).toBe(1_984);
+    expect(result.state.fleet.supplies.food).toEqual({ quantity: 2, totalCostBasis: 16 });
+  });
+
   it("does not mutate state for invalid quantities or capacity", () => {
     const state = createInitialGameState(0);
     expect(buySupply(state, "food", 0, 1).state).toBe(state);

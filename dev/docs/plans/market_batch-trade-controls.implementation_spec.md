@@ -35,7 +35,7 @@ Provision Stores uses the same quantity editor for a different semantic: the val
 - Market Exchange calls application Product commands with an explicit quantity; the application store forwards that quantity to the existing Product buy/sell domain rules instead of retaining the current hard-coded quantity of one.
 - Product pricing, purchase eligibility, Cargo usage, Specialty stock, sale classification, accounting, net trade, and activity remain owned by market and Cargo domain rules. Components may display their derived results but must not duplicate those formulas.
 - Provision Stores sends one absolute Supply target to the application store. The store compares that target with the latest canonical stack inside its state update and delegates exactly one positive delta to the existing Supply buy or discard domain rule, preserving atomic validation and command-error behavior.
-- Supply prices and purchase errors remain derived from current Port, Gold, and shared Cargo Capacity. A target draft may be invalid, but Apply must defer to domain validation and must not partially mutate state.
+- Fixed global Supply prices and purchase errors remain derived from content, Gold, and shared Cargo Capacity. A target draft may be invalid, but Apply must defer to domain validation and must not partially mutate state.
 - Existing save scheduling observes the resulting canonical state changes; this work adds no persistence fields, migration, or alternate save path.
 - Dashboard component tests own visible mode, locked/warning, quantity, disabled-reason, and command-wiring coverage. Domain and application tests own maximum-purchase derivation, explicit quantities, and target-to-delta orchestration.
 

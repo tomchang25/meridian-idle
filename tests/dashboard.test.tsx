@@ -122,6 +122,8 @@ describe("MeridianDashboard", () => {
     expect(within(supplyPanel!).getByText("Munitions")).toBeVisible();
     expect(within(supplyPanel!).getByText("Spares")).toBeVisible();
     const foodRow = within(supplyPanel!).getByText("Food").closest("li");
+    expect(within(foodRow!).getByText("Unit price")).toBeVisible();
+    expect(within(foodRow!).getByText("8 Gold")).toBeVisible();
     fireEvent.change(within(foodRow!).getByRole("spinbutton", { name: "Food target quantity" }), {
       target: { value: "3" },
     });

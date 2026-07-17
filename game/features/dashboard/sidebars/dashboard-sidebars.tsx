@@ -1,4 +1,4 @@
-import { getPort, getProduct } from "@/game/domain/content/core-content";
+import { getPort, getProduct, SUPPLY_PRICES } from "@/game/domain/content/core-content";
 import { SUPPLY_IDS, type V5GameState } from "@/game/domain/models/game";
 import { averageUnitCost, usedCargo } from "@/game/domain/rules/cargo";
 import { sellPrice } from "@/game/domain/rules/market";
@@ -107,7 +107,6 @@ export function LongTermSidebar({ state }: DashboardSidebarProps) {
 }
 
 export function ShortTermSidebar({ state }: DashboardSidebarProps) {
-  const port = getPort(state.fleet.locationPortId);
   const cargo = usedCargo(state);
   const level = portLevel(state, state.fleet.locationPortId);
   const products = Object.entries(state.fleet.products);
@@ -182,7 +181,7 @@ export function ShortTermSidebar({ state }: DashboardSidebarProps) {
                   <div>
                     <strong>{SUPPLY_LABELS[supplyId]}</strong>
                     <span>
-                      {stack.totalCostBasis} Gold basis / {port?.supplyPrices[supplyId] ?? "-"} local
+                      {stack.totalCostBasis} Gold basis / {SUPPLY_PRICES[supplyId]} per unit
                     </span>
                   </div>
                   <b>{stack.quantity}</b>

@@ -1,5 +1,5 @@
 import { SUPPLY_IDS, type CargoStack, type SupplyId, type V5GameState } from "@/game/domain/models/game";
-import { getPort } from "@/game/domain/content/core-content";
+import { getPort, SUPPLY_PRICES } from "@/game/domain/content/core-content";
 
 export type RuleResult = { state: V5GameState; error?: string };
 export type SupplyRestockPlan = {
@@ -62,7 +62,7 @@ export function supplyRestockPlan(state: V5GameState): SupplyRestockPlan {
     return { deficits, totalQuantity, totalCost: 0, error: "Supplies cannot be bought during a Voyage." };
   if (!port)
     return { deficits, totalQuantity, totalCost: 0, error: "Supply purchase is unavailable at the current location." };
-  const totalCost = SUPPLY_IDS.reduce((sum, id) => sum + deficits[id] * port.supplyPrices[id], 0);
+  const totalCost = SUPPLY_IDS.reduce((sum, id) => sum + deficits[id] * SUPPLY_PRICES[id], 0);
   const remainingCapacity = state.fleet.cargoCapacity - usedCargo(state);
   if (totalQuantity > remainingCapacity)
     return {
@@ -84,7 +84,6 @@ export function restockSupplies(state: V5GameState, now: number, activityId = `s
   const plan = supplyRestockPlan(state);
   if (plan.totalQuantity === 0) return { state, error: "Targets already met." };
   if (plan.error) return { state, error: plan.error };
-  const port = getPort(state.fleet.locationPortId)!;
   return {
     state: {
       ...state,
@@ -94,7 +93,7 @@ export function restockSupplies(state: V5GameState, now: number, activityId = `s
         supplies: Object.fromEntries(
           SUPPLY_IDS.map((id) => {
             const stack = state.fleet.supplies[id];
-            const cost = plan.deficits[id] * port.supplyPrices[id];
+            const cost = plan.deficits[id] * SUPPLY_PRICES[id];
             return [id, { quantity: stack.quantity + plan.deficits[id], totalCostBasis: stack.totalCostBasis + cost }];
           }),
         ) as V5GameState["fleet"]["supplies"],
@@ -111,7 +110,7 @@ export function supplyPurchaseError(state: V5GameState, supplyId: SupplyId, quan
   if (state.voyage) return "Supplies cannot be bought during a Voyage.";
   if (!validQuantity(quantity)) return "Quantity must be a positive whole number.";
   if (!port) return "Supply purchase is unavailable at the current location.";
-  const cost = port.supplyPrices[supplyId] * quantity;
+  const cost = SUPPLY_PRICES[supplyId] * quantity;
   const remainingCapacity = state.fleet.cargoCapacity - usedCargo(state);
   if (quantity > remainingCapacity) return `Requires ${quantity} Cargo Capacity; only ${remainingCapacity} remains.`;
   if (cost > state.fleet.gold) return `Requires ${cost} Gold; only ${state.fleet.gold} is available.`;
@@ -120,8 +119,7 @@ export function supplyPurchaseError(state: V5GameState, supplyId: SupplyId, quan
 export function buySupply(state: V5GameState, supplyId: SupplyId, quantity: number, now: number): RuleResult {
   const error = supplyPurchaseError(state, supplyId, quantity);
   if (error) return { state, error };
-  const port = getPort(state.fleet.locationPortId)!;
-  const cost = port.supplyPrices[supplyId] * quantity;
+  const cost = SUPPLY_PRICES[supplyId] * quantity;
   const stack = state.fleet.supplies[supplyId];
   return {
     state: {

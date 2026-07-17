@@ -1,4 +1,4 @@
-import { getPort } from "@/game/domain/content/core-content";
+import { SUPPLY_PRICES } from "@/game/domain/content/core-content";
 import { SUPPLY_IDS } from "@/game/domain/models/game";
 import { supplyPurchaseError, supplyRestockPlan, supplyTargetMaximum, usedCargo } from "@/game/domain/rules/cargo";
 import { SUPPLY_LABELS } from "../dashboard-helpers";
@@ -12,7 +12,6 @@ type SuppliesPanelProps = {
 
 export function SuppliesPanel({ store }: SuppliesPanelProps) {
   const { state } = store;
-  const port = getPort(state.fleet.locationPortId);
   const cargo = usedCargo(state);
   const restockPlan = supplyRestockPlan(state);
   const restockReason = restockPlan.error ?? (restockPlan.totalQuantity === 0 ? "Targets already met." : null);
@@ -40,7 +39,7 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
         />
         <span>
           <strong>Auto-restock on Voyage arrival</strong>
-          <small>Buys target deficits at the destination Port. It never discards Supplies.</small>
+          <small>Buys target deficits after arrival. It never discards Supplies.</small>
         </span>
       </label>
       <div className={styles.restockAll}>
@@ -87,8 +86,8 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
                 </span>
               </div>
               <div className={styles.supplyPrice}>
-                <span>Local price</span>
-                <strong>{port?.supplyPrices[supplyId] ?? "-"} Gold</strong>
+                <span>Unit price</span>
+                <strong>{SUPPLY_PRICES[supplyId]} Gold</strong>
               </div>
               <QuantityControl
                 label={`${SUPPLY_LABELS[supplyId]} target quantity`}
@@ -100,7 +99,7 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
               <div className={styles.supplyApply}>
                 <p className={styles.tradePreview}>
                   {delta > 0
-                    ? `Buy ${delta} · Total: ${(port?.supplyPrices[supplyId] ?? 0) * delta} Gold`
+                    ? `Buy ${delta} · Total: ${SUPPLY_PRICES[supplyId] * delta} Gold`
                     : delta < 0
                       ? `Discard ${-delta}`
                       : "No change"}

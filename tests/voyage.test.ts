@@ -45,7 +45,7 @@ describe("voyage", () => {
     expect(arrived.latestVoyageResult?.supplyCost).toBe(12);
   });
 
-  it("restocks target deficits at destination prices after arrival", () => {
+  it("restocks target deficits at fixed global prices after arrival", () => {
     let state = buySupply(createInitialGameState(0), "food", 1, 1).state;
     state = buySupply(state, "water", 1, 2).state;
     state = setSupplyTarget(state, "food", 2).state;
@@ -53,9 +53,9 @@ describe("voyage", () => {
     state = setAutoRestockOnArrival(state, true).state;
     const arrived = resolveVoyage(departVoyage(state, "lisbon-faro", 100, 3).state, 2_100).state;
 
-    expect(arrived.fleet.supplies.food).toEqual({ quantity: 2, totalCostBasis: 14 });
+    expect(arrived.fleet.supplies.food).toEqual({ quantity: 2, totalCostBasis: 16 });
     expect(arrived.fleet.supplies.water).toEqual({ quantity: 2, totalCostBasis: 8 });
-    expect(arrived.fleet.gold).toBe(1_966);
+    expect(arrived.fleet.gold).toBe(1_964);
     expect(arrived.activity.map((entry) => entry.id)).toContain("voyage-lisbon-faro-100-restocked");
     expect(arrived.latestVoyageResult?.supplyCost).toBe(12);
     expect(resolveVoyage(departVoyage(state, "lisbon-faro", 100, 3).state, 900_000).state).toEqual(arrived);
