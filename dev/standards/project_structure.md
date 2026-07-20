@@ -20,6 +20,17 @@ tests/                  cross-boundary tests and shared fixtures
 
 不要因為兩個 feature 都使用某檔案，就把它包裝成跨專案 framework。
 
+## Enforcement
+
+以下的分層依賴規則由 ESLint 強制執行,違反會使 `npm run lint` 與 `npm run verify` 失敗:
+
+- `game/domain` 不得 import 任何 UI framework,也不得 import 其他任何 layer。
+- `game/application` 與 `game/infrastructure` 不得 import `game/features`、`game/shared` 或 `app`。Adapter 可以實作 application 擁有的 port contract,但不得反向呼叫 UI。
+- `game/features` 不得直接 import `game/infrastructure` 或 `app`,必須經由 `game/application`。
+- `game/domain`、`game/application`、`game/infrastructure` 的跨目錄 import 必須使用 `@/` alias,不得使用 `../`。同目錄 `./` 不受限。
+
+Lint 失敗代表程式碼放錯位置。修法是依下方 Placement test 搬移程式碼,不是放寬規則。
+
 ## Placement test
 
 - 是遊戲公式或狀態語意？放 `game/domain`。
