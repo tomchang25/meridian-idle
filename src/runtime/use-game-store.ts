@@ -18,6 +18,7 @@ import {
   voyageDepartureError,
 } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
+import { withRenderedActivity } from "@/runtime/activity-rendering";
 import { IndexedDbSaveRepository } from "@/platform/persistence/indexed-db-save-repository";
 import { loadSave } from "@/platform/persistence/save-migrations";
 import { browserSeedSource } from "@/platform/random/crypto-seed-source";
@@ -32,7 +33,12 @@ export type GameStoreDependencies = {
 type RuntimeGameState = { state: V5GameState; commandError: string | null };
 
 function commandResult(result: RuleResult): RuntimeGameState {
-  return { state: result.state, commandError: result.error ?? null };
+  return { state: withRenderedActivity(result.state, result.events), commandError: result.error ?? null };
+}
+
+/** A fresh world plus the one entry that records its creation. */
+function createNewGame(now: number): V5GameState {
+  return withRenderedActivity(createInitialGameState(now), [{ kind: "world-created", at: now }]);
 }
 
 export function useGameStore({
@@ -42,7 +48,7 @@ export function useGameStore({
 }: GameStoreDependencies = {}) {
   const repository = useMemo(() => providedRepository ?? new IndexedDbSaveRepository(), [providedRepository]);
   const [runtime, setRuntime] = useState<RuntimeGameState>(() => ({
-    state: createInitialGameState(now()),
+    state: createNewGame(now()),
     commandError: null,
   }));
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("loading");
@@ -67,7 +73,7 @@ export function useGameStore({
         settled = true;
         window.clearTimeout(timeout);
         if (raw === null) {
-          setRuntime({ state: createInitialGameState(now()), commandError: null });
+          setRuntime({ state: createNewGame(now()), commandError: null });
           setSaveStatus("saved");
         } else {
           const loaded = loadSave(raw, now());
@@ -116,7 +122,7 @@ export function useGameStore({
     [],
   );
   const startNewGame = useCallback(() => {
-    setRuntime({ state: createInitialGameState(now()), commandError: null });
+    setRuntime({ state: createNewGame(now()), commandError: null });
     setSaveStatus(repository.isAvailable() ? "saved" : "unavailable");
   }, [now, repository]);
   const applySupplyTarget = useCallback(

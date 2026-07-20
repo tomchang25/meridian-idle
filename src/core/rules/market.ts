@@ -114,7 +114,7 @@ export function maximumProductPurchaseQuantity(state: V5GameState, productId: st
 }
 export function buyProduct(state: V5GameState, productId: string, quantity: number, now = 0): RuleResult {
   const error = productPurchaseError(state, productId, quantity);
-  if (error) return { state, error };
+  if (error) return { state, events: [], error };
   const port = currentPort(state)!;
   const price = buyPrice(state, productId)!;
   const product = getProduct(productId)!;
@@ -142,23 +142,15 @@ export function buyProduct(state: V5GameState, productId: string, quantity: numb
           [productId]: (state.marketSession.netTrade[productId] ?? 0) + quantity,
         },
       },
-      activity: [
-        {
-          id: `buy-${productId}-${now}`,
-          at: now,
-          message: `Bought ${quantity} ${product.name} for ${cost} Gold.`,
-          tone: "success" as const,
-        },
-        ...state.activity,
-      ].slice(0, 24),
     },
+    events: [{ kind: "product-bought", at: now, productId, productName: product.name, quantity, cost }],
   };
 }
 export function sellProduct(state: V5GameState, productId: string, quantity: number, now = 0): RuleResult {
   const price = sellPrice(state, productId);
   const stack = state.fleet.products[productId];
   if (state.voyage || !price || !stack || !validQuantity(quantity) || quantity > stack.quantity)
-    return { state, error: "Not enough Product to sell." };
+    return { state, events: [], error: "Not enough Product to sell." };
   const cost = removedCostBasis(stack, quantity);
   const revenue = price.unitPrice * quantity;
   const products = { ...state.fleet.products };
@@ -175,15 +167,7 @@ export function sellProduct(state: V5GameState, productId: string, quantity: num
           [productId]: (state.marketSession.netTrade[productId] ?? 0) - quantity,
         },
       },
-      activity: [
-        {
-          id: `sell-${productId}-${now}`,
-          at: now,
-          message: `Sold ${quantity} ${productId}: ${revenue} Gold, ${revenue - cost >= 0 ? "+" : ""}${revenue - cost} profit.`,
-          tone: "success" as const,
-        },
-        ...state.activity,
-      ].slice(0, 24),
     },
+    events: [{ kind: "product-sold", at: now, productId, quantity, revenue, profit: revenue - cost }],
   };
 }

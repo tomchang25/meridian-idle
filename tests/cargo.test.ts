@@ -61,17 +61,18 @@ describe("supply provisioning", () => {
     expect(state.fleet.supplies.food.quantity).toBe(0);
     expect(supplyRestockPlan(state)).toMatchObject({ totalQuantity: 5, totalCost: 28, error: null });
 
-    const restocked = restockSupplies(state, 10).state;
+    const restock = restockSupplies(state, 10);
+    const restocked = restock.state;
     expect(restocked.fleet.gold).toBe(1_972);
     expect(restocked.fleet.supplies.food).toEqual({ quantity: 2, totalCostBasis: 16 });
     expect(restocked.fleet.supplies.water).toEqual({ quantity: 3, totalCostBasis: 12 });
-    expect(restocked.activity[0].message).toBe("Restocked 5 Supply units.");
+    expect(restock.events).toEqual([{ kind: "supplies-restocked", at: 10, quantity: 5, cause: { kind: "manual" } }]);
   });
 
   it("never discards over-target supplies and rejects aggregate partial purchases", () => {
     let state = buySupply(createInitialGameState(0), "food", 3, 1).state;
     state = setSupplyTarget(state, "food", 1).state;
-    expect(restockSupplies(state, 2)).toMatchObject({ state, error: "Targets already met." });
+    expect(restockSupplies(state, 2)).toMatchObject({ state, events: [], error: "Targets already met." });
 
     state = setSupplyTarget(state, "water", 1).state;
     state.fleet.gold = 0;

@@ -1,4 +1,5 @@
 import { getRoute } from "@/content/core-content";
+import type { GameEvent } from "@/core/events/game-events";
 import type { SupplyId, V5GameState, Voyage } from "@/core/models/game";
 import { removedCostBasis, restockSupplies, supplyRestockPlan, type RuleResult } from "@/core/rules/cargo";
 import { settlePortEntry } from "@/core/rules/progression";
@@ -17,11 +18,11 @@ function consumeSupply(state: V5GameState, id: SupplyId, quantity: number) {
 export function departVoyage(state: V5GameState, routeId: string, now: number, seed: number): RuleResult {
   const route = getRoute(routeId);
   const eligibilityError = voyageDepartureError(state, routeId);
-  if (eligibilityError) return { state, error: eligibilityError };
-  if (!route) return { state, error: "This route is unavailable." };
-  if (!Number.isSafeInteger(now) || now < 0) return { state, error: "Departure time is invalid." };
+  if (eligibilityError) return { state, events: [], error: eligibilityError };
+  if (!route) return { state, events: [], error: "This route is unavailable." };
+  if (!Number.isSafeInteger(now) || now < 0) return { state, events: [], error: "Departure time is invalid." };
   if (!Number.isInteger(seed) || seed <= 0 || seed > 0xffff_ffff)
-    return { state, error: "A secure non-zero Voyage seed is required." };
+    return { state, events: [], error: "A secure non-zero Voyage seed is required." };
   const { food, water } = route.requiredSupplies;
   const foodUse = consumeSupply(state, "food", food);
   const waterUse = consumeSupply({ ...state, fleet: { ...state.fleet, supplies: foodUse.supplies } }, "water", water);
@@ -42,11 +43,8 @@ export function departVoyage(state: V5GameState, routeId: string, now: number, s
       ...state,
       fleet: { ...state.fleet, supplies: waterUse.supplies },
       voyage,
-      activity: [
-        { id: voyage.id, at: now, message: `Departed for ${route.destinationPortId}.`, tone: "info" as const },
-        ...state.activity,
-      ].slice(0, 24),
     },
+    events: [{ kind: "voyage-departed", at: now, voyageId: voyage.id, destinationPortId: route.destinationPortId }],
   };
 }
 export function voyageDepartureError(state: V5GameState, routeId: string): string | null {
@@ -79,29 +77,38 @@ export function voyageSupplyReadiness(state: V5GameState, routeId: string) {
 }
 export function resolveVoyage(state: V5GameState, now: number): RuleResult {
   const voyage = state.voyage;
-  if (!voyage || now < voyage.plannedArrivesAt) return { state };
+  if (!voyage || now < voyage.plannedArrivesAt) return { state, events: [] };
   const arrival = settlePortEntry({ ...state, voyage: null }, voyage.destinationPortId, voyage.seed);
   let settledState = arrival.state;
+  // Chronological: any restock outcome precedes arrival, so the renderer leaves
+  // the arrival entry newest.
+  const events: GameEvent[] = [];
   if (settledState.fleet.autoRestockOnArrival) {
     const plan = supplyRestockPlan(settledState);
     if (plan.totalQuantity > 0) {
-      const restock = restockSupplies(settledState, voyage.plannedArrivesAt, `${voyage.id}-restocked`);
-      settledState = restock.error
-        ? {
-            ...settledState,
-            activity: [
-              {
-                id: `${voyage.id}-restock-failed`,
-                at: voyage.plannedArrivesAt,
-                message: `Auto-restock failed: ${restock.error}`,
-                tone: "warning" as const,
-              },
-              ...settledState.activity,
-            ].slice(0, 24),
-          }
-        : restock.state;
+      const restock = restockSupplies(settledState, voyage.plannedArrivesAt, {
+        kind: "voyage-arrival",
+        voyageId: voyage.id,
+      });
+      if (restock.error) {
+        events.push({
+          kind: "voyage-auto-restock-failed",
+          at: voyage.plannedArrivesAt,
+          voyageId: voyage.id,
+          reason: restock.error,
+        });
+      } else {
+        settledState = restock.state;
+        events.push(...restock.events);
+      }
     }
   }
+  events.push({
+    kind: "voyage-arrived",
+    at: voyage.plannedArrivesAt,
+    voyageId: voyage.id,
+    destinationPortId: voyage.destinationPortId,
+  });
   return {
     state: {
       ...settledState,
@@ -113,15 +120,7 @@ export function resolveVoyage(state: V5GameState, now: number): RuleResult {
         sourceXpGained: arrival.xpGained,
         supplyCost: voyage.supplyCost,
       },
-      activity: [
-        {
-          id: `${voyage.id}-arrived`,
-          at: voyage.plannedArrivesAt,
-          message: `Arrived at ${voyage.destinationPortId}.`,
-          tone: "success" as const,
-        },
-        ...settledState.activity,
-      ].slice(0, 24),
     },
+    events,
   };
 }

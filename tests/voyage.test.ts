@@ -51,12 +51,26 @@ describe("voyage", () => {
     state = setSupplyTarget(state, "food", 2).state;
     state = setSupplyTarget(state, "water", 2).state;
     state = setAutoRestockOnArrival(state, true).state;
-    const arrived = resolveVoyage(departVoyage(state, "lisbon-faro", 100, 3).state, 2_100).state;
+    const resolution = resolveVoyage(departVoyage(state, "lisbon-faro", 100, 3).state, 2_100);
+    const arrived = resolution.state;
 
     expect(arrived.fleet.supplies.food).toEqual({ quantity: 2, totalCostBasis: 16 });
     expect(arrived.fleet.supplies.water).toEqual({ quantity: 2, totalCostBasis: 8 });
     expect(arrived.fleet.gold).toBe(1_964);
-    expect(arrived.activity.map((entry) => entry.id)).toContain("voyage-lisbon-faro-100-restocked");
+    expect(resolution.events).toEqual([
+      {
+        kind: "supplies-restocked",
+        at: 2_100,
+        quantity: 4,
+        cause: { kind: "voyage-arrival", voyageId: "voyage-lisbon-faro-100" },
+      },
+      {
+        kind: "voyage-arrived",
+        at: 2_100,
+        voyageId: "voyage-lisbon-faro-100",
+        destinationPortId: "faro",
+      },
+    ]);
     expect(arrived.latestVoyageResult?.supplyCost).toBe(12);
     expect(resolveVoyage(departVoyage(state, "lisbon-faro", 100, 3).state, 900_000).state).toEqual(arrived);
   });
@@ -68,12 +82,14 @@ describe("voyage", () => {
     state = setSupplyTarget(state, "water", 2).state;
     state = setAutoRestockOnArrival(state, true).state;
     state.fleet.gold = 0;
-    const arrived = resolveVoyage(departVoyage(state, "lisbon-faro", 100, 3).state, 2_100).state;
+    const resolution = resolveVoyage(departVoyage(state, "lisbon-faro", 100, 3).state, 2_100);
+    const arrived = resolution.state;
 
     expect(arrived.fleet.locationPortId).toBe("faro");
     expect(arrived.voyage).toBeNull();
     expect(arrived.fleet.supplies.food.quantity).toBe(0);
     expect(arrived.fleet.supplies.water.quantity).toBe(0);
-    expect(arrived.activity[1]).toMatchObject({ id: "voyage-lisbon-faro-100-restock-failed", tone: "warning" });
+    // The failure precedes arrival so the rendered arrival entry stays newest.
+    expect(resolution.events.map((event) => event.kind)).toEqual(["voyage-auto-restock-failed", "voyage-arrived"]);
   });
 });

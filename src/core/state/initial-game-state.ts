@@ -27,6 +27,8 @@ export function createInitialGameState(now: number): V5GameState {
     voyage: null,
     latestVoyageResult: null,
     migrationReport: null,
-    activity: [{ id: `world-created-${now}`, at: now, message: "Fleet is docked at Lisbon.", tone: "info" }],
+    // The world-creation entry is rendered from a runtime event so this layer
+    // stays free of player-facing copy.
+    activity: [],
   };
 }
