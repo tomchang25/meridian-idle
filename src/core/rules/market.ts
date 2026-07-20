@@ -1,5 +1,6 @@
 import { getPort, getProduct, getProductFamilyForProduct } from "@/content/catalog";
 import type { CategoryId, MarketSession, V5GameState } from "@/core/models/game";
+import { createRandomStream } from "@/core/random/random-stream";
 import { removedCostBasis, roundHalfUp, usedCargo, validQuantity, type RuleResult } from "@/core/rules/cargo";
 import { portLevel } from "@/core/rules/progression";
 
@@ -10,19 +11,16 @@ export type PriceBreakdown = {
   unitPrice: number;
   label: string;
 };
-export function xorshift32(seed: number): number {
-  const x = seed >>> 0 || 1;
-  let next = x ^ (x << 13);
-  next ^= next >>> 17;
-  next ^= next << 5;
-  return next >>> 0;
-}
 export function createMarketSession(portId: string, level: number, seed: number): MarketSession {
-  let current = seed >>> 0 || 1;
+  // Grandfathered: the Market draws from the root seed directly rather than from
+  // a derived named stream, because moving it would change every future session's
+  // Category Factors and therefore prices. It still owns its own cursor, so a new
+  // named domain cannot shift its sequence. Migrating it is a balance decision,
+  // not a refactor.
+  const stream = createRandomStream(seed);
   const categoryFactors = {} as Record<CategoryId, number>;
   for (const category of ["food", "livestock", "luxury", "metal", "textile"] as CategoryId[]) {
-    current = xorshift32(current);
-    categoryFactors[category] = 0.85 + Math.floor((current / 2 ** 32) * 36) / 100;
+    categoryFactors[category] = 0.85 + Math.floor(stream.nextUnitInterval() * 36) / 100;
   }
   return {
     id: `market-${portId}-${seed >>> 0 || 1}`,

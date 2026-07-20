@@ -47,7 +47,11 @@ export function MeridianDashboard() {
         <div className={styles.mainColumn}>
           <PortScenePanel state={state} />
           <DashboardFeedback store={store} />
-          {state.voyage ? <VoyageStatusPanel voyage={state.voyage} /> : <CityActionPanel store={store} />}
+          {state.voyage ? (
+            <VoyageStatusPanel voyage={state.voyage} clock={store.clock} />
+          ) : (
+            <CityActionPanel store={store} />
+          )}
           <ActivityLog state={state} />
         </div>
         <ShortTermSidebar state={state} />

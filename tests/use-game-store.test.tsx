@@ -37,7 +37,7 @@ describe("useGameStore", () => {
     const dependencies: GameStoreDependencies = {
       repository: repository(),
       seedSource: fixedSeedSource,
-      now: () => 10,
+      clock: { now: () => 10 },
     };
     const { result } = renderHook(() => useGameStore(dependencies));
     await settleHydration();
@@ -52,7 +52,7 @@ describe("useGameStore", () => {
   });
 
   it("persists Supply targets and applies them against the latest canonical stack", async () => {
-    const dependencies: GameStoreDependencies = { repository: repository(), now: () => 10 };
+    const dependencies: GameStoreDependencies = { repository: repository(), clock: { now: () => 10 } };
     const { result } = renderHook(() => useGameStore(dependencies));
     await settleHydration();
 
@@ -73,7 +73,7 @@ describe("useGameStore", () => {
   });
 
   it("updates arrival automation and restocks all persisted deficits in one command", async () => {
-    const dependencies: GameStoreDependencies = { repository: repository(), now: () => 10 };
+    const dependencies: GameStoreDependencies = { repository: repository(), clock: { now: () => 10 } };
     const { result } = renderHook(() => useGameStore(dependencies));
     await settleHydration();
 
@@ -97,7 +97,7 @@ describe("useGameStore", () => {
           resolveLoad = resolve;
         }),
     );
-    const { result } = renderHook(() => useGameStore({ repository: pendingRepository, now: () => 10 }));
+    const { result } = renderHook(() => useGameStore({ repository: pendingRepository, clock: { now: () => 10 } }));
 
     expect(result.current.saveStatus).toBe("loading");
 
@@ -110,7 +110,7 @@ describe("useGameStore", () => {
     const dependencies: GameStoreDependencies = {
       repository: repository(),
       seedSource: unavailableSeed,
-      now: () => 100,
+      clock: { now: () => 100 },
     };
     const { result } = renderHook(() => useGameStore(dependencies));
     await settleHydration();
@@ -137,7 +137,7 @@ describe("useGameStore", () => {
     const dependencies: GameStoreDependencies = {
       repository: savedRepository,
       seedSource: fixedSeedSource,
-      now: () => currentNow,
+      clock: { now: () => currentNow },
     };
     const wrapper = ({ children }: { children: ReactNode }) => <StrictMode>{children}</StrictMode>;
     const { result } = renderHook(() => useGameStore(dependencies), { wrapper });

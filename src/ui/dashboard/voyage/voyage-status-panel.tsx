@@ -2,16 +2,18 @@
 
 import { getPort } from "@/content/catalog";
 import type { Voyage } from "@/core/models/game";
+import type { Clock } from "@/runtime/clock";
 import { formatRemaining } from "../dashboard-helpers";
 import styles from "../meridian-dashboard.module.css";
 import { useVoyageClock } from "./use-voyage-clock";
 
 type VoyageStatusPanelProps = {
   voyage: Voyage;
+  clock: Clock;
 };
 
-export function VoyageStatusPanel({ voyage }: VoyageStatusPanelProps) {
-  const displayNow = useVoyageClock(voyage);
+export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
+  const displayNow = useVoyageClock(voyage, clock);
   const destinationPort = getPort(voyage.destinationPortId);
   const voyageDuration = Math.max(1, voyage.plannedArrivesAt - voyage.departedAt);
   const voyageElapsed = Math.min(voyageDuration, Math.max(0, (displayNow || voyage.departedAt) - voyage.departedAt));

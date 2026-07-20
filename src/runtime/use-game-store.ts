@@ -19,6 +19,7 @@ import {
 } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { withRenderedActivity } from "@/runtime/activity-rendering";
+import { systemClock, type Clock } from "@/runtime/clock";
 import { IndexedDbSaveRepository } from "@/platform/persistence/indexed-db-save-repository";
 import { loadSave } from "@/platform/persistence/save-migrations";
 import { browserSeedSource } from "@/platform/random/crypto-seed-source";
@@ -28,7 +29,7 @@ export type SaveRepository = Pick<IndexedDbSaveRepository, "isAvailable" | "load
 export type GameStoreDependencies = {
   repository?: SaveRepository;
   seedSource?: SeedSource;
-  now?: () => number;
+  clock?: Clock;
 };
 type RuntimeGameState = { state: V5GameState; commandError: string | null };
 
@@ -44,8 +45,9 @@ function createNewGame(now: number): V5GameState {
 export function useGameStore({
   repository: providedRepository,
   seedSource = browserSeedSource,
-  now = Date.now,
+  clock = systemClock,
 }: GameStoreDependencies = {}) {
+  const now = useCallback(() => clock.now(), [clock]);
   const repository = useMemo(() => providedRepository ?? new IndexedDbSaveRepository(), [providedRepository]);
   const [runtime, setRuntime] = useState<RuntimeGameState>(() => ({
     state: createNewGame(now()),
@@ -211,6 +213,7 @@ export function useGameStore({
     saveStatus,
     commandError: runtime.commandError,
     canGenerateVoyageSeed,
+    clock,
     acknowledgeMigration,
     startNewGame,
     setSupplyTarget,
