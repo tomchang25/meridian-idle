@@ -1,4 +1,4 @@
-import { getProductFamilyForProduct } from "@/content/core-content";
+import { getProductFamilyForProduct } from "@/content/catalog";
 import type { MarketSession, V5GameState } from "@/core/models/game";
 import { createMarketSession } from "@/core/rules/market";
 

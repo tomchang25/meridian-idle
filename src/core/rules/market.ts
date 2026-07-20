@@ -1,4 +1,4 @@
-import { getPort, getProduct, getProductFamilyForProduct } from "@/content/core-content";
+import { getPort, getProduct, getProductFamilyForProduct } from "@/content/catalog";
 import type { CategoryId, MarketSession, V5GameState } from "@/core/models/game";
 import { removedCostBasis, roundHalfUp, usedCargo, validQuantity, type RuleResult } from "@/core/rules/cargo";
 import { portLevel } from "@/core/rules/progression";

@@ -1,6 +1,6 @@
 import type { GameEvent, SupplyRestockCause } from "@/core/events/game-events";
 import { SUPPLY_IDS, type CargoStack, type SupplyId, type V5GameState } from "@/core/models/game";
-import { getPort, SUPPLY_PRICES } from "@/content/core-content";
+import { getPort, SUPPLY_PRICES } from "@/content/catalog";
 
 /**
  * What a rule produced: the next state, the domain facts it established, and an

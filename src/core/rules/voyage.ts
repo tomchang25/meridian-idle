@@ -1,4 +1,4 @@
-import { getRoute } from "@/content/core-content";
+import { getRoute } from "@/content/catalog";
 import type { GameEvent } from "@/core/events/game-events";
 import type { SupplyId, V5GameState, Voyage } from "@/core/models/game";
 import { removedCostBasis, restockSupplies, supplyRestockPlan, type RuleResult } from "@/core/rules/cargo";

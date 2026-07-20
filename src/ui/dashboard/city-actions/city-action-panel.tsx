@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getPort } from "@/content/core-content";
+import { getPort } from "@/content/catalog";
 import { CITY_ACTIONS, type CityAction } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";
 import styles from "../meridian-dashboard.module.css";

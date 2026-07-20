@@ -1,4 +1,4 @@
-import { getPort } from "@/content/core-content";
+import { getPort } from "@/content/catalog";
 import { usedCargo } from "@/core/rules/cargo";
 import { portLevel } from "@/core/rules/progression";
 import type { DashboardStore } from "./dashboard-types";

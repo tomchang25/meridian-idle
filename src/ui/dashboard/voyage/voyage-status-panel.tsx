@@ -1,6 +1,6 @@
 "use client";
 
-import { getPort } from "@/content/core-content";
+import { getPort } from "@/content/catalog";
 import type { Voyage } from "@/core/models/game";
 import { formatRemaining } from "../dashboard-helpers";
 import styles from "../meridian-dashboard.module.css";

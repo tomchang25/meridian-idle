@@ -1,4 +1,4 @@
-import { getPort, ROUTES } from "@/content/core-content";
+import { getPort, ROUTES } from "@/content/catalog";
 import { voyageDepartureError, voyageSupplyReadiness } from "@/core/rules/voyage";
 import { displayName, formatRemaining } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";

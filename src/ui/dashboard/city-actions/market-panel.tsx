@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getPort, getProduct, getProductFamilyForProduct } from "@/content/core-content";
+import { getPort, getProduct, getProductFamilyForProduct } from "@/content/catalog";
 import { averageUnitCost, removedCostBasis } from "@/core/rules/cargo";
 import { buyPrice, maximumProductPurchaseQuantity, productPurchaseError, sellPrice } from "@/core/rules/market";
 import { portLevel } from "@/core/rules/progression";

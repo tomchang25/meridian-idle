@@ -1,4 +1,4 @@
-import { getPort, getProduct, SUPPLY_PRICES } from "@/content/core-content";
+import { getPort, getProduct, SUPPLY_PRICES } from "@/content/catalog";
 import { SUPPLY_IDS, type V5GameState } from "@/core/models/game";
 import { averageUnitCost, usedCargo } from "@/core/rules/cargo";
 import { sellPrice } from "@/core/rules/market";
