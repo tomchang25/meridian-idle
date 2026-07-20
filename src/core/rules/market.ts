@@ -1,6 +1,6 @@
 import { getPort, getProduct, getProductFamilyForProduct } from "@/content/catalog";
 import type { CategoryId, MarketSession, V5GameState } from "@/core/models/game";
-import { createRandomStream } from "@/core/random/random-stream";
+import { createRandomStreams } from "@/core/random/random-streams";
 import { removedCostBasis, roundHalfUp, usedCargo, validQuantity, type RuleResult } from "@/core/rules/cargo";
 import { portLevel } from "@/core/rules/progression";
 
@@ -12,12 +12,7 @@ export type PriceBreakdown = {
   label: string;
 };
 export function createMarketSession(portId: string, level: number, seed: number): MarketSession {
-  // Grandfathered: the Market draws from the root seed directly rather than from
-  // a derived named stream, because moving it would change every future session's
-  // Category Factors and therefore prices. It still owns its own cursor, so a new
-  // named domain cannot shift its sequence. Migrating it is a balance decision,
-  // not a refactor.
-  const stream = createRandomStream(seed);
+  const stream = createRandomStreams(seed).get("market-session");
   const categoryFactors = {} as Record<CategoryId, number>;
   for (const category of ["food", "livestock", "luxury", "metal", "textile"] as CategoryId[]) {
     categoryFactors[category] = 0.85 + Math.floor(stream.nextUnitInterval() * 36) / 100;

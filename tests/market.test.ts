@@ -40,7 +40,7 @@ describe("market", () => {
 
     const noGold = createInitialGameState(0);
     noGold.fleet.gold = 0;
-    expect(productPurchaseError(noGold, "cod", 1)).toBe("Requires 20 Gold; only 0 is available.");
+    expect(productPurchaseError(noGold, "cod", 1)).toBe("Requires 23 Gold; only 0 is available.");
 
     const full = createInitialGameState(0);
     full.fleet.supplies.food.quantity = full.fleet.cargoCapacity;
@@ -55,7 +55,7 @@ describe("market", () => {
   it("derives the maximum purchase quantity from Gold, Cargo, unlock, and Specialty stock", () => {
     const goldLimited = createInitialGameState(0);
     goldLimited.fleet.gold = 45;
-    expect(maximumProductPurchaseQuantity(goldLimited, "cod")).toBe(2);
+    expect(maximumProductPurchaseQuantity(goldLimited, "cod")).toBe(1);
 
     const cargoLimited = createInitialGameState(0);
     cargoLimited.fleet.supplies.food.quantity = cargoLimited.fleet.cargoCapacity - 3;

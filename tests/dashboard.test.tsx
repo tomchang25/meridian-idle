@@ -162,7 +162,7 @@ describe("MeridianDashboard", () => {
     const codCard = screen.getByText("Cod").closest("li");
     const productBuy = within(codCard!).getByRole("button", { name: "Buy 0" });
     expect(productBuy).toBeDisabled();
-    expect(productBuy).toHaveAccessibleDescription(/Requires 20 Gold; only 0 is available/);
+    expect(productBuy).toHaveAccessibleDescription(/Requires 23 Gold; only 0 is available/);
 
     fireEvent.click(screen.getByRole("button", { name: /Supplies Management/ }));
     const supplyPanel = screen.getByRole("heading", { name: "Provision Stores" }).closest("section");
