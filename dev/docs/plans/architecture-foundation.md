@@ -32,31 +32,20 @@ Allowed dependency directions, enforced by child 01 and re-mapped by child 02:
 
 ### Child overview
 
-| Child | Focus                                                                    | Document            |
-| ----- | ------------------------------------------------------------------------ | ------------------- |
-| 01    | Layer boundary enforcement in the lint pipeline                          | implementation spec |
-| 02    | Unified src layout migration (pure move, no logic change)                | sketch              |
-| 03    | Semantic event flow through domain rule results                          | sketch              |
-| 04    | Per-domain content catalogs with cross-reference validation              | plan only           |
-| 05    | Injected clock and named random streams with a same-seed replay contract | plan only           |
-| 06    | Scenario fixtures and debug interface for deterministic browser tests    | plan only           |
-| 07    | Framework-free game runtime owning state, dispatch, and scheduling       | plan only           |
-| 08    | Canvas presentation contract with semantic DOM mirror                    | plan only           |
+| Child | Focus                                                 | Document  |
+| ----- | ----------------------------------------------------- | --------- |
+| 08    | Canvas presentation contract with semantic DOM mirror | plan only |
+
+Children 01 through 07 have shipped; their outcomes are recorded in `CHANGELOG.md` and their specs are archived.
 
 ### Landing order and gates
 
-Recommended order is 01 through 08, with these gates:
+Child 08 is the only remaining child. It lands together with the first canvas scene, because a presentation contract with no consumer proves nothing, and it consumes the event flow, harness, and runtime that children 03, 06, and 07 already shipped. Its spec is written lazily against the codebase as it exists when the scene work begins.
 
-- 01 is independent and lands first; it protects every later child.
-- 02 lands only after the currently in-flight feature branches merge, because a whole-tree move conflicts with every open branch. It must land before canvas work multiplies file count.
-- 03 must land before the v5-core events/items/combat child and before child 08, because canvas timelines and combat presentation attach to events.
-- 04 must land before the nautical-chart navigation graph is authored; graph content is where cross-reference validation pays for itself.
-- 05 must land before the v5-core voyage/offline child; offline resolution is a deterministic replay and needs the clock and stream contract in place.
-- 06 depends on 05 (time control requires the injected clock) and should land before 08 so canvas flows are born testable.
-- 07 must land before offline resolution and expedition timers multiply scheduling inside the UI layer, and before 08, which needs a runtime-owned canvas stage lifecycle.
-- 08 lands together with the first canvas scene and consumes 03, 06, and 07.
+Two follow-ups surfaced while the earlier children landed and are recorded here rather than lost:
 
-Children 04 through 08 stay plan-only until they are next to execute; their specs are written lazily against the codebase as it exists after earlier children ship.
+- Core rules read authored content directly. Inverting that dependency, so rules receive content instead of importing it, is behavioral work that no child so far was allowed to take on; the layer rule is deliberately left open until it happens.
+- The Market draws randomness from the root seed rather than a derived named stream. Moving it changes every future session's Category Factors and therefore prices, which is a balance decision rather than a refactor.
 
 ### Relationship to other plans
 
