@@ -1,12 +1,12 @@
 import { StrictMode, type ReactNode } from "react";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { SeedSource } from "@/game/application/seed-source";
-import { useGameStore, type GameStoreDependencies, type SaveRepository } from "@/game/application/use-game-store";
-import { buySupply } from "@/game/domain/rules/cargo";
-import { departVoyage } from "@/game/domain/rules/voyage";
-import { createInitialGameState } from "@/game/domain/state/initial-game-state";
-import { createSaveEnvelope } from "@/game/infrastructure/persistence/save-migrations";
+import type { SeedSource } from "@/runtime/seed-source";
+import { useGameStore, type GameStoreDependencies, type SaveRepository } from "@/runtime/use-game-store";
+import { buySupply } from "@/core/rules/cargo";
+import { departVoyage } from "@/core/rules/voyage";
+import { createInitialGameState } from "@/core/state/initial-game-state";
+import { createSaveEnvelope } from "@/platform/persistence/save-migrations";
 
 function repository(raw: unknown | null = null): SaveRepository & {
   loadRaw: ReturnType<typeof vi.fn>;

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buySupply, setAutoRestockOnArrival, setSupplyTarget } from "@/game/domain/rules/cargo";
-import { departVoyage, resolveVoyage } from "@/game/domain/rules/voyage";
-import { createInitialGameState } from "@/game/domain/state/initial-game-state";
-import { createSaveEnvelope, loadSave } from "@/game/infrastructure/persistence/save-migrations";
+import { buySupply, setAutoRestockOnArrival, setSupplyTarget } from "@/core/rules/cargo";
+import { departVoyage, resolveVoyage } from "@/core/rules/voyage";
+import { createInitialGameState } from "@/core/state/initial-game-state";
+import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
 
 function createDepartedVoyage() {
   let state = buySupply(createInitialGameState(0), "food", 1, 1).state;

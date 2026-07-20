@@ -51,18 +51,18 @@ Supply and Product commands retain their explicit domain errors at the applicati
 
 ## Files to Change
 
-| File                                               | Change Size | Purpose                                                                                                   |
-| -------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
-| `game/domain/content/core-content.ts`              | Large       | Separate Product Family metadata from Product identity and validate references.                           |
-| `game/domain/rules/cargo.ts`                       | Medium      | Share Supply purchase eligibility between command and UI.                                                 |
-| `game/domain/rules/market.ts`                      | Medium      | Read Family pricing data and share Product purchase eligibility.                                          |
-| `game/domain/rules/progression.ts`                 | Small       | Resolve persisted reference values through Product Family.                                                |
-| `game/domain/rules/voyage.ts`                      | Medium      | Separate departure eligibility and stabilize arrival results.                                             |
-| `game/application/use-game-store.ts`               | Large       | Inject capabilities and retain transient command errors coherently.                                       |
-| `game/application/seed-source.ts`                  | Small       | Define the randomness capability port.                                                                    |
-| `game/infrastructure/random/crypto-seed-source.ts` | Small       | Implement secure non-zero unsigned seed generation.                                                       |
-| `game/features/dashboard/meridian-dashboard.tsx`   | Medium      | Render command feedback and shared Buy disabled reasons.                                                  |
-| `tests/`                                           | Large       | Verify content, eligibility, seed failure, persistence, offline timing, Strict Mode, and rendered states. |
+| File                                        | Change Size | Purpose                                                                                                   |
+| ------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
+| `src/content/core-content.ts`               | Large       | Separate Product Family metadata from Product identity and validate references.                           |
+| `src/core/rules/cargo.ts`                   | Medium      | Share Supply purchase eligibility between command and UI.                                                 |
+| `src/core/rules/market.ts`                  | Medium      | Read Family pricing data and share Product purchase eligibility.                                          |
+| `src/core/rules/progression.ts`             | Small       | Resolve persisted reference values through Product Family.                                                |
+| `src/core/rules/voyage.ts`                  | Medium      | Separate departure eligibility and stabilize arrival results.                                             |
+| `src/runtime/use-game-store.ts`             | Large       | Inject capabilities and retain transient command errors coherently.                                       |
+| `src/runtime/seed-source.ts`                | Small       | Define the randomness capability port.                                                                    |
+| `src/platform/random/crypto-seed-source.ts` | Small       | Implement secure non-zero unsigned seed generation.                                                       |
+| `src/ui/dashboard/meridian-dashboard.tsx`   | Medium      | Render command feedback and shared Buy disabled reasons.                                                  |
+| `tests/`                                    | Large       | Verify content, eligibility, seed failure, persistence, offline timing, Strict Mode, and rendered states. |
 
 ## Execution Outline
 

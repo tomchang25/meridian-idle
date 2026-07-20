@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createInitialGameState } from "@/game/domain/state/initial-game-state";
-import { createSaveEnvelope, loadSave } from "@/game/infrastructure/persistence/save-migrations";
+import { createInitialGameState } from "@/core/state/initial-game-state";
+import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
 
 describe("V5 save migration", () => {
   it("creates one legal Lisbon world", () => {

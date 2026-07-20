@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createInitialGameState } from "@/game/domain/state/initial-game-state";
+import { createInitialGameState } from "@/core/state/initial-game-state";
 import {
   buySupply,
   discardSupply,
@@ -8,7 +8,7 @@ import {
   supplyPurchaseError,
   supplyRestockPlan,
   usedCargo,
-} from "@/game/domain/rules/cargo";
+} from "@/core/rules/cargo";
 
 describe("supply provisioning", () => {
   it("atomically adds supply quantity and cost basis", () => {

@@ -39,15 +39,19 @@ VS Code 使用者可以透過 `Terminal: Run Task` 執行相同的開發與驗�
 ## Structure
 
 ```text
-app/                    Route shell、metadata 與全局 CSS
-game/domain/            無 UI、可獨立測試的遊戲規則與狀態型別
-game/application/       use cases、store orchestration、commands
-game/infrastructure/    IndexedDB、PWA、browser adapters
-game/features/          功能 UI 與 feature-local components
-game/shared/            Meridian 內跨 feature 共用元件
+src/app/                Route shell、metadata 與全局 CSS
+src/core/               無 UI、可獨立測試的遊戲規則與狀態型別
+src/content/            被創作的世界資料（ports、routes、products、supplies）
+src/runtime/            use cases、store orchestration、commands
+src/platform/           IndexedDB、PWA、browser adapters
+src/ui/                 功能 UI 與 feature-local components
 public/                 Manifest、service worker 與靜態資產
+worker/                 Cloudflare Worker 進入點
 dev/                    Web 專屬規範、工作流程與設計文件
 tests/                  跨模組與 rendering tests
+e2e/                    Browser acceptance tests
 ```
+
+分層命名與姊妹專案 tickstrike-web 一致。`@/*` alias 指向 `src/`。
 
 詳細規則見 [dev/README.md](dev/README.md)。

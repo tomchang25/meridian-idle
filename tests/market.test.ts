@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createInitialGameState } from "@/game/domain/state/initial-game-state";
+import { createInitialGameState } from "@/core/state/initial-game-state";
 import {
   buyPrice,
   buyProduct,
@@ -8,7 +8,7 @@ import {
   productPurchaseError,
   sellPrice,
   sellProduct,
-} from "@/game/domain/rules/market";
+} from "@/core/rules/market";
 describe("market", () => {
   it("persists deterministic factors and applies producer prices", () => {
     const session = createMarketSession("lisbon", 1, 7);

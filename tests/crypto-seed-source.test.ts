@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createCryptoSeedSource } from "@/game/infrastructure/random/crypto-seed-source";
+import { createCryptoSeedSource } from "@/platform/random/crypto-seed-source";
 
 function randomSource(values: number[]) {
   return {

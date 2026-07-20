@@ -1,9 +1,9 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { SaveStatus } from "@/game/application/use-game-store";
-import type { V5GameState } from "@/game/domain/models/game";
-import { createInitialGameState } from "@/game/domain/state/initial-game-state";
-import { MeridianDashboard } from "@/game/features/dashboard/meridian-dashboard";
+import type { SaveStatus } from "@/runtime/use-game-store";
+import type { V5GameState } from "@/core/models/game";
+import { createInitialGameState } from "@/core/state/initial-game-state";
+import { MeridianDashboard } from "@/ui/dashboard/meridian-dashboard";
 
 const store = {
   state: {
@@ -24,7 +24,7 @@ const store = {
   departVoyage: vi.fn(),
 };
 
-vi.mock("@/game/application/use-game-store", () => ({ useGameStore: () => store }));
+vi.mock("@/runtime/use-game-store", () => ({ useGameStore: () => store }));
 
 describe("MeridianDashboard", () => {
   beforeEach(() => {

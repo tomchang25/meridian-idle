@@ -46,7 +46,7 @@ export default defineConfig(async () => {
   return {
     resolve: {
       alias: {
-        "@": fileURLToPath(new URL("./", import.meta.url)),
+        "@": fileURLToPath(new URL("./src/", import.meta.url)),
       },
     },
     server: isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : undefined,

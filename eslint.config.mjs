@@ -25,7 +25,7 @@ const eslintConfig = defineConfig([
   // `dev/standards/project_structure.md`; a violation means code is misplaced,
   // so relocate the code rather than widening a pattern here.
   {
-    files: ["game/domain/**"],
+    files: ["src/core/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -34,17 +34,14 @@ const eslintConfig = defineConfig([
             {
               group: ["react", "react-dom", "react/*", "react-dom/*", "next", "next/*"],
               message:
-                "game/domain must stay framework-free — no UI framework imports. See dev/standards/project_structure.md.",
+                "src/core must stay framework-free — no UI framework imports. See dev/standards/project_structure.md.",
             },
             {
-              group: [
-                "@/game/application/*",
-                "@/game/infrastructure/*",
-                "@/game/features/*",
-                "@/game/shared/*",
-                "@/app/*",
-              ],
-              message: "game/domain must not depend on any outer layer. See dev/standards/project_structure.md.",
+              // `@/content/*` is deliberately absent: core rules currently read authored
+              // content directly. Inverting that dependency is real work owned by a later
+              // architecture-foundation child, not by the layout migration.
+              group: ["@/runtime/*", "@/platform/*", "@/ui/*", "@/shared/*", "@/app/*"],
+              message: "src/core must not depend on any outer layer. See dev/standards/project_structure.md.",
             },
             {
               group: ["../*"],
@@ -56,16 +53,20 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["game/application/**"],
+    files: ["src/content/**"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["@/game/features/*", "@/game/shared/*", "@/app/*"],
+              group: ["react", "react-dom", "react/*", "react-dom/*", "next", "next/*"],
               message:
-                "game/application must not depend on presentation layers. See dev/standards/project_structure.md.",
+                "src/content is authored data and must stay framework-free. See dev/standards/project_structure.md.",
+            },
+            {
+              group: ["@/runtime/*", "@/platform/*", "@/ui/*", "@/shared/*", "@/app/*"],
+              message: "src/content may depend on core contracts only. See dev/standards/project_structure.md.",
             },
             {
               group: ["../*"],
@@ -77,16 +78,15 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["game/infrastructure/**"],
+    files: ["src/runtime/**"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["@/game/features/*", "@/game/shared/*", "@/app/*"],
-              message:
-                "game/infrastructure must not depend on presentation layers. Adapters may implement application-owned port contracts, but never call into UI. See dev/standards/project_structure.md.",
+              group: ["@/ui/*", "@/shared/*", "@/app/*"],
+              message: "src/runtime must not depend on presentation layers. See dev/standards/project_structure.md.",
             },
             {
               group: ["../*"],
@@ -98,16 +98,37 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["game/features/**"],
+    files: ["src/platform/**"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["@/game/infrastructure/*", "@/app/*"],
+              group: ["@/ui/*", "@/shared/*", "@/app/*"],
               message:
-                "game/features must reach browser and persistence adapters through game/application, not directly. See dev/standards/project_structure.md.",
+                "src/platform must not depend on presentation layers. Adapters may implement runtime-owned port contracts, but never call into UI. See dev/standards/project_structure.md.",
+            },
+            {
+              group: ["../*"],
+              message: "Cross-directory imports must use the @/ alias so layer rules apply.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/ui/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/platform/*", "@/app/*"],
+              message:
+                "src/ui must reach browser and persistence adapters through src/runtime, not directly. See dev/standards/project_structure.md.",
             },
           ],
         },

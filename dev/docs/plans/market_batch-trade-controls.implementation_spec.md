@@ -59,18 +59,18 @@ Provision Stores uses the same quantity editor for a different semantic: the val
 
 ## Files to Change
 
-| File                                                        | Change Size | Purpose                                                                                                                                                          |
-| ----------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `game/features/dashboard/city-actions/quantity-control.tsx` | Medium      | Add the controlled range, numeric, and step-button presentation primitive.                                                                                       |
-| `game/features/dashboard/city-actions/market-panel.tsx`     | Large       | Add Buy/Sell modes, mode-specific lists, batch previews/actions, locked rows, empty Sell state, and local-sale warnings.                                         |
-| `game/features/dashboard/city-actions/supplies-panel.tsx`   | Medium      | Replace separate one-unit actions with final-target editing, delta preview, and one Apply action.                                                                |
-| `game/features/dashboard/meridian-dashboard.module.css`     | Medium      | Style mode selection, quantity controls, previews, warnings, disabled states, and responsive layouts.                                                            |
-| `game/application/use-game-store.ts`                        | Medium      | Accept Product quantities and expose one latest-state Supply-target command over existing domain transitions.                                                    |
-| `game/domain/rules/market.ts`                               | Small       | Expose the valid maximum Product purchase quantity as derived domain data for Buy controls.                                                                      |
-| `tests/market.test.ts`                                      | Small       | Cover maximum purchase quantities across Gold, Cargo, unlock, and Specialty constraints.                                                                         |
-| `tests/use-game-store.test.tsx`                             | Small       | Cover explicit Product quantities and Supply target-to-buy/discard orchestration.                                                                                |
-| `tests/dashboard.test.tsx`                                  | Large       | Replace one-unit assumptions and cover modes, locked and cargo-only Goods, quantity controls, totals, warnings, Supply targets, and accessible disabled reasons. |
-| `e2e/application.smoke.spec.ts`                             | Small       | Provision Food and Water through target controls so the existing voyage smoke path matches the new UI.                                                           |
+| File                                                 | Change Size | Purpose                                                                                                                                                          |
+| ---------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/ui/dashboard/city-actions/quantity-control.tsx` | Medium      | Add the controlled range, numeric, and step-button presentation primitive.                                                                                       |
+| `src/ui/dashboard/city-actions/market-panel.tsx`     | Large       | Add Buy/Sell modes, mode-specific lists, batch previews/actions, locked rows, empty Sell state, and local-sale warnings.                                         |
+| `src/ui/dashboard/city-actions/supplies-panel.tsx`   | Medium      | Replace separate one-unit actions with final-target editing, delta preview, and one Apply action.                                                                |
+| `src/ui/dashboard/meridian-dashboard.module.css`     | Medium      | Style mode selection, quantity controls, previews, warnings, disabled states, and responsive layouts.                                                            |
+| `src/runtime/use-game-store.ts`                      | Medium      | Accept Product quantities and expose one latest-state Supply-target command over existing domain transitions.                                                    |
+| `src/core/rules/market.ts`                           | Small       | Expose the valid maximum Product purchase quantity as derived domain data for Buy controls.                                                                      |
+| `tests/market.test.ts`                               | Small       | Cover maximum purchase quantities across Gold, Cargo, unlock, and Specialty constraints.                                                                         |
+| `tests/use-game-store.test.tsx`                      | Small       | Cover explicit Product quantities and Supply target-to-buy/discard orchestration.                                                                                |
+| `tests/dashboard.test.tsx`                           | Large       | Replace one-unit assumptions and cover modes, locked and cargo-only Goods, quantity controls, totals, warnings, Supply targets, and accessible disabled reasons. |
+| `e2e/application.smoke.spec.ts`                      | Small       | Provision Food and Water through target controls so the existing voyage smoke path matches the new UI.                                                           |
 
 ## Execution Outline
 
