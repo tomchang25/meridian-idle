@@ -1,6 +1,7 @@
 "use client";
 
 import { useGameStore } from "@/runtime/use-game-store";
+import type { DashboardStore } from "./dashboard-types";
 import { ActivityLog } from "./activity-log";
 import { CityActionPanel } from "./city-actions/city-action-panel";
 import { DashboardFeedback } from "./dashboard-feedback";
@@ -10,8 +11,16 @@ import { LongTermSidebar, ShortTermSidebar } from "./sidebars/dashboard-sidebars
 import styles from "./meridian-dashboard.module.css";
 import { VoyageStatusPanel } from "./voyage/voyage-status-panel";
 
+/** Owns the store for ordinary play. */
 export function MeridianDashboard() {
-  const store = useGameStore();
+  return <DashboardView store={useGameStore()} />;
+}
+
+/**
+ * The view over an already-created store. The harness renders this directly so
+ * the debug interface and the screen read one store rather than two.
+ */
+export function DashboardView({ store }: { store: DashboardStore }) {
   const { saveStatus, state } = store;
 
   if (saveStatus === "loading")

@@ -30,6 +30,8 @@ export type GameStoreDependencies = {
   repository?: SaveRepository;
   seedSource?: SeedSource;
   clock?: Clock;
+  /** Starts from an authored world instead of hydrating a save. Harness use only. */
+  initialState?: V5GameState;
 };
 type RuntimeGameState = { state: V5GameState; commandError: string | null };
 
@@ -46,19 +48,21 @@ export function useGameStore({
   repository: providedRepository,
   seedSource = browserSeedSource,
   clock = systemClock,
+  initialState,
 }: GameStoreDependencies = {}) {
   const now = useCallback(() => clock.now(), [clock]);
   const repository = useMemo(() => providedRepository ?? new IndexedDbSaveRepository(), [providedRepository]);
   const [runtime, setRuntime] = useState<RuntimeGameState>(() => ({
-    state: createNewGame(now()),
+    state: initialState ?? createNewGame(clock.now()),
     commandError: null,
   }));
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("loading");
-  const [hydrated, setHydrated] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>(initialState ? "unavailable" : "loading");
+  const [hydrated, setHydrated] = useState(Boolean(initialState));
   const lastSavedState = useRef<V5GameState | null>(null);
   const state = runtime.state;
 
   useEffect(() => {
+    if (initialState) return;
     let active = true;
     let settled = false;
     const finishUnavailable = () => {
@@ -94,7 +98,7 @@ export function useGameStore({
       active = false;
       window.clearTimeout(timeout);
     };
-  }, [now, repository]);
+  }, [initialState, now, repository]);
 
   useEffect(() => {
     if (!hydrated || saveStatus === "unavailable" || saveStatus === "corrupt") return;
@@ -214,6 +218,7 @@ export function useGameStore({
     commandError: runtime.commandError,
     canGenerateVoyageSeed,
     clock,
+    resolveVoyage,
     acknowledgeMigration,
     startNewGame,
     setSupplyTarget,

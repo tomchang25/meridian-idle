@@ -40,7 +40,7 @@ const eslintConfig = defineConfig([
               // `@/content/*` is deliberately absent: core rules currently read authored
               // content directly. Inverting that dependency is real work owned by a later
               // architecture-foundation child, not by the layout migration.
-              group: ["@/runtime/*", "@/platform/*", "@/ui/*", "@/shared/*", "@/app/*"],
+              group: ["@/runtime/*", "@/platform/*", "@/ui/*", "@/shared/*", "@/app/*", "@/harness/*"],
               message: "src/core must not depend on any outer layer. See dev/standards/project_structure.md.",
             },
             {
@@ -65,7 +65,7 @@ const eslintConfig = defineConfig([
                 "src/content is authored data and must stay framework-free. See dev/standards/project_structure.md.",
             },
             {
-              group: ["@/runtime/*", "@/platform/*", "@/ui/*", "@/shared/*", "@/app/*"],
+              group: ["@/runtime/*", "@/platform/*", "@/ui/*", "@/shared/*", "@/app/*", "@/harness/*"],
               message: "src/content may depend on core contracts only. See dev/standards/project_structure.md.",
             },
             {
@@ -85,8 +85,9 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@/ui/*", "@/shared/*", "@/app/*"],
-              message: "src/runtime must not depend on presentation layers. See dev/standards/project_structure.md.",
+              group: ["@/ui/*", "@/shared/*", "@/app/*", "@/harness/*"],
+              message:
+                "src/runtime must not depend on presentation layers or on the test harness. See dev/standards/project_structure.md.",
             },
             {
               group: ["../*"],
@@ -105,9 +106,9 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@/ui/*", "@/shared/*", "@/app/*"],
+              group: ["@/ui/*", "@/shared/*", "@/app/*", "@/harness/*"],
               message:
-                "src/platform must not depend on presentation layers. Adapters may implement runtime-owned port contracts, but never call into UI. See dev/standards/project_structure.md.",
+                "src/platform must not depend on presentation layers or on the test harness. Adapters may implement runtime-owned port contracts, but never call into UI. See dev/standards/project_structure.md.",
             },
             {
               group: ["../*"],
@@ -126,9 +127,9 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@/platform/*", "@/app/*"],
+              group: ["@/platform/*", "@/app/*", "@/harness/*"],
               message:
-                "src/ui must reach browser and persistence adapters through src/runtime, not directly. See dev/standards/project_structure.md.",
+                "src/ui must reach browser and persistence adapters through src/runtime, and must never depend on the test harness. See dev/standards/project_structure.md.",
             },
           ],
         },

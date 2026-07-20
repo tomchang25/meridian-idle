@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { MeridianDashboard } from "@/ui/dashboard/meridian-dashboard";
+import { GameSurface } from "@/app/game-surface";
 
 export const metadata: Metadata = {
   title: "Meridian Idle | Maritime Ledger",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <MeridianDashboard />;
+  return <GameSurface />;
 }

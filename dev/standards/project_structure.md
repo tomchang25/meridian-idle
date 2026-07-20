@@ -11,7 +11,7 @@ src/platform/           browser and persistence adapters
 src/ui/                 feature-owned UI、hooks、styles
 src/shared/             Meridian 內跨 feature 共用的 UI（尚未建立）
 src/presentation/       canvas renderers 與 event-driven timelines（尚未建立）
-src/harness/            scenarios、fixtures、debug API（尚未建立）
+src/harness/            scenarios、fixtures、debug API（僅測試用途）
 public/                 browser-served static assets
 worker/、db/、drizzle/   deployment 與 server 關注點，不屬於遊戲分層
 dev/                    non-runtime docs、standards、workflows、tools
@@ -19,7 +19,7 @@ tests/                  cross-boundary tests and shared fixtures
 e2e/                    browser acceptance tests
 ```
 
-這套分層命名與姊妹專案 tickstrike-web 一致,兩邊共用同一組 placement 規則與邊界規則。`src/shared/`、`src/presentation/`、`src/harness/` 在擁有它們的工作實際發生前不預先建立空目錄。
+這套分層命名與姊妹專案 tickstrike-web 一致,兩邊共用同一組 placement 規則與邊界規則。`src/shared/` 與 `src/presentation/` 在擁有它們的工作實際發生前不預先建立空目錄。`src/harness/` 以 `?scenario=` 載入預置世界並提供可控時鐘,詳見 `dev/docs/plans/architecture-foundation_06_scenario-harness.implementation_spec.md`。
 
 ## `common` policy
 
@@ -36,6 +36,7 @@ e2e/                    browser acceptance tests
 - `src/content` 只能依賴 core contract,不得 import `runtime`、`platform`、`ui`、`shared` 或 `app`。
 - `src/runtime` 與 `src/platform` 不得 import `ui`、`shared` 或 `app`。Adapter 可以實作 runtime 擁有的 port contract,但不得反向呼叫 UI。
 - `src/ui` 不得直接 import `platform` 或 `app`,必須經由 `runtime`。
+- `core`、`content`、`runtime`、`platform`、`ui` 皆不得 import `src/harness`。只有 route shell(`src/app`)可以接線 harness,使它維持測試接縫而非繞過規則的後門。
 - `core`、`content`、`runtime`、`platform` 的跨目錄 import 必須使用 `@/` alias,不得使用 `../`。同目錄 `./` 不受限。
 
 `@/*` alias 指向 `src/`,宣告於 `tsconfig.json`、`vite.config.ts` 與 `vitest.config.ts` 三處,必須同步修改。
