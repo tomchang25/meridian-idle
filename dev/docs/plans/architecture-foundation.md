@@ -32,22 +32,15 @@ Allowed dependency directions, enforced by child 01 and re-mapped by child 02:
 
 ### Child overview
 
-| Child | Focus                                                       | Document  |
-| ----- | ----------------------------------------------------------- | --------- |
-| 08    | Canvas presentation contract with semantic DOM mirror       | plan only |
-| 09    | Market session on a derived named random stream             | plan only |
-| 10    | Core rules receive authored content instead of importing it | plan only |
+| Child | Focus                                                 | Document  |
+| ----- | ----------------------------------------------------- | --------- |
+| 08    | Canvas presentation contract with semantic DOM mirror | plan only |
 
-Children 01 through 07 have shipped; their outcomes are recorded in `CHANGELOG.md` and their specs are archived.
+Children 01 through 07, 09, and 10 have shipped; their outcomes are recorded in `CHANGELOG.md` and their specs are archived.
 
 ### Landing order and gates
 
-Child 08 lands together with the first canvas scene, because a presentation contract with no consumer proves nothing, and it consumes the event flow, harness, and runtime that children 03, 06, and 07 already shipped. Its spec is written lazily against the codebase as it exists when the scene work begins.
-
-Children 09 and 10 close the two gaps children 05 and 02 deliberately left open. Both are independent of child 08 and of each other, and 09 lands first only because it is far smaller.
-
-- **09** finishes the random-stream work. Child 05 left the Market drawing from the root seed to avoid moving prices inside a refactor. The distribution of Category Factors is unchanged either way — the authored band and its sampling are identical — so what actually moves is which sample a given seed produces, and seeds come from secure randomness at runtime. Persisted sessions keep the factors they were created with. The real cost is updating test literals, which is not a reason to carry a permanent exception in the code.
-- **10** finishes the layer work. Child 02 found core rules importing content lookups and could not fix it inside a rename. Until it lands, the core layer rule cannot forbid content imports, so the boundary that most needs enforcing is the one still unenforced.
+Child 08 is the only remaining child. It lands together with the first canvas scene, because a presentation contract with no consumer proves nothing, and it consumes the event flow, harness, and runtime that children 03, 06, and 07 already shipped. Its spec is written lazily against the codebase as it exists when the scene work begins.
 
 ### Relationship to other plans
 
