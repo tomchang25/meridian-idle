@@ -32,20 +32,22 @@ Allowed dependency directions, enforced by child 01 and re-mapped by child 02:
 
 ### Child overview
 
-| Child | Focus                                                 | Document  |
-| ----- | ----------------------------------------------------- | --------- |
-| 08    | Canvas presentation contract with semantic DOM mirror | plan only |
+| Child | Focus                                                       | Document  |
+| ----- | ----------------------------------------------------------- | --------- |
+| 08    | Canvas presentation contract with semantic DOM mirror       | plan only |
+| 09    | Market session on a derived named random stream             | plan only |
+| 10    | Core rules receive authored content instead of importing it | plan only |
 
 Children 01 through 07 have shipped; their outcomes are recorded in `CHANGELOG.md` and their specs are archived.
 
 ### Landing order and gates
 
-Child 08 is the only remaining child. It lands together with the first canvas scene, because a presentation contract with no consumer proves nothing, and it consumes the event flow, harness, and runtime that children 03, 06, and 07 already shipped. Its spec is written lazily against the codebase as it exists when the scene work begins.
+Child 08 lands together with the first canvas scene, because a presentation contract with no consumer proves nothing, and it consumes the event flow, harness, and runtime that children 03, 06, and 07 already shipped. Its spec is written lazily against the codebase as it exists when the scene work begins.
 
-Two follow-ups surfaced while the earlier children landed and are recorded here rather than lost:
+Children 09 and 10 close the two gaps children 05 and 02 deliberately left open. Both are independent of child 08 and of each other, and 09 lands first only because it is far smaller.
 
-- Core rules read authored content directly. Inverting that dependency, so rules receive content instead of importing it, is behavioral work that no child so far was allowed to take on; the layer rule is deliberately left open until it happens.
-- The Market draws randomness from the root seed rather than a derived named stream. Moving it changes every future session's Category Factors and therefore prices, which is a balance decision rather than a refactor.
+- **09** finishes the random-stream work. Child 05 left the Market drawing from the root seed to avoid moving prices inside a refactor. The distribution of Category Factors is unchanged either way — the authored band and its sampling are identical — so what actually moves is which sample a given seed produces, and seeds come from secure randomness at runtime. Persisted sessions keep the factors they were created with. The real cost is updating test literals, which is not a reason to carry a permanent exception in the code.
+- **10** finishes the layer work. Child 02 found core rules importing content lookups and could not fix it inside a rename. Until it lands, the core layer rule cannot forbid content imports, so the boundary that most needs enforcing is the one still unenforced.
 
 ### Relationship to other plans
 
@@ -53,7 +55,7 @@ This plan owns architecture shape only. The v5-core plan owns gameplay behavior 
 
 ## Non-Goals
 
-1. No gameplay, balance, formula, or content value changes in any child; every child preserves observable player behavior unless its spec states a deliberate exception.
+1. No gameplay, balance, formula, or content value changes in any child; every child preserves observable player behavior unless its spec states a deliberate exception. Child 09 states one: it changes which Category Factor a given seed produces. No authored number, band, or formula moves, and because seeds come from secure randomness the change is not observable in play, but a fixed seed does yield different factors than before.
 2. No new state-management or UI framework dependencies; the runtime child uses the platform's native subscription primitive.
 3. No visual redesign; child 08 defines the contract for canvas scenes, while scene content and look belong to the nautical-chart and scene plans.
 4. No save schema changes; events are transient runtime data and never enter persisted state.
@@ -69,3 +71,5 @@ This plan owns architecture shape only. The v5-core plan owns gameplay behavior 
 6. A browser test can load a mid-voyage fixture by URL, advance simulated time past arrival, and observe arrival effects without real-time waiting.
 7. Starting a new game or loading a save cancels all pending timers and in-flight work from the previous session, verified by a regression test.
 8. With the first canvas scene shipped, browser tests assert scene-relevant game facts through the semantic mirror rather than canvas pixels.
+9. Every random domain, including the Market, derives its seed the same way, and no module carries an exception to that rule.
+10. Core rules resolve authored content from what they are given rather than from an import, and the layer rules forbid core from importing content.
