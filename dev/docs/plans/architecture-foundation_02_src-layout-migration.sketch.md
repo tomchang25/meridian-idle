@@ -18,15 +18,15 @@ Timing gate from the parent plan: land only after the in-flight `feat/v5-core-mv
 
 Candidate directory mapping (verify nothing new appeared at spec time):
 
-| Current | Target | Note |
-| ------- | ------ | ---- |
-| `app/` | `src/app/` | vinext App Router; verify detection with a real dev-server run |
-| `game/domain/` (rules, models, state) | `src/core/` | matches tickstrike `src/core` |
-| `game/domain/content/` | `src/content/` | pure move here; splitting/validation is child 04 |
-| `game/application/` | `src/runtime/` | future home of the child-07 runtime |
-| `game/infrastructure/` | `src/platform/` | IndexedDB, PWA, crypto adapters |
-| `game/features/` | `src/ui/` | DOM feature UI |
-| `worker/`, `db/`, `drizzle/` | unchanged at root | deployment/server concerns, not game layers |
+| Current                               | Target            | Note                                                           |
+| ------------------------------------- | ----------------- | -------------------------------------------------------------- |
+| `app/`                                | `src/app/`        | vinext App Router; verify detection with a real dev-server run |
+| `game/domain/` (rules, models, state) | `src/core/`       | matches tickstrike `src/core`                                  |
+| `game/domain/content/`                | `src/content/`    | pure move here; splitting/validation is child 04               |
+| `game/application/`                   | `src/runtime/`    | future home of the child-07 runtime                            |
+| `game/infrastructure/`                | `src/platform/`   | IndexedDB, PWA, crypto adapters                                |
+| `game/features/`                      | `src/ui/`         | DOM feature UI                                                 |
+| `worker/`, `db/`, `drizzle/`          | unchanged at root | deployment/server concerns, not game layers                    |
 
 - Do not create empty directories for absent layers: `game/shared/` does not exist on disk, and `src/presentation/` plus `src/harness/` are born in children 08 and 06 respectively.
 - After the move, `src/content` importing `src/core` contracts is the expected dependency direction (content → core); the child-01 ESLint blocks must be re-scoped to the new paths in the same commit, with a new `content` element allowed to import core only.

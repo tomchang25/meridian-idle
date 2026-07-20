@@ -32,16 +32,16 @@ Allowed dependency directions, enforced by child 01 and re-mapped by child 02:
 
 ### Child overview
 
-| Child | Focus | Document |
-| ----- | ----- | -------- |
-| 01 | Layer boundary enforcement in the lint pipeline | implementation spec |
-| 02 | Unified src layout migration (pure move, no logic change) | sketch |
-| 03 | Semantic event flow through domain rule results | sketch |
-| 04 | Per-domain content catalogs with cross-reference validation | plan only |
-| 05 | Injected clock and named random streams with a same-seed replay contract | plan only |
-| 06 | Scenario fixtures and debug interface for deterministic browser tests | plan only |
-| 07 | Framework-free game runtime owning state, dispatch, and scheduling | plan only |
-| 08 | Canvas presentation contract with semantic DOM mirror | plan only |
+| Child | Focus                                                                    | Document            |
+| ----- | ------------------------------------------------------------------------ | ------------------- |
+| 01    | Layer boundary enforcement in the lint pipeline                          | implementation spec |
+| 02    | Unified src layout migration (pure move, no logic change)                | sketch              |
+| 03    | Semantic event flow through domain rule results                          | sketch              |
+| 04    | Per-domain content catalogs with cross-reference validation              | plan only           |
+| 05    | Injected clock and named random streams with a same-seed replay contract | plan only           |
+| 06    | Scenario fixtures and debug interface for deterministic browser tests    | plan only           |
+| 07    | Framework-free game runtime owning state, dispatch, and scheduling       | plan only           |
+| 08    | Canvas presentation contract with semantic DOM mirror                    | plan only           |
 
 ### Landing order and gates
 

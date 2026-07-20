@@ -41,10 +41,10 @@ Landed result: `npm run lint` (and therefore `verify`) rejects any new import th
 
 ## Files to Change
 
-| File | Change Size | Purpose |
-| ---- | ----------- | ------- |
-| `eslint.config.mjs` | Medium | Add four `files`-scoped config objects encoding the dependency matrix |
-| `dev/standards/project_structure.md` | Small | Record that the placement rules are enforced by lint |
+| File                                 | Change Size | Purpose                                                               |
+| ------------------------------------ | ----------- | --------------------------------------------------------------------- |
+| `eslint.config.mjs`                  | Medium      | Add four `files`-scoped config objects encoding the dependency matrix |
+| `dev/standards/project_structure.md` | Small       | Record that the placement rules are enforced by lint                  |
 
 ## Execution Outline
 
@@ -62,12 +62,12 @@ Landed result: `npm run lint` (and therefore `verify`) rejects any new import th
 
 ## Edge Cases
 
-| Case | Expected Handling |
-| ---- | ----------------- |
-| Feature-internal parent-relative import (`../dashboard-types`) | Allowed; only the three inner layers ban relative parents |
-| Type-only import across a forbidden boundary | Rejected, same as a value import |
-| Test file importing infrastructure directly | Allowed; `tests/` and `e2e/` have no restriction blocks |
-| New `game/shared/` directory appears | Out of scope here; child 02 adds its block when the layer exists |
+| Case                                                           | Expected Handling                                                |
+| -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Feature-internal parent-relative import (`../dashboard-types`) | Allowed; only the three inner layers ban relative parents        |
+| Type-only import across a forbidden boundary                   | Rejected, same as a value import                                 |
+| Test file importing infrastructure directly                    | Allowed; `tests/` and `e2e/` have no restriction blocks          |
+| New `game/shared/` directory appears                           | Out of scope here; child 02 adds its block when the layer exists |
 
 ## Acceptance Criteria
 
