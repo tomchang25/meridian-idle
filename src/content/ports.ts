@@ -1,10 +1,6 @@
-export type PortCatalogEntry = { productId: string; unlockLevel: 1 | 20 | 50 | 75 };
-export type Port = {
-  id: string;
-  name: string;
-  regionId: string;
-  catalog: PortCatalogEntry[];
-};
+import type { Port, PortCatalogEntry } from "@/core/content/world-content";
+
+export type { Port, PortCatalogEntry };
 
 /** Where a new world's Fleet is docked, and the root of the reachability check. */
 export const STARTING_PORT_ID = "lisbon";

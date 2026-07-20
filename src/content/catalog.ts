@@ -11,6 +11,8 @@ export { SUPPLY_PRICES } from "@/content/supplies";
 import { PORTS } from "@/content/ports";
 import { PRODUCT_FAMILIES, PRODUCTS } from "@/content/products";
 import { ROUTES } from "@/content/routes";
+import { SUPPLY_PRICES } from "@/content/supplies";
+import type { WorldContent } from "@/core/content/world-content";
 
 export function getPort(id: string) {
   return PORTS.find((port) => port.id === id);
@@ -28,3 +30,16 @@ export function getProductFamilyForProduct(productId: string) {
 export function getRoute(id: string) {
   return ROUTES.find((route) => route.id === id);
 }
+
+/**
+ * The shipped world, as core rules consume it. Rules never import this module;
+ * whoever calls a rule hands this in, which is what keeps core free of any
+ * particular world.
+ */
+export const WORLD_CONTENT: WorldContent = {
+  getPort,
+  getProduct,
+  getProductFamilyForProduct,
+  getRoute,
+  supplyPrices: SUPPLY_PRICES,
+};

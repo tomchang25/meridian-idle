@@ -1,3 +1,4 @@
+import { WORLD_CONTENT } from "@/content/catalog";
 import { SUPPLY_PRICES } from "@/content/catalog";
 import { SUPPLY_IDS } from "@/core/models/game";
 import { supplyPurchaseError, supplyRestockPlan, supplyTargetMaximum, usedCargo } from "@/core/rules/cargo";
@@ -13,7 +14,7 @@ type SuppliesPanelProps = {
 export function SuppliesPanel({ store }: SuppliesPanelProps) {
   const { state } = store;
   const cargo = usedCargo(state);
-  const restockPlan = supplyRestockPlan(state);
+  const restockPlan = supplyRestockPlan(WORLD_CONTENT, state);
   const restockReason = restockPlan.error ?? (restockPlan.totalQuantity === 0 ? "Targets already met." : null);
 
   return (
@@ -71,7 +72,7 @@ export function SuppliesPanel({ store }: SuppliesPanelProps) {
           const stack = state.fleet.supplies[supplyId];
           const target = state.fleet.supplyTargets[supplyId];
           const delta = target - stack.quantity;
-          const purchaseError = delta > 0 ? supplyPurchaseError(state, supplyId, delta) : null;
+          const purchaseError = delta > 0 ? supplyPurchaseError(WORLD_CONTENT, state, supplyId, delta) : null;
           const reason = purchaseError ?? (delta === 0 ? "Target already matches the quantity aboard." : null);
           const reasonId = `supply-${supplyId}-reason`;
           return (

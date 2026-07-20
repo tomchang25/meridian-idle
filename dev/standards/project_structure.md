@@ -32,7 +32,7 @@ e2e/                    browser acceptance tests
 以下的分層依賴規則由 ESLint 強制執行,違反會使 `npm run lint` 與 `npm run verify` 失敗:
 
 - `src/core` 與 `src/content` 不得 import 任何 UI framework。
-- `src/core` 不得 import `runtime`、`platform`、`ui`、`shared` 或 `app`。
+- `src/core` 不得 import `content`、`runtime`、`platform`、`ui`、`shared` 或 `app`。core 定義 Port、Product、Route 等記錄型別與 `WorldContent` 查詢契約;rules 由呼叫端傳入 content,不自行 import 特定世界。
 - `src/content` 只能依賴 core contract,不得 import `runtime`、`platform`、`ui`、`shared` 或 `app`。
 - `src/runtime` 與 `src/platform` 不得 import `ui`、`shared` 或 `app`。Adapter 可以實作 runtime 擁有的 port contract,但不得反向呼叫 UI。
 - `src/ui` 不得直接 import `platform` 或 `app`,必須經由 `runtime`。
@@ -42,10 +42,6 @@ e2e/                    browser acceptance tests
 `@/*` alias 指向 `src/`,宣告於 `tsconfig.json`、`vite.config.ts` 與 `vitest.config.ts` 三處,必須同步修改。
 
 Lint 失敗代表程式碼放錯位置。修法是依下方 Placement test 搬移程式碼,不是放寬規則。
-
-### 已知例外
-
-`src/core` 目前**未**被禁止 import `src/content`:現行 rules 直接讀取 authored content 的查詢函式。將這個依賴反轉成「由外部把 content 傳進 rules」是行為性重構,由後續的 content-catalog 工作負責,不在 layout 遷移範圍內。在那之前這條限制刻意留空,而不是以抑制註解假裝滿足。
 
 ## Placement test
 

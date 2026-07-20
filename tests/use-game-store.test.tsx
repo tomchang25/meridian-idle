@@ -1,4 +1,5 @@
 import { StrictMode, type ReactNode } from "react";
+import { WORLD_CONTENT } from "@/content/catalog";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SeedSource } from "@/runtime/seed-source";
@@ -130,9 +131,9 @@ describe("useGameStore", () => {
   it("reschedules after clock rollback and applies one arrival in Strict Mode", async () => {
     vi.useFakeTimers();
     let currentNow = 100;
-    let state = buySupply(createInitialGameState(0), "food", 1, 1).state;
-    state = buySupply(state, "water", 1, 2).state;
-    state = departVoyage(state, "lisbon-faro", 100, 3).state;
+    let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 1, 1).state;
+    state = buySupply(WORLD_CONTENT, state, "water", 1, 2).state;
+    state = departVoyage(WORLD_CONTENT, state, "lisbon-faro", 100, 3).state;
     const savedRepository = repository(createSaveEnvelope(state, 100));
     const dependencies: GameStoreDependencies = {
       repository: savedRepository,

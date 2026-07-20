@@ -1,6 +1,6 @@
+import type { WorldContent } from "@/core/content/world-content";
 import type { GameEvent, SupplyRestockCause } from "@/core/events/game-events";
 import { SUPPLY_IDS, type CargoStack, type SupplyId, type V5GameState } from "@/core/models/game";
-import { getPort, SUPPLY_PRICES } from "@/content/catalog";
 
 /**
  * What a rule produced: the next state, the domain facts it established, and an
@@ -60,17 +60,17 @@ export function supplyTargetMaximum(state: V5GameState, supplyId: SupplyId): num
 export function setAutoRestockOnArrival(state: V5GameState, enabled: boolean): RuleResult {
   return { state: { ...state, fleet: { ...state.fleet, autoRestockOnArrival: enabled } }, events: [] };
 }
-export function supplyRestockPlan(state: V5GameState): SupplyRestockPlan {
+export function supplyRestockPlan(content: WorldContent, state: V5GameState): SupplyRestockPlan {
   const deficits = Object.fromEntries(
     SUPPLY_IDS.map((id) => [id, Math.max(0, state.fleet.supplyTargets[id] - state.fleet.supplies[id].quantity)]),
   ) as Record<SupplyId, number>;
   const totalQuantity = SUPPLY_IDS.reduce((sum, id) => sum + deficits[id], 0);
-  const port = getPort(state.fleet.locationPortId);
+  const port = content.getPort(state.fleet.locationPortId);
   if (state.voyage)
     return { deficits, totalQuantity, totalCost: 0, error: "Supplies cannot be bought during a Voyage." };
   if (!port)
     return { deficits, totalQuantity, totalCost: 0, error: "Supply purchase is unavailable at the current location." };
-  const totalCost = SUPPLY_IDS.reduce((sum, id) => sum + deficits[id] * SUPPLY_PRICES[id], 0);
+  const totalCost = SUPPLY_IDS.reduce((sum, id) => sum + deficits[id] * content.supplyPrices[id], 0);
   const remainingCapacity = state.fleet.cargoCapacity - usedCargo(state);
   if (totalQuantity > remainingCapacity)
     return {
@@ -89,11 +89,12 @@ export function supplyRestockPlan(state: V5GameState): SupplyRestockPlan {
   return { deficits, totalQuantity, totalCost, error: null };
 }
 export function restockSupplies(
+  content: WorldContent,
   state: V5GameState,
   now: number,
   cause: SupplyRestockCause = { kind: "manual" },
 ): RuleResult {
-  const plan = supplyRestockPlan(state);
+  const plan = supplyRestockPlan(content, state);
   if (plan.totalQuantity === 0) return { state, events: [], error: "Targets already met." };
   if (plan.error) return { state, events: [], error: plan.error };
   return {
@@ -105,7 +106,7 @@ export function restockSupplies(
         supplies: Object.fromEntries(
           SUPPLY_IDS.map((id) => {
             const stack = state.fleet.supplies[id];
-            const cost = plan.deficits[id] * SUPPLY_PRICES[id];
+            const cost = plan.deficits[id] * content.supplyPrices[id];
             return [id, { quantity: stack.quantity + plan.deficits[id], totalCostBasis: stack.totalCostBasis + cost }];
           }),
         ) as V5GameState["fleet"]["supplies"],
@@ -114,21 +115,32 @@ export function restockSupplies(
     events: [{ kind: "supplies-restocked", at: now, quantity: plan.totalQuantity, cause }],
   };
 }
-export function supplyPurchaseError(state: V5GameState, supplyId: SupplyId, quantity: number): string | null {
-  const port = getPort(state.fleet.locationPortId);
+export function supplyPurchaseError(
+  content: WorldContent,
+  state: V5GameState,
+  supplyId: SupplyId,
+  quantity: number,
+): string | null {
+  const port = content.getPort(state.fleet.locationPortId);
   if (state.voyage) return "Supplies cannot be bought during a Voyage.";
   if (!validQuantity(quantity)) return "Quantity must be a positive whole number.";
   if (!port) return "Supply purchase is unavailable at the current location.";
-  const cost = SUPPLY_PRICES[supplyId] * quantity;
+  const cost = content.supplyPrices[supplyId] * quantity;
   const remainingCapacity = state.fleet.cargoCapacity - usedCargo(state);
   if (quantity > remainingCapacity) return `Requires ${quantity} Cargo Capacity; only ${remainingCapacity} remains.`;
   if (cost > state.fleet.gold) return `Requires ${cost} Gold; only ${state.fleet.gold} is available.`;
   return null;
 }
-export function buySupply(state: V5GameState, supplyId: SupplyId, quantity: number, now: number): RuleResult {
-  const error = supplyPurchaseError(state, supplyId, quantity);
+export function buySupply(
+  content: WorldContent,
+  state: V5GameState,
+  supplyId: SupplyId,
+  quantity: number,
+  now: number,
+): RuleResult {
+  const error = supplyPurchaseError(content, state, supplyId, quantity);
   if (error) return { state, events: [], error };
-  const cost = SUPPLY_PRICES[supplyId] * quantity;
+  const cost = content.supplyPrices[supplyId] * quantity;
   const stack = state.fleet.supplies[supplyId];
   return {
     state: {

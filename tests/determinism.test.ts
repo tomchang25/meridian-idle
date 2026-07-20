@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { WORLD_CONTENT } from "@/content/catalog";
 import type { GameEvent } from "@/core/events/game-events";
 import type { V5GameState } from "@/core/models/game";
 import { createRandomStream } from "@/core/random/random-stream";
@@ -23,13 +24,13 @@ function runCommands(from: V5GameState): { state: V5GameState; events: GameEvent
     events.push(...result.events);
   };
 
-  step(buySupply(state, "food", 3, 10));
-  step(buySupply(state, "water", 3, 20));
-  step(buyProduct(state, "cod", 2, 30));
+  step(buySupply(WORLD_CONTENT, state, "food", 3, 10));
+  step(buySupply(WORLD_CONTENT, state, "water", 3, 20));
+  step(buyProduct(WORLD_CONTENT, state, "cod", 2, 30));
   step(setSupplyTarget(state, "food", 4));
   step(setAutoRestockOnArrival(state, true));
-  step(departVoyage(state, "lisbon-faro", 100, VOYAGE_SEED));
-  step(resolveVoyage(state, 2_100));
+  step(departVoyage(WORLD_CONTENT, state, "lisbon-faro", 100, VOYAGE_SEED));
+  step(resolveVoyage(WORLD_CONTENT, state, 2_100));
 
   return { state, events };
 }
@@ -53,18 +54,18 @@ describe("determinism", () => {
       interrupted = result.state;
       events.push(...result.events);
     };
-    step(buySupply(interrupted, "food", 3, 10));
-    step(buySupply(interrupted, "water", 3, 20));
-    step(buyProduct(interrupted, "cod", 2, 30));
+    step(buySupply(WORLD_CONTENT, interrupted, "food", 3, 10));
+    step(buySupply(WORLD_CONTENT, interrupted, "water", 3, 20));
+    step(buyProduct(WORLD_CONTENT, interrupted, "cod", 2, 30));
     step(setSupplyTarget(interrupted, "food", 4));
     step(setAutoRestockOnArrival(interrupted, true));
-    step(departVoyage(interrupted, "lisbon-faro", 100, VOYAGE_SEED));
+    step(departVoyage(WORLD_CONTENT, interrupted, "lisbon-faro", 100, VOYAGE_SEED));
 
     const loaded = loadSave(createSaveEnvelope(interrupted, 150), 150);
     expect(loaded.kind).toBe("current");
     if (loaded.kind === "corrupt") throw new Error("Round-tripped save must load.");
 
-    step(resolveVoyage(loaded.envelope.state, 2_100));
+    step(resolveVoyage(WORLD_CONTENT, loaded.envelope.state, 2_100));
 
     expect(events).toEqual(straightThrough.events);
     expect(interrupted).toEqual(straightThrough.state);
@@ -77,13 +78,13 @@ describe("determinism", () => {
     const step = (result: { state: V5GameState }) => {
       late = result.state;
     };
-    step(buySupply(late, "food", 3, 10));
-    step(buySupply(late, "water", 3, 20));
-    step(buyProduct(late, "cod", 2, 30));
+    step(buySupply(WORLD_CONTENT, late, "food", 3, 10));
+    step(buySupply(WORLD_CONTENT, late, "water", 3, 20));
+    step(buyProduct(WORLD_CONTENT, late, "cod", 2, 30));
     step(setSupplyTarget(late, "food", 4));
     step(setAutoRestockOnArrival(late, true));
-    step(departVoyage(late, "lisbon-faro", 100, VOYAGE_SEED));
-    const lateResolution = resolveVoyage(late, 900_000);
+    step(departVoyage(WORLD_CONTENT, late, "lisbon-faro", 100, VOYAGE_SEED));
+    const lateResolution = resolveVoyage(WORLD_CONTENT, late, 900_000);
 
     expect(lateResolution.events).toEqual(onTime.events.slice(-lateResolution.events.length));
     expect(lateResolution.state).toEqual(onTime.state);

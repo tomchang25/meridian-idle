@@ -1,3 +1,4 @@
+import { WORLD_CONTENT } from "@/content/catalog";
 import { useState } from "react";
 import { getPort, getProduct, getProductFamilyForProduct } from "@/content/catalog";
 import { averageUnitCost, removedCostBasis } from "@/core/rules/cargo";
@@ -63,16 +64,17 @@ export function MarketPanel({ store }: MarketPanelProps) {
           const entry = port?.catalog.find((candidate) => candidate.productId === productId);
           const product = getProduct(productId);
           const family = getProductFamilyForProduct(productId);
-          const price = mode === "buy" ? buyPrice(state, productId) : sellPrice(state, productId);
+          const price =
+            mode === "buy" ? buyPrice(WORLD_CONTENT, state, productId) : sellPrice(WORLD_CONTENT, state, productId);
           const stack = state.fleet.products[productId];
           const averageCost = averageUnitCost(stack);
           const held = stack?.quantity ?? 0;
-          const maximum = mode === "buy" ? maximumProductPurchaseQuantity(state, productId) : held;
+          const maximum = mode === "buy" ? maximumProductPurchaseQuantity(WORLD_CONTENT, state, productId) : held;
           const quantity = Math.min(drafts[productId] ?? (maximum > 0 ? 1 : 0), maximum);
           const profit =
             mode === "sell" && price && stack ? price.unitPrice * quantity - removedCostBasis(stack, quantity) : null;
           const locked = mode === "buy" && !!entry && level < entry.unlockLevel;
-          const purchaseError = mode === "buy" ? productPurchaseError(state, productId, 1) : null;
+          const purchaseError = mode === "buy" ? productPurchaseError(WORLD_CONTENT, state, productId, 1) : null;
           const reason = purchaseError ?? (maximum === 0 ? "No units are available for this transaction." : null);
           const reasonId = `${mode}-${productId}-reason`;
           const locallyProduced = mode === "sell" && !!entry;

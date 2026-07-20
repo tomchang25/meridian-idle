@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { WORLD_CONTENT } from "@/content/catalog";
 import type { V5GameState } from "@/core/models/game";
 import { departVoyage } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
@@ -79,7 +80,7 @@ describe("GameRuntime", () => {
           releaseLoad = resolve;
         }),
     };
-    const saved = departVoyage(createInitialGameState(0), "lisbon-faro", 0, 3).state;
+    const saved = departVoyage(WORLD_CONTENT, createInitialGameState(0), "lisbon-faro", 0, 3).state;
     const runtime = new GameRuntime({ repository: slowRepository, seedSource, clock: controllableClock() });
     runtime.hydrate();
 

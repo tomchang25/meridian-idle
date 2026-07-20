@@ -1,4 +1,4 @@
-import { getProductFamilyForProduct } from "@/content/catalog";
+import type { WorldContent } from "@/core/content/world-content";
 import type { MarketSession, V5GameState } from "@/core/models/game";
 import { createMarketSession } from "@/core/rules/market";
 
@@ -14,20 +14,21 @@ export function portLevel(state: V5GameState, portId: string): number {
   for (let level = 100; level >= 1; level--) if (xp >= xpThreshold(level)) return level;
   return 1;
 }
-export function sessionXp(session: MarketSession): number {
+export function sessionXp(content: WorldContent, session: MarketSession): number {
   return Object.entries(session.netTrade).reduce(
-    (sum, [id, quantity]) => sum + Math.abs(quantity) * (getProductFamilyForProduct(id) ? 1 : 0),
+    (sum, [id, quantity]) => sum + Math.abs(quantity) * (content.getProductFamilyForProduct(id) ? 1 : 0),
     0,
   );
 }
 export function settlePortEntry(
+  content: WorldContent,
   state: V5GameState,
   destinationPortId: string,
   seed: number,
 ): { state: V5GameState; xpGained: number } {
   if (destinationPortId === state.marketSession.portId) return { state, xpGained: 0 };
   const contributions = Object.entries(state.marketSession.netTrade).reduce((sum, [productId, quantity]) => {
-    const family = getProductFamilyForProduct(productId);
+    const family = content.getProductFamilyForProduct(productId);
     return (
       sum +
       Math.abs(quantity) *

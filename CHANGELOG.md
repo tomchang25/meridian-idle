@@ -19,6 +19,7 @@
 - 2026-07-21 — [architecture] Domain rules now report outcomes as semantic events, and player-facing activity copy is rendered in one place outside the domain layer.
 - 2026-07-21 — [content] World data is now authored per domain behind one catalog, and cross-references are validated at test time, including the Route endpoint, measurement, and reachability checks that previously did not exist.
 - 2026-07-21 — [architecture] Time now reaches the game through one injected clock, and randomness through streams built from an explicit seed, with a contract test pinning same-seed replay across a save round-trip.
+- 2026-07-21 — [architecture] Core rules now receive authored content as an argument instead of importing it, so the deterministic layer no longer names a particular world and the boundary is enforced by lint.
 - 2026-07-21 — [architecture] Every random domain including the Market now derives its seed the same way, so adding a domain no longer needs an exception; Category Factors keep their authored band and existing saves keep the factors they were created with.
 - 2026-07-21 — [architecture] The game now runs outside React in a framework-free runtime; replacing the world cancels the previous world's pending arrival, save, and hydration.
 - 2026-07-17 — [supplies] Supply prices are now fixed globally and no longer vary by Port or time.

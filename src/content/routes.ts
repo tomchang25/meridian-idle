@@ -1,12 +1,6 @@
-export type Route = {
-  id: string;
-  originPortId: string;
-  destinationPortId: string;
-  distance: number;
-  durationMilliseconds: number;
-  staticRisk: number;
-  requiredSupplies: { food: number; water: number };
-};
+import type { Route } from "@/core/content/world-content";
+
+export type { Route };
 
 export const ROUTES: Route[] = [
   {

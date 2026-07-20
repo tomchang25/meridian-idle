@@ -1,3 +1,4 @@
+import { WORLD_CONTENT } from "@/content/catalog";
 import { getPort, ROUTES } from "@/content/catalog";
 import { voyageDepartureError, voyageSupplyReadiness } from "@/core/rules/voyage";
 import { displayName, formatRemaining } from "../dashboard-helpers";
@@ -31,10 +32,10 @@ export function HarborPanel({ store }: HarborPanelProps) {
       <ul className={styles.harborRoutes}>
         {routes.map((route) => {
           const routeDestination = getPort(route.destinationPortId);
-          const departureError = voyageDepartureError(state, route.id);
+          const departureError = voyageDepartureError(WORLD_CONTENT, state, route.id);
           const unavailableReason = !store.canGenerateVoyageSeed ? "Secure randomness is unavailable." : departureError;
           const departureReasonId = `depart-${route.id}-reason`;
-          const readiness = voyageSupplyReadiness(state, route.id);
+          const readiness = voyageSupplyReadiness(WORLD_CONTENT, state, route.id);
           return (
             <li key={route.id}>
               <div className={styles.routeCompass} aria-hidden="true">

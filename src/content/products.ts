@@ -1,17 +1,6 @@
-import type { CategoryId } from "@/core/models/game";
+import type { Product, ProductFamily } from "@/core/content/world-content";
 
-export type ProductFamily = {
-  id: string;
-  name: string;
-  category: CategoryId;
-  basePrice: number;
-};
-export type Product = {
-  id: string;
-  name: string;
-  familyId: string;
-  specialtyOriginPortId?: string;
-};
+export type { Product, ProductFamily };
 
 export const PRODUCT_FAMILIES: ProductFamily[] = [
   { id: "cod", name: "Cod", category: "food", basePrice: 30 },

@@ -14,6 +14,7 @@ import {
   voyageDepartureError,
 } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
+import { WORLD_CONTENT } from "@/content/catalog";
 import { withRenderedActivity } from "@/runtime/activity-rendering";
 import { systemClock, type Clock } from "@/runtime/clock";
 import type { SeedSource } from "@/runtime/seed-source";
@@ -182,26 +183,26 @@ export class GameRuntime {
     }
     this.commit(
       target > quantity
-        ? applySupplyPurchase(state, supplyId, target - quantity, this.clock.now())
+        ? applySupplyPurchase(WORLD_CONTENT, state, supplyId, target - quantity, this.clock.now())
         : applySupplyDiscard(state, supplyId, quantity - target),
     );
   }
 
   restockAllSupplies(): void {
-    this.commit(applySupplyRestock(this.snapshot.state, this.clock.now()));
+    this.commit(applySupplyRestock(WORLD_CONTENT, this.snapshot.state, this.clock.now()));
   }
 
   buyProduct(productId: string, quantity: number): void {
-    this.commit(applyProductBuy(this.snapshot.state, productId, quantity, this.clock.now()));
+    this.commit(applyProductBuy(WORLD_CONTENT, this.snapshot.state, productId, quantity, this.clock.now()));
   }
 
   sellProduct(productId: string, quantity: number): void {
-    this.commit(applyProductSell(this.snapshot.state, productId, quantity, this.clock.now()));
+    this.commit(applyProductSell(WORLD_CONTENT, this.snapshot.state, productId, quantity, this.clock.now()));
   }
 
   departVoyage(routeId: string): void {
     const { state } = this.snapshot;
-    const eligibilityError = voyageDepartureError(state, routeId);
+    const eligibilityError = voyageDepartureError(WORLD_CONTENT, state, routeId);
     if (eligibilityError) {
       this.publish({ commandError: eligibilityError });
       return;
@@ -216,12 +217,12 @@ export class GameRuntime {
       this.publish({ commandError: "Secure randomness is unavailable; Voyage departure was not changed." });
       return;
     }
-    this.commit(applyDeparture(state, routeId, this.clock.now(), seed));
+    this.commit(applyDeparture(WORLD_CONTENT, state, routeId, this.clock.now(), seed));
   }
 
   /** Settles an arrival that is now due; a no-op while the Voyage is still at sea. */
   resolveVoyage(): void {
-    this.commit(applyVoyageResolution(this.snapshot.state, this.clock.now()));
+    this.commit(applyVoyageResolution(WORLD_CONTENT, this.snapshot.state, this.clock.now()));
   }
 
   // --- internals ----------------------------------------------------------

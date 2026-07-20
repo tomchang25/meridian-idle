@@ -1,3 +1,4 @@
+import { WORLD_CONTENT } from "@/content/catalog";
 import { getPort, getProduct, SUPPLY_PRICES } from "@/content/catalog";
 import { SUPPLY_IDS, type V5GameState } from "@/core/models/game";
 import { averageUnitCost, usedCargo } from "@/core/rules/cargo";
@@ -213,7 +214,7 @@ export function ShortTermSidebar({ state }: DashboardSidebarProps) {
               </div>
               <ul className={styles.cargoLedger}>
                 {products.map(([productId, stack]) => {
-                  const price = sellPrice(state, productId);
+                  const price = sellPrice(WORLD_CONTENT, state, productId);
                   return (
                     <li key={productId}>
                       <div>

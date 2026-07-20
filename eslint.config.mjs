@@ -37,11 +37,9 @@ const eslintConfig = defineConfig([
                 "src/core must stay framework-free — no UI framework imports. See dev/standards/project_structure.md.",
             },
             {
-              // `@/content/*` is deliberately absent: core rules currently read authored
-              // content directly. Inverting that dependency is real work owned by a later
-              // architecture-foundation child, not by the layout migration.
-              group: ["@/runtime/*", "@/platform/*", "@/ui/*", "@/shared/*", "@/app/*", "@/harness/*"],
-              message: "src/core must not depend on any outer layer. See dev/standards/project_structure.md.",
+              group: ["@/content/*", "@/runtime/*", "@/platform/*", "@/ui/*", "@/shared/*", "@/app/*", "@/harness/*"],
+              message:
+                "src/core must not depend on any outer layer, and must never name a particular world; rules receive content as an argument. See dev/standards/project_structure.md.",
             },
             {
               group: ["../*"],
