@@ -35,7 +35,7 @@ Queued work, large enough to have a pre-plan file in `dev/docs/plans/`. Promote 
 
 - [product] Build the V5 manual Product trade, Port progression, voyage risk, Items, combat, and Expedition core — [ref plans/v5-core.md]
 - [navigation] Replace static Known waters and direct Port routes with an accessible nautical-chart departure surface, spatial passage graph, and boundary-aware Voyage flow — [ref plans/nautical-chart-navigation.md]
-- [architecture] Enforce layer boundaries, unify the src layout, and land the event, determinism, harness, runtime, and canvas presentation foundations — [ref plans/architecture-foundation.md]
+- [architecture] Land the canvas presentation contract and semantic DOM mirror with the first canvas scene — [ref plans/architecture-foundation.md]
 
 ---
 
