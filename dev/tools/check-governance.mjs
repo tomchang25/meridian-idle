@@ -20,7 +20,7 @@ const REQUIRED_LOCAL_CONTRACTS = {
     "foundation/core/workflows/work_lifecycle.md",
     "foundation/platforms/web-react/standards/project_structure_standard.md",
     "standards/project_structure.addendum.md",
-    "standards/state_management.md",
+    "foundation/core/standards/runtime_ownership.md",
   ],
   "dev/agent_rules/agent_startup.md": [
     "dev/foundation/core/agent_rules/foundation_startup.md",
@@ -159,15 +159,10 @@ for (const relativePath of LOCAL_GOVERNANCE_DOCS) {
   }
 }
 
-const stateStandard = read("dev/standards/state_management.md");
-if (stateStandard !== null) {
-  for (const staleTerm of ["船長", "Captain Skill", "Knowledge", "current action"]) {
-    if (stateStandard.includes(staleTerm)) {
-      errors.push(
-        `dev/standards/state_management.md: product-specific V3 term must not live in the generic standard: ${JSON.stringify(staleTerm)}`,
-      );
-    }
-  }
+if (fs.existsSync(absolute("dev/standards/state_management.md"))) {
+  errors.push(
+    "dev/standards/state_management.md: state lifecycle rules are owned by foundation/core/standards/runtime_ownership.md; do not recreate the local copy",
+  );
 }
 
 const todo = read("TODO.md");

@@ -20,7 +20,7 @@ Read `dev/foundation/core/agent_rules/foundation_startup.md` and `dev/foundation
 - Use `dev/README.md` for Meridian's trigger map. It routes shared rules directly to `dev/foundation/` and project-specific deltas to the correct local document.
 - Read `dev/standards/standards_enforcement.md` before changing local governance or `dev/tools/check-governance.mjs`.
 - Read `dev/foundation/platforms/web-react/standards/project_structure_standard.md` and `dev/standards/project_structure.addendum.md` before changing Meridian's runtime folder layout.
-- Read `dev/standards/state_management.md` and `dev/skills/offline-time-resolution.md` for Meridian-specific state and elapsed-time behavior.
+- Read `dev/foundation/core/standards/runtime_ownership.md` (State Lifecycle Addendum) and `dev/skills/offline-time-resolution.md` for state classification and Meridian elapsed-time behavior.
 - Product decisions live in `dev/docs/design/`; active planning lives in `dev/docs/plans/`; `TODO.md` owns forward work and `CHANGELOG.md` owns shipped history.
 
 ## Local defaults
