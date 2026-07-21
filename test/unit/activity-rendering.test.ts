@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GameEvent } from "@/core/events/game-events";
-import type { ActivityEntry } from "@/core/models/game";
+import type { ActivityEntry } from "@/core/model/game";
 import { ACTIVITY_LIMIT, activityEntryFor, appendActivity } from "@/runtime/activity-rendering";
 
 /**

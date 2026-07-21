@@ -1,4 +1,4 @@
-import type { SupplyId } from "@/core/models/game";
+import type { SupplyId } from "@/core/model/game";
 
 export type CityAction = "market" | "supplies" | "harbor";
 

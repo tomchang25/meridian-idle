@@ -34,7 +34,7 @@ The child proves new game, migration, Product trading, Port growth, Specialty cy
 - `game/infrastructure/persistence/`
 - `game/features/`
 - `game/shared/`
-- `tests/`
+- `test/unit/`
 
 ## Non-Goals
 

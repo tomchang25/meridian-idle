@@ -1,6 +1,6 @@
 import type { WorldContent } from "@/core/content/world-content";
 import type { GameEvent } from "@/core/events/game-events";
-import type { SupplyId, V5GameState, Voyage } from "@/core/models/game";
+import type { SupplyId, V5GameState, Voyage } from "@/core/model/game";
 import { removedCostBasis, restockSupplies, supplyRestockPlan, type RuleResult } from "@/core/rules/cargo";
 import { settlePortEntry } from "@/core/rules/progression";
 

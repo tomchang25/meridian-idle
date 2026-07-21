@@ -37,7 +37,7 @@ Items remain Core inventory with stable identity and no Cargo cost. The first se
 - `game/features/combat/`
 - `game/features/items/`
 - `game/features/repair/`
-- `tests/`
+- `test/unit/`
 
 ## Non-Goals
 

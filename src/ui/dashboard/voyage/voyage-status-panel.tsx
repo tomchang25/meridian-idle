@@ -1,7 +1,7 @@
 "use client";
 
 import { getPort } from "@/content/catalog";
-import type { Voyage } from "@/core/models/game";
+import type { Voyage } from "@/core/model/game";
 import type { Clock } from "@/runtime/clock";
 import { formatRemaining } from "../dashboard-helpers";
 import styles from "../meridian-dashboard.module.css";

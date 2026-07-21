@@ -1,5 +1,5 @@
 import { createSaveEnvelope } from "@/platform/persistence/save-migrations";
-import type { V5GameState } from "@/core/models/game";
+import type { V5GameState } from "@/core/model/game";
 
 const DATABASE_NAME = "meridian-idle";
 const STORE_NAME = "game-saves";

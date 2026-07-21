@@ -35,7 +35,7 @@ Do not run a local browser smoke check during an intermediate implementation Chi
 
 ## Manual-only boundaries
 
-No automated browser E2E, visual-regression, installability, service-worker lifecycle, or screen-reader suite is currently configured. For changes that affect those boundaries, report the manual browser, responsive, keyboard, reduced-motion, PWA, or assistive-technology verification still required.
+Browser acceptance tests live in `test/e2e/` and run through `npm run test:smoke` (production build plus Playwright); the browser smoke policy above governs when they run. No automated visual-regression, installability, service-worker lifecycle, or screen-reader suite is currently configured. For changes that affect those boundaries, report the manual browser, responsive, keyboard, reduced-motion, PWA, or assistive-technology verification still required.
 
 ## Result reporting
 

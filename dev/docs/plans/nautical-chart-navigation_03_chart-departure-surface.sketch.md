@@ -36,9 +36,9 @@ The likely replacement uses a data-driven vector chart inside the docked Harbor 
 - `game/features/dashboard/meridian-dashboard.module.css`
 - `game/features/dashboard/dashboard-types.ts`
 - `game/application/use-game-store.ts`
-- `tests/dashboard.test.tsx`
-- `tests/use-game-store.test.tsx`
-- `e2e/application.smoke.spec.ts`
+- `test/unit/dashboard.test.tsx`
+- `test/unit/use-game-store.test.tsx`
+- `test/e2e/application.smoke.spec.ts`
 - `dev/screenshot/chrome_jT1DlpoTqu.png`
 
 ## Non-Goals

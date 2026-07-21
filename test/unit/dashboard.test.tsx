@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SaveStatus } from "@/runtime/use-game-store";
-import type { V5GameState } from "@/core/models/game";
+import type { V5GameState } from "@/core/model/game";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { MeridianDashboard } from "@/ui/dashboard/meridian-dashboard";
 

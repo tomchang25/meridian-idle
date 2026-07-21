@@ -1,4 +1,4 @@
-import type { V5GameState } from "@/core/models/game";
+import type { V5GameState } from "@/core/model/game";
 
 /**
  * An authored world a browser or unit test can start from. Scenarios exist so a

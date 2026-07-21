@@ -1,0 +1,12 @@
+const config = {
+  endOfLine: "lf",
+  printWidth: 120,
+  proseWrap: "preserve",
+  semi: true,
+  singleQuote: false,
+  tabWidth: 2,
+  trailingComma: "all",
+  useTabs: false,
+};
+
+export default config;

@@ -18,7 +18,8 @@ const REQUIRED_LOCAL_CONTRACTS = {
     "foundation/core/agent_rules/foundation_startup.md",
     "foundation/platforms/web-react/platform_startup.md",
     "foundation/core/workflows/work_lifecycle.md",
-    "standards/project_structure.md",
+    "foundation/platforms/web-react/standards/project_structure_standard.md",
+    "standards/project_structure.addendum.md",
     "standards/state_management.md",
   ],
   "dev/agent_rules/agent_startup.md": [
@@ -48,6 +49,10 @@ const REQUIRED_LOCAL_CONTRACTS = {
     "dev/foundation/platforms/web-react/standards/web_platform_standard.md",
     "Chromium",
     "service worker",
+  ],
+  "dev/standards/project_structure.addendum.md": [
+    "dev/foundation/platforms/web-react/standards/project_structure_standard.md",
+    "Do not restate the shared standard here",
   ],
   "dev/skills/README.md": ["Meridian-specific", "offline-time-resolution.md"],
   "dev/skills/offline-time-resolution.md": ["## Hazard", "同一 resolver"],
@@ -82,6 +87,7 @@ const LOCAL_GOVERNANCE_DOCS = [
   "dev/standards/react_component.addendum.md",
   "dev/standards/persistence.addendum.md",
   "dev/standards/web_platform.addendum.md",
+  "dev/standards/project_structure.addendum.md",
   "dev/skills/README.md",
 ];
 

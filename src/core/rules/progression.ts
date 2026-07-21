@@ -1,5 +1,5 @@
 import type { WorldContent } from "@/core/content/world-content";
-import type { MarketSession, V5GameState } from "@/core/models/game";
+import type { MarketSession, V5GameState } from "@/core/model/game";
 import { createMarketSession } from "@/core/rules/market";
 
 export function xpThreshold(level: number): number {

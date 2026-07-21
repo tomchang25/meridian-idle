@@ -1,4 +1,4 @@
-import type { V5GameState } from "@/core/models/game";
+import type { V5GameState } from "@/core/model/game";
 import type { HarnessClock } from "@/harness/harness-clock";
 import { listScenarios } from "@/harness/scenario-registry";
 

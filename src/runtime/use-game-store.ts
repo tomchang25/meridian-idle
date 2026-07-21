@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import type { SupplyId, V5GameState } from "@/core/models/game";
+import type { SupplyId, V5GameState } from "@/core/model/game";
 import { GameRuntime, type SaveRepository, type SaveStatus } from "@/runtime/game-runtime";
 import type { Clock } from "@/runtime/clock";
 import type { SeedSource } from "@/runtime/seed-source";

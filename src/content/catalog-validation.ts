@@ -1,4 +1,4 @@
-import { CATEGORY_IDS, SUPPLY_IDS, type SupplyId } from "@/core/models/game";
+import { CATEGORY_IDS, SUPPLY_IDS, type SupplyId } from "@/core/model/game";
 import type { Port } from "@/content/ports";
 import type { Product, ProductFamily } from "@/content/products";
 import type { Route } from "@/content/routes";

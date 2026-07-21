@@ -1,4 +1,4 @@
-import type { SupplyId, V5GameState } from "@/core/models/game";
+import type { SupplyId, V5GameState } from "@/core/model/game";
 import {
   buySupply as applySupplyPurchase,
   discardSupply as applySupplyDiscard,

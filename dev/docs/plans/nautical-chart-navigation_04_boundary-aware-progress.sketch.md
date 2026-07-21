@@ -36,11 +36,11 @@ The likely extension retains that explicit-time model. The immutable passage sna
 - `game/features/dashboard/voyage/use-voyage-clock.ts`
 - `game/features/dashboard/voyage/voyage-status-panel.tsx`
 - `game/features/dashboard/scene/port-scene-panel.tsx`
-- `tests/voyage.test.ts`
-- `tests/use-game-store.test.tsx`
-- `tests/save-migrations.test.ts`
-- `tests/dashboard.test.tsx`
-- `e2e/application.smoke.spec.ts`
+- `test/unit/voyage.test.ts`
+- `test/unit/use-game-store.test.tsx`
+- `test/unit/save-migrations.test.ts`
+- `test/unit/dashboard.test.tsx`
+- `test/e2e/application.smoke.spec.ts`
 - `dev/docs/plans/v5-core_06_events-items-combat-and-recovery.sketch.md`
 
 ## Non-Goals

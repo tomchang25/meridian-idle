@@ -1,4 +1,4 @@
-import type { SupplyId } from "@/core/models/game";
+import type { SupplyId } from "@/core/model/game";
 
 /**
  * Why a Supply restock happened. The renderer derives the activity identifier

@@ -1,6 +1,6 @@
 import { WORLD_CONTENT } from "@/content/catalog";
 import { SUPPLY_PRICES } from "@/content/catalog";
-import { SUPPLY_IDS } from "@/core/models/game";
+import { SUPPLY_IDS } from "@/core/model/game";
 import { supplyPurchaseError, supplyRestockPlan, supplyTargetMaximum, usedCargo } from "@/core/rules/cargo";
 import { SUPPLY_LABELS } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";

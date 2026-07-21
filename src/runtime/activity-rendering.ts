@@ -1,5 +1,5 @@
 import type { GameEvent } from "@/core/events/game-events";
-import type { ActivityEntry, V5GameState } from "@/core/models/game";
+import type { ActivityEntry, V5GameState } from "@/core/model/game";
 
 /** The single owner of how many activity rows the player keeps. */
 export const ACTIVITY_LIMIT = 24;

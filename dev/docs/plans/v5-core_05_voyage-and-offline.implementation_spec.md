@@ -43,8 +43,8 @@ The React layer continues to schedule resolution only. It does not own elapsed-t
 | `game/domain/rules/voyage.ts`                        | Medium      | Copy departure requirements and reject invalid snapshots before arrival.     |
 | `game/infrastructure/persistence/save-migrations.ts` | Medium      | Reject malformed persisted Voyage data during hydration.                     |
 | `game/domain/models/game.ts`                         | Small       | Preserve the payload schema contract shared with Session validation.         |
-| `tests/voyage.test.ts`                               | Medium      | Verify immutable snapshots, exact arrival, and invalid-state no-op behavior. |
-| `tests/save-migrations.test.ts`                      | Small       | Cover recoverable malformed current saves.                                   |
+| `test/unit/voyage.test.ts`                           | Medium      | Verify immutable snapshots, exact arrival, and invalid-state no-op behavior. |
+| `test/unit/save-migrations.test.ts`                  | Small       | Cover recoverable malformed current saves.                                   |
 
 ## Execution Outline
 

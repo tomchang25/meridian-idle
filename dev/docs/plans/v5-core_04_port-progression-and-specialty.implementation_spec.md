@@ -45,8 +45,8 @@ The result preserves existing Buy and Sell pricing while making Port XP independ
 | `game/domain/rules/progression.ts`                   | Small       | Settle Port XP from saved values and reject unknown destinations.   |
 | `game/infrastructure/persistence/save-migrations.ts` | Large       | Migrate version 4 Sessions and validate persisted world state.      |
 | `game/domain/state/initial-game-state.ts`            | Small       | Stamp new worlds with the current payload schema.                   |
-| `tests/progression.test.ts`                          | Small       | Prove per-Product persisted Reference values determine XP.          |
-| `tests/save-migrations.test.ts`                      | Medium      | Cover version 4 Session migration and malformed payload rejection.  |
+| `test/unit/progression.test.ts`                      | Small       | Prove per-Product persisted Reference values determine XP.          |
+| `test/unit/save-migrations.test.ts`                  | Medium      | Cover version 4 Session migration and malformed payload rejection.  |
 
 ## Execution Outline
 

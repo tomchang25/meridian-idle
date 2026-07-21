@@ -1,5 +1,5 @@
 import { getPort } from "@/content/catalog";
-import type { V5GameState } from "@/core/models/game";
+import type { V5GameState } from "@/core/model/game";
 import { displayName } from "../dashboard-helpers";
 import styles from "../meridian-dashboard.module.css";
 

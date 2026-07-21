@@ -48,10 +48,10 @@ src/ui/                 功能 UI 與 feature-local components
 public/                 Manifest、service worker 與靜態資產
 worker/                 Cloudflare Worker 進入點
 dev/                    Web 專屬規範、工作流程與設計文件
-tests/                  跨模組與 rendering tests
-e2e/                    Browser acceptance tests
+test/unit/              跨模組與 rendering tests
+test/e2e/               Browser acceptance tests
 ```
 
-分層命名與姊妹專案 tickstrike-web 一致。`@/*` alias 指向 `src/`。
+結構遵循 `dev/foundation/platforms/web-react/standards/project_structure_standard.md`，分層命名與姊妹專案 tickstrike-web 一致。`@/*` alias 指向 `src/`。
 
 詳細規則見 [dev/README.md](dev/README.md)。

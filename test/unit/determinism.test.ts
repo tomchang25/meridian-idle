@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { WORLD_CONTENT } from "@/content/catalog";
 import type { GameEvent } from "@/core/events/game-events";
-import type { V5GameState } from "@/core/models/game";
+import type { V5GameState } from "@/core/model/game";
 import { createRandomStream } from "@/core/random/random-stream";
 import { createRandomStreams, deriveSeed } from "@/core/random/random-streams";
 import { buySupply, setAutoRestockOnArrival, setSupplyTarget } from "@/core/rules/cargo";

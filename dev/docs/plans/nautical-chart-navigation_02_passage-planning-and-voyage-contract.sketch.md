@@ -35,11 +35,11 @@ The route planner should choose fastest legal duration with deterministic tie-br
 - `game/domain/rules/progression.ts`
 - `game/application/use-game-store.ts`
 - `game/infrastructure/persistence/save-migrations.ts`
-- `tests/content.test.ts`
-- `tests/voyage.test.ts`
-- `tests/progression.test.ts`
-- `tests/save-migrations.test.ts`
-- `tests/use-game-store.test.tsx`
+- `test/unit/content.test.ts`
+- `test/unit/voyage.test.ts`
+- `test/unit/progression.test.ts`
+- `test/unit/save-migrations.test.ts`
+- `test/unit/use-game-store.test.tsx`
 
 ## Non-Goals
 

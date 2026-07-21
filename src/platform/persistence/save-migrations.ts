@@ -1,5 +1,5 @@
 import { createInitialGameState } from "@/core/state/initial-game-state";
-import { SUPPLY_IDS, type CargoStack, type V5GameState } from "@/core/models/game";
+import { SUPPLY_IDS, type CargoStack, type V5GameState } from "@/core/model/game";
 
 export const CURRENT_SAVE_VERSION = 4;
 

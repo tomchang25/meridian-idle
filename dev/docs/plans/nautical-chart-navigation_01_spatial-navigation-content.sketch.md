@@ -32,9 +32,9 @@ Chart coordinates and edge drawing geometry should remain authored presentation 
 - `game/domain/rules/market.ts`
 - `game/domain/rules/voyage.ts`
 - `game/infrastructure/persistence/save-migrations.ts`
-- `tests/content.test.ts`
-- `tests/market.test.ts`
-- `tests/voyage.test.ts`
+- `test/unit/content.test.ts`
+- `test/unit/market.test.ts`
+- `test/unit/voyage.test.ts`
 - `dev/docs/design/meridian-idle_v5_core_mvp_content_ledger.md`
 
 ## Non-Goals

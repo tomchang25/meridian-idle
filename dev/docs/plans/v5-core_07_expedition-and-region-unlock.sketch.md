@@ -36,7 +36,7 @@ The Expedition reuses Core Event, Item, Combat, loss, and accounting semantics. 
 - `game/features/expedition/`
 - `game/features/items/`
 - `game/features/combat/`
-- `tests/`
+- `test/unit/`
 
 ## Non-Goals
 

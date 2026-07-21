@@ -22,7 +22,7 @@ The later spec should avoid one giant timing-sensitive scenario. Seed, clock, an
 - Arbitrary `waitForTimeout` calls should be replaced by observable state or controlled time wherever practical.
 - The final session should run repository verification first, then the complete Playwright suite once the production-equivalent server is healthy; intermediate implementation sessions need only focused browser work explicitly named by the user.
 - Candidate files to inspect:
-  - `e2e/application.smoke.spec.ts`
+  - `test/e2e/application.smoke.spec.ts`
   - `playwright.config.ts`
   - `package.json`
   - `.github/workflows/verify.yml`

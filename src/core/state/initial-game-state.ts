@@ -1,4 +1,4 @@
-import { SUPPLY_IDS, type CargoStack, type V5GameState } from "@/core/models/game";
+import { SUPPLY_IDS, type CargoStack, type V5GameState } from "@/core/model/game";
 import { createMarketSession } from "@/core/rules/market";
 
 function emptyStack(): CargoStack {

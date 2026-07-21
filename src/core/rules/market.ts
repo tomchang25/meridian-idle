@@ -1,5 +1,5 @@
 import type { WorldContent } from "@/core/content/world-content";
-import type { CategoryId, MarketSession, V5GameState } from "@/core/models/game";
+import type { CategoryId, MarketSession, V5GameState } from "@/core/model/game";
 import { createRandomStreams } from "@/core/random/random-streams";
 import { removedCostBasis, roundHalfUp, usedCargo, validQuantity, type RuleResult } from "@/core/rules/cargo";
 import { portLevel } from "@/core/rules/progression";

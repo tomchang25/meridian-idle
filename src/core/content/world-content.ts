@@ -1,4 +1,4 @@
-import type { CategoryId, SupplyId } from "@/core/models/game";
+import type { CategoryId, SupplyId } from "@/core/model/game";
 
 /**
  * The shapes core understands. Core defines what a Port or a Route is; the

@@ -46,7 +46,7 @@ The dashboard will again import its co-located CSS Module, but the module will b
 | ------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------- |
 | `game/features/dashboard/meridian-dashboard.tsx`        | Large       | Map existing V5 states and commands into the responsive semantic HUD shell.               |
 | `game/features/dashboard/meridian-dashboard.module.css` | Large       | Replace orphaned V3 selectors with the active maritime layout and component state styles. |
-| `tests/dashboard.test.tsx`                              | Medium      | Cover recovery, save, docked, Voyage, result, disabled-reason, and command interactions.  |
+| `test/unit/dashboard.test.tsx`                          | Medium      | Cover recovery, save, docked, Voyage, result, disabled-reason, and command interactions.  |
 
 ## Execution Outline
 
