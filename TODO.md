@@ -24,7 +24,7 @@ In-flight and ready-to-implement work lives in `## Active` — promoted from `##
 > Ship a phase: remove it from that file and append `CHANGELOG.md`, leaving this line untouched.
 > When all phases ship: archive the plan file and delete this line.
 
-- [market] Add batch Goods trading, Cargo-complete selling, and target-based Supplies management — [ref plans/market_batch-trade-controls.implementation_spec.md]
+Nothing currently in progress.
 
 ---
 
