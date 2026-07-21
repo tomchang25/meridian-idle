@@ -1,7 +1,7 @@
 import { CATEGORY_IDS, SUPPLY_IDS, type SupplyId } from "@/core/model/game";
-import type { Port } from "@/content/ports";
-import type { Product, ProductFamily } from "@/content/products";
-import type { Route } from "@/content/routes";
+import type { Port } from "@/content/port-definitions";
+import type { Product, ProductFamily } from "@/content/product-definitions";
+import type { Route } from "@/content/route-definitions";
 
 /**
  * Test-time proof that authored content is internally consistent. Content is

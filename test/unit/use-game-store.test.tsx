@@ -1,5 +1,5 @@
 import { StrictMode, type ReactNode } from "react";
-import { WORLD_CONTENT } from "@/content/catalog";
+import { WORLD_CONTENT } from "@/content/content-catalog";
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SeedSource } from "@/runtime/seed-source";

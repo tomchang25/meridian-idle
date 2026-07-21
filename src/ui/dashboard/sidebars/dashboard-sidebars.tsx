@@ -1,5 +1,5 @@
-import { WORLD_CONTENT } from "@/content/catalog";
-import { getPort, getProduct, SUPPLY_PRICES } from "@/content/catalog";
+import { WORLD_CONTENT } from "@/content/content-catalog";
+import { getPort, getProduct, SUPPLY_PRICES } from "@/content/content-catalog";
 import { SUPPLY_IDS, type V5GameState } from "@/core/model/game";
 import { averageUnitCost, usedCargo } from "@/core/rules/cargo";
 import { sellPrice } from "@/core/rules/market";

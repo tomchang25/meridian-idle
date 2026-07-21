@@ -1,6 +1,6 @@
-import { WORLD_CONTENT } from "@/content/catalog";
+import { WORLD_CONTENT } from "@/content/content-catalog";
 import { useState } from "react";
-import { getPort, getProduct, getProductFamilyForProduct } from "@/content/catalog";
+import { getPort, getProduct, getProductFamilyForProduct } from "@/content/content-catalog";
 import { averageUnitCost, removedCostBasis } from "@/core/rules/cargo";
 import { buyPrice, maximumProductPurchaseQuantity, productPurchaseError, sellPrice } from "@/core/rules/market";
 import { portLevel } from "@/core/rules/progression";

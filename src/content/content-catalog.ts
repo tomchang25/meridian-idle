@@ -3,15 +3,15 @@
  * rather than from a per-domain module, so cross-domain resolution has one home
  * and the authored modules stay plain data.
  */
-export { PRODUCT_FAMILIES, PRODUCTS, type Product, type ProductFamily } from "@/content/products";
-export { PORTS, STARTING_PORT_ID, type Port, type PortCatalogEntry } from "@/content/ports";
-export { ROUTES, type Route } from "@/content/routes";
-export { SUPPLY_PRICES } from "@/content/supplies";
+export { PRODUCT_FAMILIES, PRODUCTS, type Product, type ProductFamily } from "@/content/product-definitions";
+export { PORTS, STARTING_PORT_ID, type Port, type PortCatalogEntry } from "@/content/port-definitions";
+export { ROUTES, type Route } from "@/content/route-definitions";
+export { SUPPLY_PRICES } from "@/content/supply-definitions";
 
-import { PORTS } from "@/content/ports";
-import { PRODUCT_FAMILIES, PRODUCTS } from "@/content/products";
-import { ROUTES } from "@/content/routes";
-import { SUPPLY_PRICES } from "@/content/supplies";
+import { PORTS } from "@/content/port-definitions";
+import { PRODUCT_FAMILIES, PRODUCTS } from "@/content/product-definitions";
+import { ROUTES } from "@/content/route-definitions";
+import { SUPPLY_PRICES } from "@/content/supply-definitions";
 import type { WorldContent } from "@/core/content/world-content";
 
 export function getPort(id: string) {

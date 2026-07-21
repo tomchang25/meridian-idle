@@ -8,7 +8,7 @@ import {
   ROUTES,
   STARTING_PORT_ID,
   SUPPLY_PRICES,
-} from "@/content/catalog";
+} from "@/content/content-catalog";
 import { validateCatalog, type ContentCatalog } from "@/content/catalog-validation";
 
 const shippedCatalog: ContentCatalog = {

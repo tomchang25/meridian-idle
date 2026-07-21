@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WORLD_CONTENT } from "@/content/catalog";
+import { WORLD_CONTENT } from "@/content/content-catalog";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import {
   buySupply,

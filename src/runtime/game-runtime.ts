@@ -14,7 +14,7 @@ import {
   voyageDepartureError,
 } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
-import { WORLD_CONTENT } from "@/content/catalog";
+import { WORLD_CONTENT } from "@/content/content-catalog";
 import { withRenderedActivity } from "@/runtime/activity-rendering";
 import { systemClock, type Clock } from "@/runtime/clock";
 import type { SeedSource } from "@/runtime/seed-source";

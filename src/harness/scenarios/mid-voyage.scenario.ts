@@ -2,7 +2,7 @@ import { setAutoRestockOnArrival, setSupplyTarget } from "@/core/rules/cargo";
 import { restockSupplies } from "@/core/rules/cargo";
 import { departVoyage } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
-import { WORLD_CONTENT } from "@/content/catalog";
+import { WORLD_CONTENT } from "@/content/content-catalog";
 import type { Scenario } from "@/harness/types";
 
 /**

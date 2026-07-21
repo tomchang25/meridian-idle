@@ -1,5 +1,5 @@
-import { WORLD_CONTENT } from "@/content/catalog";
-import { getPort, ROUTES } from "@/content/catalog";
+import { WORLD_CONTENT } from "@/content/content-catalog";
+import { getPort, ROUTES } from "@/content/content-catalog";
 import { voyageDepartureError, voyageSupplyReadiness } from "@/core/rules/voyage";
 import { displayName, formatRemaining } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WORLD_CONTENT } from "@/content/catalog";
+import { WORLD_CONTENT } from "@/content/content-catalog";
 import type { GameEvent } from "@/core/events/game-events";
 import type { V5GameState } from "@/core/model/game";
 import { createRandomStream } from "@/core/random/random-stream";
