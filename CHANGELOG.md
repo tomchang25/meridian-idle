@@ -33,3 +33,9 @@
 ### Supply Replenishment Policy and Arrival Auto-Restock
 
 - 2026-07-17 — [supplies] Fleet Supply targets now support atomic manual restocking and optional destination-priced replenishment after Voyage arrival.
+
+### V5 Core MVP Correctness Repair
+
+- 2026-07-21 — [market] Product pricing and Port settlement now read Category and Base Price from a Product Family, so pricing and progression no longer depend on metadata duplicated onto each Product.
+- 2026-07-21 — [voyage] Voyage departure now draws a secure seed and visibly refuses to depart when secure randomness is unavailable, leaving Supplies, save, and Voyage state unchanged.
+- 2026-07-21 — [market] Buy controls are now disabled with a stated reason whenever Gold, Cargo Capacity, Port unlock, or finite Specialty stock blocks a purchase, and a failed order surfaces an actionable message that clears on the next successful command.
