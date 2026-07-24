@@ -53,6 +53,8 @@ One line, no reasoning, no backing document.
 
 One line, no reasoning, no backing document.
 
+- [structure] `eslint.config.mjs` boundary-violation messages point to `dev/standards/project_structure.md`, renamed to `project_structure.addendum.md`; update all 8 references
+
 ---
 
 ## Draft
