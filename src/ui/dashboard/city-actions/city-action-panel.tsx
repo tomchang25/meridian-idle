@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { getPort } from "@/content/content-catalog";
 import { CITY_ACTIONS, type CityAction } from "../dashboard-helpers";

@@ -1,5 +1,3 @@
-"use client";
-
 import { getPort } from "@/content/content-catalog";
 import type { Voyage } from "@/core/model/game";
 import type { Clock } from "@/runtime/clock";

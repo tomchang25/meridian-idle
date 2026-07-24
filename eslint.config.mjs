@@ -1,26 +1,22 @@
+import js from "@eslint/js";
 import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import reactHooks from "eslint-plugin-react-hooks";
+import tseslint from "typescript-eslint";
 import prettierConfig from "eslint-config-prettier/flat";
 
 const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    ".vinext/**",
-    ".wrangler/**",
-    "coverage/**",
-    "dev/foundation/**",
-    "dist/**",
-    "out/**",
-    "outputs/**",
-    "build/**",
-    "work/**",
-    "next-env.d.ts",
-  ]),
+  globalIgnores(["dist/**", "coverage/**", "dev/foundation/**", "build/**"]),
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  reactHooks.configs["recommended-latest"],
+  // Plain JS tooling scripts run under Node. TypeScript files get their globals
+  // from the type checker, so this only covers the .mjs/.js build and governance tools.
+  {
+    files: ["**/*.mjs", "**/*.js"],
+    languageOptions: {
+      globals: { console: "readonly", process: "readonly" },
+    },
+  },
   // Layer boundary enforcement. The placement rules these encode live in
   // `dev/standards/project_structure.md`; a violation means code is misplaced,
   // so relocate the code rather than widening a pattern here.

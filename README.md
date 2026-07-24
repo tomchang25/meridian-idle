@@ -5,11 +5,11 @@ Meridian Idle 是以大航海時代為背景的 Web-first 增量遊戲。玩家�
 ## Stack
 
 - React 19 + TypeScript
-- Vite / Vinext
+- Vite（plain SPA）
 - CSS Modules
 - IndexedDB device-local saves
 - Vitest + React Testing Library
-- Cloudflare-compatible Web build
+- 桌面 Web；未來可打包為 Tauri
 
 ## Start
 
@@ -39,14 +39,14 @@ VS Code 使用者可以透過 `Terminal: Run Task` 執行相同的開發與驗�
 ## Structure
 
 ```text
-src/app/                Route shell、metadata 與全局 CSS
+index.html              Vite entry
+src/app/                App 進入點（main.tsx）、composition root 與全局 CSS
 src/core/               無 UI、可獨立測試的遊戲規則與狀態型別
 src/content/            被創作的世界資料（ports、routes、products、supplies）
 src/runtime/            use cases、store orchestration、commands
-src/platform/           IndexedDB、PWA、browser adapters
+src/platform/           IndexedDB 與 browser adapters
 src/ui/                 功能 UI 與 feature-local components
-public/                 Manifest、service worker 與靜態資產
-worker/                 Cloudflare Worker 進入點
+public/                 favicon 等靜態資產
 dev/                    Web 專屬規範、工作流程與設計文件
 test/unit/              跨模組與 rendering tests
 test/e2e/               Browser acceptance tests

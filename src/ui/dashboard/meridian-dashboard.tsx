@@ -1,5 +1,3 @@
-"use client";
-
 import { useGameStore } from "@/runtime/use-game-store";
 import type { DashboardStore } from "./dashboard-types";
 import { ActivityLog } from "./activity-log";

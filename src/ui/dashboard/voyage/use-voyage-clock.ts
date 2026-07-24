@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import type { Voyage } from "@/core/model/game";
 import type { Clock } from "@/runtime/clock";

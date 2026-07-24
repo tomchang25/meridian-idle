@@ -7,7 +7,7 @@ Read `dev/foundation/core/agent_rules/foundation_startup.md` and `dev/foundation
 - Product: maritime incremental / management game.
 - Platform: Web React; TypeScript strict mode, semantic HTML, and CSS Modules.
 - Persistence: IndexedDB through repository adapters.
-- Primary build: Web/PWA through Vinext.
+- Primary build: plain Vite React SPA (desktop web; a future Tauri shell is possible).
 - Tests: Vitest and React Testing Library.
 
 ## Required operation contracts

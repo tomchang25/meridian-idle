@@ -12,6 +12,16 @@
       }
     },
     {
+      "label": "Preview",
+      "type": "npm",
+      "script": "preview",
+      "problemMatcher": [],
+      "presentation": {
+        "group": "development",
+        "reveal": "always"
+      }
+    },
+    {
       "label": "Format",
       "type": "npm",
       "script": "format",
@@ -36,6 +46,12 @@
       "problemMatcher": "$eslint-stylish"
     },
     {
+      "label": "Lint Fix",
+      "type": "npm",
+      "script": "lint:fix",
+      "problemMatcher": "$eslint-stylish"
+    },
+    {
       "label": "Test",
       "type": "npm",
       "script": "test",
@@ -50,6 +66,22 @@
       "type": "npm",
       "script": "test:watch",
       "problemMatcher": []
+    },
+    {
+      "label": "Test E2E",
+      "type": "npm",
+      "script": "test:e2e",
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "Test E2E UI",
+      "type": "npm",
+      "script": "test:e2e:ui",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
     },
     {
       "label": "Build",

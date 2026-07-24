@@ -30,12 +30,12 @@ Do not run a local browser smoke check during an intermediate implementation Chi
 | Type safety               | `npm run typecheck`        | TypeScript exits successfully with no diagnostics.                                                               |
 | Lint                      | `npm run lint`             | ESLint exits successfully with zero warnings.                                                                    |
 | Automated tests           | `npm run test`             | Vitest exits successfully with all tests passing.                                                                |
-| Production build          | `npm run build`            | Vinext production build exits successfully.                                                                      |
+| Production build          | `npm run build`            | Vite production build exits successfully.                                                                        |
 | Full verification         | `npm run verify`           | Governance, formatting, typecheck, lint, tests, and production build all pass.                                   |
 
 ## Manual-only boundaries
 
-Browser acceptance tests live in `test/e2e/` and run through `npm run test:smoke` (production build plus Playwright); the browser smoke policy above governs when they run. No automated visual-regression, installability, service-worker lifecycle, or screen-reader suite is currently configured. For changes that affect those boundaries, report the manual browser, responsive, keyboard, reduced-motion, PWA, or assistive-technology verification still required.
+Browser acceptance tests live in `test/e2e/` and run through `npm run test:e2e` (Playwright against the Vite dev server); the browser smoke policy above governs when they run. No automated visual-regression or screen-reader suite is currently configured. For changes that affect those boundaries, report the manual browser, responsive, keyboard, reduced-motion, or assistive-technology verification still required.
 
 ## Result reporting
 

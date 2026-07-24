@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { installDebugApi } from "@/harness/debug-api";
 import { createHarnessClock } from "@/harness/harness-clock";

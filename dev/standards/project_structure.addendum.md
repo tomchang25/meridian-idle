@@ -4,16 +4,14 @@ Canonical repository layout, root vocabulary, source layers, import boundaries, 
 
 ## Project-owned root trees
 
-以下 root trees 是 deployment 與 server 關注點，位於遊戲分層詞彙之外：
+以下 root trees 位於遊戲分層詞彙之外：
 
 ```text
-worker/                 Cloudflare Worker 進入點
-drizzle/                Database migration 資產
-public/                 PWA manifest、service worker 與需要 stable URL 的平台檔案
-.openai/、.wrangler/    Hosting 與 local tool state，不進入 runtime module graph
+index.html              Vite entry；載入 src/app/main.tsx
+public/                 需要 stable URL 的靜態資產（favicon 等）
 ```
 
-`public/` 的使用符合 shared standard 的 stable-URL 保留規則；一般遊戲內容仍走 `src/` 的 owning layer。Production build 由 Vinext 產出至 `dist/`（client + server）。Build tooling source（`sites-vite-plugin.ts`）位於 `dev/tools/`。
+`public/` 的使用符合 shared standard 的 stable-URL 保留規則；一般遊戲內容仍走 `src/` 的 owning layer。Production build 由 plain Vite 產出至 `dist/`（靜態 client bundle，無 server 或 worker 產物）。
 
 ## Earned layers 現況
 
