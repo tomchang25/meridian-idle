@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test";
  * than by waiting out the real duration.
  */
 test("loads a mid-voyage scenario and reaches arrival by advancing simulated time", async ({ page }) => {
-  await page.goto("/?scenario=mid-voyage");
+  await page.goto("/debug/game?scenario=mid-voyage");
 
   await expect(page.getByRole("heading", { name: "Lisbon to Faro" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Latest arrival" })).toBeHidden();
@@ -24,7 +24,7 @@ test("loads a mid-voyage scenario and reaches arrival by advancing simulated tim
 });
 
 test("exposes the registered scenarios and leaves ordinary play unharnessed", async ({ page }) => {
-  await page.goto("/?scenario=docked-wealthy");
+  await page.goto("/debug/game?scenario=docked-wealthy");
   // The interface is published after hydration, so wait for it rather than
   // racing the navigation.
   await page.waitForFunction(() => Boolean(window.__MERIDIAN__));
@@ -35,4 +35,15 @@ test("exposes the registered scenarios and leaves ordinary play unharnessed", as
   await page.goto("/");
   await expect(page.getByRole("main")).toBeVisible();
   expect(await page.evaluate(() => Boolean(window.__MERIDIAN__))).toBe(false);
+});
+
+test("lists dev tools at the debug hub and falls back to it for unknown paths", async ({ page }) => {
+  await page.goto("/debug");
+  await expect(page.getByRole("heading", { name: "Meridian debug tools" })).toBeVisible();
+  const testbedLink = page.getByRole("link", { name: "Scenario testbed" });
+  await expect(testbedLink).toHaveAttribute("href", "/debug/game");
+
+  // An unknown dev path falls back to the hub rather than white-screening.
+  await page.goto("/debug/does-not-exist");
+  await expect(page.getByRole("heading", { name: "Meridian debug tools" })).toBeVisible();
 });

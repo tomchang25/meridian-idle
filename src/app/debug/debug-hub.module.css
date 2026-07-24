@@ -1,0 +1,24 @@
+.hub {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  color: var(--color-ink);
+}
+
+.list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.item a {
+  font-size: 1.125rem;
+  color: var(--color-ink);
+}
+
+.item p {
+  margin: 0.25rem 0 0;
+  color: var(--color-muted);
+}

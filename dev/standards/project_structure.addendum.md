@@ -15,7 +15,9 @@ public/                 需要 stable URL 的靜態資產（favicon 等）
 
 ## Earned layers 現況
 
-`src/shared/` 與 `src/presentation/` 尚未 earned，在擁有它們的工作實際發生前不建立。`src/harness/` 以 `?scenario=` 載入預置世界並提供可控時鐘；只有 route shell（`src/app`）可以接線 harness。
+`src/shared/` 與 `src/presentation/` 尚未 earned，在擁有它們的工作實際發生前不建立。`src/harness/` 以 `?scenario=` 載入預置世界並提供可控時鐘；只有 debug 路由（`src/app/debug/`）可以接線 harness。
+
+`src/app/debug/` 是 dev-only 開發工具面（`/debug` hub 與各工具），整棵子樹以 `import.meta.env.DEV` 守住，不進入 production bundle；正式遊戲路由（`/`）永不讀取 `?scenario=`。
 
 ## `common` policy
 

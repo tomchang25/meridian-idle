@@ -24,7 +24,7 @@ In-flight and ready-to-implement work lives in `## Active` — promoted from `##
 > Ship a phase: remove it from that file and append `CHANGELOG.md`, leaving this line untouched.
 > When all phases ship: archive the plan file and delete this line.
 
-Nothing currently in progress.
+- [debug] Add a dev-only `/debug` hub and move the scenario harness to `/debug/game` — [ref plans/debug-hub-shell.implementation_spec.md]
 
 ---
 

@@ -1,12 +1,9 @@
-import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { installDebugApi } from "@/harness/debug-api";
 import { createHarnessClock } from "@/harness/harness-clock";
 import { findScenario } from "@/harness/scenario-registry";
 import { useGameStore } from "@/runtime/use-game-store";
 import { DashboardView, MeridianDashboard } from "@/ui/dashboard/meridian-dashboard";
-
-/** The URL scenario never changes after load, so this store never notifies. */
-const subscribeToNothing = () => () => {};
 
 function readScenarioId(): string | null {
   try {
@@ -17,18 +14,13 @@ function readScenarioId(): string | null {
 }
 
 /**
- * The composition root for the playable surface. Normally it renders the
- * dashboard on its own dependencies; when the URL names a scenario it starts
+ * The `/debug/game` dev tool. When the URL names a scenario it starts the store
  * from that authored world on a hand-driven clock and publishes the debug
- * interface, so browser tests reach mid-flow states without waiting on real time.
+ * interface, so browser tests reach mid-flow states without waiting on real
+ * time. With no or an unknown scenario it renders ordinary play.
  */
-export function GameSurface() {
-  // The server cannot see the URL scenario. Returning null as the server
-  // snapshot lets React reconcile the difference on the client instead of
-  // treating it as a hydration mismatch.
-  const scenarioId = useSyncExternalStore(subscribeToNothing, readScenarioId, () => null);
-  const scenario = useMemo(() => findScenario(scenarioId), [scenarioId]);
-
+export function ScenarioTestbed() {
+  const scenario = findScenario(readScenarioId());
   if (!scenario) return <MeridianDashboard />;
   return <HarnessSurface scenario={scenario} />;
 }
