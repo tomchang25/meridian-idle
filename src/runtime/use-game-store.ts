@@ -40,7 +40,7 @@ export function useGameStore({
   );
 
   useEffect(() => {
-    runtime.hydrate();
+    runtime.activate();
     return () => runtime.dispose();
   }, [runtime]);
 

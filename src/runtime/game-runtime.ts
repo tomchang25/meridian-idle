@@ -116,6 +116,22 @@ export class GameRuntime {
 
   // --- lifecycle ----------------------------------------------------------
 
+  /**
+   * Brings the runtime online for a mount. On first activation this hydrates the
+   * persisted world; on a re-activation after `dispose` — which React does on
+   * every StrictMode mount and on any remount — it clears the disposed flag and
+   * re-arms the timers `dispose` cleared, so the same instance keeps working
+   * instead of staying permanently dead.
+   */
+  activate(): void {
+    this.disposed = false;
+    if (!this.hydrated) {
+      this.hydrate();
+      return;
+    }
+    this.scheduleArrival();
+  }
+
   /** Loads the persisted world. Does nothing when started from an authored one. */
   hydrate(): void {
     if (this.hydrated || this.disposed) return;

@@ -107,6 +107,35 @@ describe("GameRuntime", () => {
     expect(store.saves).toHaveLength(0);
   });
 
+  it("remains usable across a dispose/activate remount cycle", () => {
+    vi.useFakeTimers();
+    const clock = controllableClock();
+    const runtime = new GameRuntime({ repository: repository(), seedSource, clock });
+    runtime.startNewGame();
+    runtime.setSupplyTarget("food", 2);
+    runtime.setSupplyTarget("water", 2);
+    runtime.restockAllSupplies();
+    runtime.departVoyage("lisbon-faro");
+    expect(runtime.getSnapshot().state.voyage).not.toBeNull();
+
+    // React StrictMode drives the subscribing effect setup/teardown/setup on the
+    // same runtime instance; the teardown must not leave it permanently dead.
+    runtime.dispose();
+    runtime.activate();
+
+    let notifications = 0;
+    runtime.subscribe(() => (notifications += 1));
+
+    // The harness settles arrivals by advancing the clock and asking the runtime
+    // to resolve, exactly as the debug interface does; this must still work.
+    clock.advance(5_000);
+    runtime.resolveVoyage();
+
+    expect(runtime.getSnapshot().state.voyage).toBeNull();
+    expect(runtime.getSnapshot().state.fleet.locationPortId).toBe("faro");
+    expect(notifications).toBeGreaterThan(0);
+  });
+
   it("persists after the debounce window and reports the save status", async () => {
     vi.useFakeTimers();
     const store = repository();
