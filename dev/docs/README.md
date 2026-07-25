@@ -21,6 +21,10 @@
 - `design/meridian-idle_v3.md`：歷史設計，GDD v3.0。
 - `design/meridian-idle_layout.md`：舊版 Web layout 參考；與 V5 衝突時以 V5 GDD 與新 plan 為準。
 
+## Human-readable reports
+
+- `reports/nautical_chart_navigation_map.html`：Nautical Chart Navigation 的 authored world、node 語意、planner、quote 與 implementation boundary 人類總覽。
+
 ## Tracking ownership
 
 - `TODO.md` 是唯一 forward surface，只保留未完成項目與 active plan 指針。
@@ -49,4 +53,5 @@ Plan child sketch/spec 只由 parent plan 指向，不另建 TODO 條目。Activ
 - `systems/` 只以現在式描述已實作契約，不放 future work 或 status checklist。
 - `plans/` 是 temporary forward work，不是長期架構文件。
 - `archived/` 是 read-only historical context；若與 live code 衝突，以 live code、tests 與 current design/system docs 為準。
+- `reports/` 保存可單檔開啟的人類視覺導覽；它們協助閱讀但不取代 design、system docs、code 或 tests 的權威。
 - Function names、fields、signatures 和局部步驟留在 code comments 與 implementation spec，不放入 evergreen system docs。

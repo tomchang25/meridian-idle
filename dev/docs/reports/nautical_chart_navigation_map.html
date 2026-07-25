@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meridian Idle — Nautical Chart Navigation Map</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f3f7f8;
+        --panel: #ffffff;
+        --ink: #172229;
+        --muted: #607079;
+        --line: #d7e1e4;
+        --accent: #076b83;
+        --accent-bg: #e3f4f7;
+        --content: #9a5b12;
+        --content-bg: #fff2df;
+        --core: #386a45;
+        --core-bg: #e9f5ec;
+        --state: #6c4aaa;
+        --state-bg: #f0eafb;
+        --debug: #a43f52;
+        --debug-bg: #fbe9ed;
+        --code-bg: #edf1f2;
+        --sea: #e6f5f8;
+        --shadow: 0 1px 2px rgba(25, 42, 48, 0.06), 0 12px 32px rgba(25, 42, 48, 0.06);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #12191c;
+          --panel: #1b2529;
+          --ink: #e8f0f2;
+          --muted: #9dafb6;
+          --line: #314045;
+          --accent: #66c7dc;
+          --accent-bg: #142d34;
+          --content: #efb66b;
+          --content-bg: #302517;
+          --core: #80d296;
+          --core-bg: #192d20;
+          --state: #c0a1fa;
+          --state-bg: #292038;
+          --debug: #f09aaa;
+          --debug-bg: #321d23;
+          --code-bg: #253034;
+          --sea: #162a30;
+          --shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 12px 32px rgba(0, 0, 0, 0.2);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.7 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          system-ui,
+          "PingFang TC",
+          "Microsoft JhengHei",
+          sans-serif;
+      }
+
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 42px 22px 96px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 7px;
+        font-size: clamp(25px, 4vw, 34px);
+        line-height: 1.25;
+        letter-spacing: -0.025em;
+      }
+
+      h2 {
+        margin: 48px 0 16px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
+        font-size: 20px;
+        letter-spacing: -0.015em;
+      }
+
+      h2:first-of-type {
+        border-top: 0;
+      }
+
+      h3 {
+        margin-bottom: 6px;
+        font-size: 16px;
+      }
+
+      p {
+        margin-bottom: 14px;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      code,
+      .path {
+        font:
+          12.5px/1.5 "SFMono-Regular",
+          "Cascadia Code",
+          ui-monospace,
+          Menlo,
+          Consolas,
+          monospace;
+      }
+
+      code {
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: var(--code-bg);
+      }
+
+      .sub,
+      .meta,
+      .muted {
+        color: var(--muted);
+      }
+
+      .sub {
+        max-width: 850px;
+        margin-bottom: 8px;
+        font-size: 16px;
+      }
+
+      .meta {
+        font-size: 12.5px;
+      }
+
+      .toc,
+      .legend,
+      .concept-row {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .toc {
+        gap: 7px 16px;
+        margin: 20px 0 5px;
+        font-size: 13.5px;
+      }
+
+      .toc a {
+        color: var(--muted);
+      }
+
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      .callout {
+        margin: 18px 0;
+        padding: 15px 17px;
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--accent);
+        border-radius: 9px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .callout.warn {
+        border-left-color: var(--content);
+      }
+
+      .legend {
+        gap: 10px 20px;
+        margin: 15px 0 8px;
+        font-size: 13px;
+      }
+
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 4px;
+      }
+
+      .dot.content {
+        background: var(--content);
+      }
+
+      .dot.core {
+        background: var(--core);
+      }
+
+      .dot.state {
+        background: var(--state);
+      }
+
+      .dot.debug {
+        background: var(--debug);
+      }
+
+      .chart-frame {
+        overflow: hidden;
+        margin: 18px 0;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--sea);
+        box-shadow: var(--shadow);
+      }
+
+      .chart-frame svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .chart-line {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 9;
+        stroke-linecap: round;
+      }
+
+      .berth-line {
+        fill: none;
+        stroke: var(--muted);
+        stroke-width: 5;
+        stroke-dasharray: 8 7;
+      }
+
+      .region-box {
+        fill: color-mix(in srgb, var(--panel) 55%, transparent);
+        stroke: var(--line);
+        stroke-width: 2;
+        stroke-dasharray: 8 7;
+      }
+
+      .port-node {
+        fill: var(--ink);
+        stroke: var(--panel);
+        stroke-width: 5;
+      }
+
+      .approach-node {
+        fill: var(--panel);
+        stroke: var(--ink);
+        stroke-width: 4;
+      }
+
+      .headland-node {
+        fill: var(--content);
+        stroke: var(--panel);
+        stroke-width: 4;
+      }
+
+      .svg-label {
+        fill: var(--ink);
+        font:
+          700 15px -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          system-ui,
+          sans-serif;
+        paint-order: stroke;
+        stroke: var(--panel);
+        stroke-width: 5px;
+        stroke-linejoin: round;
+      }
+
+      .svg-small {
+        fill: var(--muted);
+        font:
+          12px -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          system-ui,
+          sans-serif;
+      }
+
+      .svg-region {
+        fill: var(--muted);
+        font:
+          700 13px -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          system-ui,
+          sans-serif;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .concept-row {
+        align-items: stretch;
+        gap: 10px;
+        margin: 16px 0;
+      }
+
+      .concept {
+        flex: 1 1 175px;
+        min-width: 0;
+        padding: 14px 15px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .concept .kind {
+        display: inline-block;
+        margin-bottom: 7px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--accent-bg);
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .concept-arrow {
+        align-self: center;
+        color: var(--muted);
+        font-size: 22px;
+      }
+
+      .flow {
+        display: flex;
+        flex-direction: column;
+        margin: 18px 0;
+      }
+
+      .station {
+        position: relative;
+        padding: 15px 18px 15px 62px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .station .num {
+        position: absolute;
+        top: 15px;
+        left: 16px;
+        display: grid;
+        width: 29px;
+        height: 29px;
+        place-items: center;
+        border-radius: 8px;
+        background: var(--core);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .station.content .num {
+        background: var(--content);
+      }
+
+      .station.state .num {
+        background: var(--state);
+      }
+
+      .station.debug .num {
+        background: var(--debug);
+      }
+
+      .station .lane {
+        display: inline-block;
+        margin-bottom: 7px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--core-bg);
+        color: var(--core);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .station.content .lane {
+        background: var(--content-bg);
+        color: var(--content);
+      }
+
+      .station.state .lane {
+        background: var(--state-bg);
+        color: var(--state);
+      }
+
+      .station.debug .lane {
+        background: var(--debug-bg);
+        color: var(--debug);
+      }
+
+      .station p {
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .arrow {
+        align-self: center;
+        padding: 7px 0;
+        color: var(--muted);
+        font-size: 21px;
+        line-height: 1;
+      }
+
+      .refs {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        margin-top: 8px;
+      }
+
+      .ref {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .ref a {
+        font-family: "SFMono-Regular", "Cascadia Code", ui-monospace, Menlo, Consolas, monospace;
+      }
+
+      .scroll {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        margin: 12px 0;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .status.current {
+        background: var(--core-bg);
+        color: var(--core);
+      }
+
+      .status.future {
+        background: var(--code-bg);
+        color: var(--muted);
+      }
+
+      footer {
+        margin-top: 52px;
+        padding-top: 17px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12.5px;
+      }
+
+      @media (max-width: 680px) {
+        .wrap {
+          padding: 26px 14px 70px;
+        }
+
+        .concept-arrow {
+          display: none;
+        }
+
+        .concept {
+          flex-basis: 100%;
+        }
+
+        .station {
+          padding-left: 54px;
+        }
+      }
+
+      @media print {
+        :root {
+          color-scheme: light;
+        }
+
+        body {
+          background: #fff;
+        }
+
+        .wrap {
+          max-width: none;
+          padding: 0;
+        }
+
+        .station,
+        .concept,
+        .callout,
+        .chart-frame {
+          break-inside: avoid;
+          box-shadow: none;
+        }
+
+        a {
+          color: inherit;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Meridian Idle — Nautical Chart Navigation Map</h1>
+        <p class="sub">
+          從 authored world、Region／SubRegion、導航節點與有向邊，到 deterministic passage planner 與 quote estimator
+          的人類導向總覽。
+        </p>
+        <p class="meta">
+          更新時間 2026-07-25 · 反映 Nautical Chart Navigation Child 01 實作狀態 · 原始碼與 tests
+          才是權威；本頁負責幫人快速建立心智模型。
+        </p>
+        <nav class="toc" aria-label="Page sections">
+          <a href="#world">① 世界圖譜</a>
+          <a href="#hierarchy">② Region 階層</a>
+          <a href="#nodes">③ 節點語意</a>
+          <a href="#planner">④ Planner 流程</a>
+          <a href="#quote">⑤ Quote 計算</a>
+          <a href="#boundary">⑥ 現況與邊界</a>
+          <a href="#source-map">⑦ 原始碼入口</a>
+        </nav>
+      </header>
+
+      <div class="callout">
+        <strong>一句話版本</strong>
+        Content 描述「世界有哪些點與可走的方向」；<code>planPassage()</code> 決定「合法且穩定的最佳路徑」；<code
+          >estimatePassage()</code
+        >
+        把該路徑換算成時間、補給與風險。目前這條新鏈只供
+        <code>/debug/chart</code> 使用，實際 Voyage 仍由 legacy <code>ROUTES</code> 執行。
+      </div>
+
+      <div class="legend" aria-label="Ownership legend">
+        <span><i class="dot content"></i> Authored content <span class="path">src/content</span></span>
+        <span><i class="dot core"></i> Deterministic rules <span class="path">src/core</span></span>
+        <span><i class="dot state"></i> Persisted state <span class="path">Fleet.speed</span></span>
+        <span><i class="dot debug"></i> Dev-only consumer <span class="path">/debug/chart</span></span>
+      </div>
+
+      <h2 id="world">① Authored world：目前的航海圖</h2>
+      <p>
+        Port 與 navigation point 共用同一個 node id namespace。粗實線是海上 passage edge，灰色虛線是 Port 與其 harbor
+        approach 之間的 berth edge。所有線在 content 中其實都是一去一回兩條 directed
+        edges；這張人類圖把成對方向合併顯示。
+      </p>
+
+      <div class="chart-frame">
+        <svg viewBox="0 0 980 500" role="img" aria-labelledby="world-title world-desc">
+          <title id="world-title">Meridian authored navigation world</title>
+          <desc id="world-desc">
+            Lisbon connects through Lisbon Approach and Cape St. Vincent to Faro Approach. Faro is connected by a berth
+            link. Faro Approach continues to Tangier Approach and Tangier.
+          </desc>
+
+          <rect class="region-box" x="38" y="48" width="645" height="380" rx="20" />
+          <text class="svg-region" x="62" y="78">Iberian Atlantic</text>
+          <rect class="region-box" x="696" y="230" width="244" height="198" rx="20" />
+          <text class="svg-region" x="720" y="260">Maghreb Coast</text>
+
+          <path class="berth-line" d="M 120 145 L 218 145" />
+          <path class="chart-line" d="M 218 145 L 355 290" />
+          <path class="chart-line" d="M 355 290 L 550 290" />
+          <path class="berth-line" d="M 550 290 L 550 148" />
+          <path class="chart-line" d="M 550 290 L 770 345" />
+          <path class="berth-line" d="M 770 345 L 870 345" />
+
+          <text class="svg-small" x="284" y="199">8 nm · 5% risk</text>
+          <text class="svg-small" x="414" y="278">8 nm · 5% risk</text>
+          <text class="svg-small" x="646" y="298">28 nm · 11% risk</text>
+
+          <circle class="port-node" cx="120" cy="145" r="18" />
+          <text class="svg-label" x="120" y="114" text-anchor="middle">Lisbon</text>
+
+          <rect class="approach-node" x="204" y="131" width="28" height="28" />
+          <text class="svg-label" x="218" y="181" text-anchor="middle">Lisbon Approach</text>
+
+          <rect class="headland-node" x="341" y="276" width="28" height="28" transform="rotate(45 355 290)" />
+          <text class="svg-label" x="355" y="333" text-anchor="middle">Cape St. Vincent</text>
+
+          <circle class="port-node" cx="550" cy="148" r="18" />
+          <text class="svg-label" x="550" y="117" text-anchor="middle">Faro</text>
+
+          <rect class="approach-node" x="536" y="276" width="28" height="28" />
+          <text class="svg-label" x="550" y="329" text-anchor="middle">Faro Approach</text>
+
+          <rect class="approach-node" x="756" y="331" width="28" height="28" />
+          <text class="svg-label" x="770" y="392" text-anchor="middle">Tangier Approach</text>
+
+          <circle class="port-node" cx="870" cy="345" r="18" />
+          <text class="svg-label" x="870" y="392" text-anchor="middle">Tangier</text>
+        </svg>
+      </div>
+
+      <div class="callout warn">
+        <strong>最重要的拓樸特性：經過 Faro 附近不等於靠港</strong>
+        Lisbon → Tangier 會走過 <code>faro-approach</code>，但路徑不會進入 <code>faro</code> Port node。Planner 把 Port
+        視為 terminal：除了起點與最終目的地，其他 Port 都不能成為中繼節點。
+      </div>
+
+      <h2 id="hierarchy">② Region／SubRegion 到底管什麼</h2>
+      <div class="concept-row">
+        <div class="concept">
+          <span class="kind">Large area</span>
+          <h3>Region</h3>
+          <p>較大的世界分區，例如 <code>iberian-atlantic</code>。目前是 authored hierarchy，尚未參與解鎖或選路。</p>
+        </div>
+        <div class="concept-arrow" aria-hidden="true">→</div>
+        <div class="concept">
+          <span class="kind">Navigation area</span>
+          <h3>SubRegion</h3>
+          <p>Region 底下的細分水域，例如 <code>algarve-coast</code>。Port、nav point 與 edge span 都會引用它。</p>
+        </div>
+        <div class="concept-arrow" aria-hidden="true">→</div>
+        <div class="concept">
+          <span class="kind">Membership</span>
+          <h3>Nodes</h3>
+          <p>Port 與 navigation point 各自宣告所在 SubRegion，供 validation 與 chart inspector 使用。</p>
+        </div>
+        <div class="concept-arrow" aria-hidden="true">→</div>
+        <div class="concept">
+          <span class="kind">Distance spans</span>
+          <h3>Edge spans</h3>
+          <p>一條 edge 可跨多個 SubRegions；所有 span distance 加總必須等於 edge distance。</p>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>層級</th>
+              <th>目前實際作用</th>
+              <th>目前不做的事</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Region</strong></td>
+              <td>提供穩定 id、名稱，以及 SubRegion 的父層；catalog validation 會檢查 parent 存在。</td>
+              <td>尚未鎖區、改風險、改速度或限制 planner。</td>
+            </tr>
+            <tr>
+              <td><strong>SubRegion</strong></td>
+              <td>標記 node 所在水域、切分 edge span，並在 inspector 中以顏色呈現。</td>
+              <td>尚未套用天氣、解鎖、巡邏或動態 traversal modifier。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="nodes">③ 三種 node 的實質差異</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Node</th>
+              <th>語意</th>
+              <th>Validation／Planner 行為</th>
+              <th>例子</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Port</strong></td>
+              <td>可停靠、可作為 passage 起點或目的地的遊戲地點。</td>
+              <td>Planner 中是 terminal；不可當作其他 passage 的中繼點。</td>
+              <td><code>lisbon</code>、<code>faro</code>、<code>tangier</code></td>
+            </tr>
+            <tr>
+              <td><strong>harbor-approach</strong></td>
+              <td>特定 Port 外圍的航道入口；以 <code>harborPortId</code> 指向該 Port。</td>
+              <td>每個 Port 必須有且只有一組 Port ⇄ approach berth edges；可被其他 passage 經過。</td>
+              <td><code>faro-approach</code></td>
+            </tr>
+            <tr>
+              <td><strong>headland</strong></td>
+              <td>純海上轉折、海岬或航道交會點，不隸屬 Port。</td>
+              <td>沒有 berth 關係；Planner 將它視為一般可通行的非 Port node。</td>
+              <td><code>cape-st-vincent</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="planner">④ passage-planner.ts：從意圖到穩定路徑</h2>
+      <p>
+        Planner 是 pure core computation。它不讀 React、不碰 IndexedDB，也不自行取得 Fleet state；caller 必須明確傳入
+        world、起訖 Port、known Ports 與 speed。
+      </p>
+
+      <div class="flow">
+        <div class="station state">
+          <span class="num">1</span>
+          <span class="lane">Explicit inputs</span>
+          <h3>Caller 提供世界與 Fleet 條件</h3>
+          <p>
+            輸入包含 <code>WorldContent</code>、<code>originPortId</code>、<code>destinationPortId</code>、
+            <code>knownPortIds</code>、<code>speed</code>，以及未來可插入區域／動態條件的 <code>canTraverseEdge</code>。
+          </p>
+          <div class="refs">
+            <div class="ref">
+              <a href="vscode://file/E:/Code/meridian-idle/src/core/navigation/passage-planner.ts:25"
+                >passage-planner.ts:25</a
+              >
+              — PassagePlannerInput
+            </div>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+
+        <div class="station core">
+          <span class="num">2</span>
+          <span class="lane">Guard</span>
+          <h3>先拒絕不可能形成 quote 的要求</h3>
+          <p>
+            起點／目的地不是 Port、目的地未知、起訖相同、speed 非正值，都直接回傳明確
+            <code>PassageDenial</code>，不產生半套或近似 quote。
+          </p>
+          <div class="refs">
+            <div class="ref">
+              <a href="vscode://file/E:/Code/meridian-idle/src/core/navigation/passage-planner.ts:67"
+                >passage-planner.ts:67</a
+              >
+              — planPassage()
+            </div>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+
+        <div class="station core">
+          <span class="num">3</span>
+          <span class="lane">Directed Dijkstra</span>
+          <h3>沿 outgoing directed edges 搜尋最低成本路徑</h3>
+          <p>
+            Planner 只透過 <code>getOutgoingNavEdges(nodeId)</code> 展開相鄰 edge，因此單向航道會自然受到尊重。 每個
+            candidate 保留 edge sequence、總距離與未取整時間。
+          </p>
+          <div class="refs">
+            <div class="ref">
+              <a href="vscode://file/E:/Code/meridian-idle/src/content/content-catalog.ts:46">content-catalog.ts:46</a>
+              — outgoing-edge lookup
+            </div>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+
+        <div class="station core">
+          <span class="num">4</span>
+          <span class="lane">Traversal legality</span>
+          <h3>中繼 Port 禁止通過，非 Port navigation node 可通過</h3>
+          <p>
+            Edge 若走入一個 Port，該 Port 必須正是最終 destination；未來 Region unlock 或動態條件可由
+            <code>canTraverseEdge</code> 加入，不必改 Dijkstra 本體。
+          </p>
+          <div class="refs">
+            <div class="ref">
+              <a href="vscode://file/E:/Code/meridian-idle/src/core/navigation/passage-planner.ts:56"
+                >passage-planner.ts:56</a
+              >
+              — isLegalTraversal()
+            </div>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+
+        <div class="station core">
+          <span class="num">5</span>
+          <span class="lane">Deterministic ordering</span>
+          <h3>時間 → 距離 → edge id sequence</h3>
+          <p>
+            Candidate 先比較未取整 duration，再比較 total distance，最後逐項比較 ordered edge ids。
+            即使多條路完全同價，同一輸入仍會固定選到同一路徑。
+          </p>
+          <div class="refs">
+            <div class="ref">
+              <a href="vscode://file/E:/Code/meridian-idle/src/core/navigation/passage-planner.ts:49"
+                >passage-planner.ts:49</a
+              >
+              — compareCandidates()
+            </div>
+          </div>
+        </div>
+        <div class="arrow">↓</div>
+
+        <div class="station core">
+          <span class="num">6</span>
+          <span class="lane">PassagePlan</span>
+          <h3>回傳 ordered edge path，不在此階段做最終 rounding</h3>
+          <p>
+            成功結果保留 origin、destination、ordered edges、total distance 與 unrounded duration。 Quote
+            計算被刻意放在下一個純函式，讓其他 consumer 共用同一套公式。
+          </p>
+        </div>
+        <div class="arrow">↓</div>
+
+        <div class="station debug">
+          <span class="num">7</span>
+          <span class="lane">Current consumer</span>
+          <h3>estimatePassage() → /debug/chart 預覽</h3>
+          <p>
+            Estimator 依 caller 傳入的 speed 產生 duration、debug duration、Food、Water、risk 與 edge breakdown。目前
+            inspector 是第一個 consumer；Child 02 才會接到實際 departure。
+          </p>
+          <div class="refs">
+            <div class="ref">
+              <a href="vscode://file/E:/Code/meridian-idle/src/core/navigation/passage-planner.ts:160"
+                >passage-planner.ts:160</a
+              >
+              — estimatePassage()
+            </div>
+            <div class="ref">
+              <a href="vscode://file/E:/Code/meridian-idle/src/app/debug/chart-inspector.tsx:66"
+                >chart-inspector.tsx:66</a
+              >
+              — dev-only visual consumer
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 id="quote">⑤ PassageQuote 的數值從哪裡來</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>輸出</th>
+              <th>公式</th>
+              <th>關鍵 rounding</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Edge duration</strong></td>
+              <td><code>distance / speed × traversalModifier × 200,000 ms</code></td>
+              <td>Edge 階段不取整。</td>
+            </tr>
+            <tr>
+              <td><strong>Passage duration</strong></td>
+              <td>所有 edge unrounded duration 加總</td>
+              <td>整段只做一次 <code>Math.round</code>。</td>
+            </tr>
+            <tr>
+              <td><strong>Required Supply</strong></td>
+              <td><code>ceil(durationSeconds × 0.02)</code>，Food／Water 各自計算</td>
+              <td>最終需求向上取整。</td>
+            </tr>
+            <tr>
+              <td><strong>Static risk</strong></td>
+              <td><code>1 - product(1 - edgeRisk)</code></td>
+              <td>不是直接把百分比相加。</td>
+            </tr>
+            <tr>
+              <td><strong>Debug duration</strong></td>
+              <td><code>duration / 20</code></td>
+              <td>只影響 debug 觀察時間，不改正常 quote。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Passage</th>
+              <th>Distance</th>
+              <th>Normal</th>
+              <th>Debug</th>
+              <th>Food / Water</th>
+              <th>Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Lisbon ⇄ Faro</td>
+              <td>20</td>
+              <td>40 s</td>
+              <td>2 s</td>
+              <td>1 / 1</td>
+              <td>≈ 9.75%</td>
+            </tr>
+            <tr>
+              <td>Faro ⇄ Tangier</td>
+              <td>32</td>
+              <td>64 s</td>
+              <td>3.2 s</td>
+              <td>2 / 2</td>
+              <td>11%</td>
+            </tr>
+            <tr>
+              <td>Lisbon ⇄ Tangier</td>
+              <td>48</td>
+              <td>96 s</td>
+              <td>4.8 s</td>
+              <td>2 / 2</td>
+              <td>≈ 19.68%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="boundary">⑥ 現在已接上什麼、還沒接什麼</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>能力</th>
+              <th>狀態</th>
+              <th>目前 owner／說明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Regions、SubRegions、nodes、directed edges</td>
+              <td><span class="status current">Current</span></td>
+              <td>Authored content + <code>WORLD_CONTENT</code> lookups。</td>
+            </tr>
+            <tr>
+              <td>Graph integrity diagnostics</td>
+              <td><span class="status current">Current</span></td>
+              <td><code>validateCatalog()</code>；tests 與 chart inspector 都可顯示結果。</td>
+            </tr>
+            <tr>
+              <td>Deterministic planning／quote</td>
+              <td><span class="status current">Current</span></td>
+              <td><code>planPassage()</code> + <code>estimatePassage()</code>。</td>
+            </tr>
+            <tr>
+              <td>Fleet speed 100 與 prior-save migration</td>
+              <td><span class="status current">Current</span></td>
+              <td>Canonical persisted Fleet state，save schema version 5。</td>
+            </tr>
+            <tr>
+              <td>實際 departVoyage 使用 PassageQuote</td>
+              <td><span class="status future">Child 02</span></td>
+              <td>目前仍使用 legacy <code>ROUTES</code> 與既有 Voyage payload。</td>
+            </tr>
+            <tr>
+              <td>Harbor production chart interaction</td>
+              <td><span class="status future">Child 03</span></td>
+              <td>目前只有 dev-only <code>/debug/chart</code>。</td>
+            </tr>
+            <tr>
+              <td>Region unlock、weather、dynamic edge legality</td>
+              <td><span class="status future">Future system</span></td>
+              <td>Planner 已保留 <code>canTraverseEdge</code> seam，但尚無這些規則。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <strong>追 bug 時先分清楚是哪一層</strong>
+        世界缺點、edge 數值錯或 span 不一致：看 <code>src/content</code> 與 catalog validation。路徑選錯、穿越 Port 或
+        tie-break 不穩：看 <code>passage-planner.ts</code>。時間／Supply／risk 錯：看 estimator 與 navigation
+        constants。圖畫得難懂但 quote 正確：只看 <code>chart-inspector.tsx</code>，不要改 core。
+      </div>
+
+      <h2 id="source-map">⑦ 原始碼導覽入口</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>想找什麼</th>
+              <th>入口</th>
+              <th>責任</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Region／SubRegion／node／edge contracts</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/src/core/content/world-content.ts:25"
+                  >world-content.ts:25</a
+                >
+              </td>
+              <td>Core 能理解的 authored-data shapes。</td>
+            </tr>
+            <tr>
+              <td>實際 Regions 與 SubRegions</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/src/content/region-definitions.ts:5"
+                  >region-definitions.ts:5</a
+                >
+              </td>
+              <td>目前世界區域內容。</td>
+            </tr>
+            <tr>
+              <td>Navigation constants、points、edges</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/src/content/navigation-definitions.ts:9"
+                  >navigation-definitions.ts:9</a
+                >
+              </td>
+              <td>時間／消耗常數與實際圖譜。</td>
+            </tr>
+            <tr>
+              <td>Core 取得 authored world 的方式</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/src/content/content-catalog.ts:68"
+                  >content-catalog.ts:68</a
+                >
+              </td>
+              <td><code>WORLD_CONTENT</code> lookup boundary。</td>
+            </tr>
+            <tr>
+              <td>所有 content failure diagnostics</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/src/content/catalog-validation.ts:105"
+                  >catalog-validation.ts:105</a
+                >
+              </td>
+              <td>Test-time integrity gate。</td>
+            </tr>
+            <tr>
+              <td>Route planning 與 quote estimation</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/src/core/navigation/passage-planner.ts:67"
+                  >passage-planner.ts:67</a
+                >
+              </td>
+              <td>Pure deterministic core functions。</td>
+            </tr>
+            <tr>
+              <td>可視化與 passage preview</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/src/app/debug/chart-inspector.tsx:66"
+                  >chart-inspector.tsx:66</a
+                >
+              </td>
+              <td>Dev-only human feedback surface。</td>
+            </tr>
+            <tr>
+              <td>Planner behavioral proof</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/test/unit/passage-planner.test.ts:1"
+                  >passage-planner.test.ts</a
+                >
+              </td>
+              <td>Parity、determinism、legality 與 rounding tests。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer>
+        Meridian Idle · Nautical Chart Navigation Map ·
+        本頁是人類導向的系統地圖，不是第二份權威規格。型別、公式、診斷與行為以原始碼和 tests 為準；Child 02／03 改變
+        consumer boundary 時應同步更新本頁。<code>vscode://</code>
+        連結需在已開啟此 repository 的 VS Code 環境使用。
+      </footer>
+    </div>
+  </body>
+</html>
