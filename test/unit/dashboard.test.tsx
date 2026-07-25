@@ -29,7 +29,30 @@ const store = {
       kind: "planned" as const,
       originPortId: "lisbon",
       destinationPortId,
-      edges: [],
+      edges:
+        destinationPortId === "faro"
+          ? [
+              {
+                id: "lisbon-cape-outbound",
+                originNodeId: "lisbon-approach",
+                destinationNodeId: "cape-st-vincent",
+                simulationEndOffsetMilliseconds: 20_000,
+                staticRisk: 0.05,
+                spans: [
+                  { subRegionId: "tagus-approaches", simulationEndOffsetMilliseconds: 10_000 },
+                  { subRegionId: "algarve-coast", simulationEndOffsetMilliseconds: 20_000 },
+                ],
+              },
+              {
+                id: "cape-faro-outbound",
+                originNodeId: "cape-st-vincent",
+                destinationNodeId: "faro-approach",
+                simulationEndOffsetMilliseconds: 40_000,
+                staticRisk: 0.05,
+                spans: [{ subRegionId: "algarve-coast", simulationEndOffsetMilliseconds: 40_000 }],
+              },
+            ]
+          : [],
       totalDistance: destinationPortId === "faro" ? 20 : 48,
       plannedSailingDurationMilliseconds: destinationPortId === "faro" ? 40_000 : 96_000,
       pacingMultiplier: 1,
@@ -165,10 +188,23 @@ describe("MeridianDashboard", () => {
     expect(store.restockAllSupplies).toHaveBeenCalledOnce();
 
     fireEvent.click(screen.getByRole("button", { name: /Harbor/ }));
-    expect(screen.getByRole("heading", { name: "Choose Next Port" })).toBeVisible();
-    expect(screen.getAllByText(/Food 1 required \/ 2 aboard \/ Ready/)).toHaveLength(2);
+    expect(screen.getByRole("heading", { name: "Choose a destination" })).toBeVisible();
+    expect(screen.getByRole("button", { name: /Lisbon, current berth, selected/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: /Tangier, select destination/ })).toBeVisible();
+    expect(screen.queryByText("Known waters")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Manage Supplies/ })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Depart for Faro" }));
+    const marketSession = store.state.marketSession;
+    fireEvent.click(screen.getByRole("button", { name: /Faro, select destination/ }));
+    expect(store.state.marketSession).toBe(marketSession);
+    expect(store.departVoyage).not.toHaveBeenCalled();
+    expect(screen.getByText("Faro Pig · Level 50")).toBeVisible();
+    expect(screen.getByText("Market prices are available after docking.")).toBeVisible();
+    expect(screen.getByText("Tagus Approaches → Algarve Coast")).toBeVisible();
+    expect(screen.getAllByText(/1 required \/ 2 aboard \/ Ready/)).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "Set Sail for Faro" }));
     expect(store.departVoyage).toHaveBeenCalledWith("faro", "quote-faro");
   });
 
@@ -270,7 +306,8 @@ describe("MeridianDashboard", () => {
     render(<MeridianDashboard />);
 
     fireEvent.click(screen.getByRole("button", { name: /Harbor/ }));
-    const departure = screen.getByRole("button", { name: "Depart for Faro" });
+    fireEvent.click(screen.getByRole("button", { name: /Faro, select destination/ }));
+    const departure = screen.getByRole("button", { name: "Set Sail for Faro" });
     expect(departure).toBeDisabled();
     expect(departure).toHaveAccessibleDescription("Secure randomness is unavailable.");
   });

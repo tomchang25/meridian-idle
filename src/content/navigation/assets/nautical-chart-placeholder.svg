@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#153c47" />
+      <stop offset="1" stop-color="#0b252d" />
+    </linearGradient>
+    <radialGradient id="parchment" cx="50%" cy="40%" r="78%">
+      <stop offset="0" stop-color="#e5d6a8" />
+      <stop offset="0.72" stop-color="#b89b69" />
+      <stop offset="1" stop-color="#70583b" />
+    </radialGradient>
+    <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="8" result="noise" />
+      <feColorMatrix in="noise" type="saturate" values="0" result="gray" />
+      <feComponentTransfer in="gray" result="faded"><feFuncA type="table" tableValues="0 0.14" /></feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="faded" mode="multiply" />
+    </filter>
+  </defs>
+  <rect width="1000" height="1000" fill="url(#sea)" />
+  <g filter="url(#grain)">
+    <path fill="url(#parchment)" stroke="#6b5538" stroke-width="9" d="M-40 0H505c-38 46-40 94-3 131 47 47 65 85 51 128-12 37-57 62-86 89-35 33-39 70-73 97-52 42-143 39-201 74-52 31-90 78-233 76Z" />
+    <path fill="url(#parchment)" stroke="#6b5538" stroke-width="9" d="M-30 713c95-48 177-56 251-25 70 29 114 80 197 86 77 6 126-26 195-8 72 18 110 76 170 88 76 15 151-20 247-3v562H-30Z" />
+    <path fill="#8c754e" opacity="0.55" d="M429 155c46 21 77 56 63 93-11 30-61 48-94 28-41-25-35-91 31-121Z" />
+    <path fill="#8c754e" opacity="0.45" d="M508 181c39 8 65 37 52 64-17 36-74 43-95 11-16-25 4-63 43-75Z" />
+    <path fill="none" stroke="#f1e4ba" stroke-opacity="0.2" stroke-width="3" d="M70 360c173-79 314-60 438-3M91 573c186-45 388-33 614 34M292 670c157-34 345-27 562 17" />
+  </g>
+</svg>

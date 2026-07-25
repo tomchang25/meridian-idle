@@ -18,7 +18,8 @@ test("boots, provisions, departs, and arrives at a different port", async ({ pag
   await expect(water.getByText("1 aboard", { exact: false })).toBeVisible();
   await provisioning.getByRole("checkbox", { name: /Auto-restock on Voyage arrival/ }).check();
   await page.getByRole("button", { name: /Harbor/ }).click();
-  await page.getByRole("button", { name: "Depart for Faro" }).click();
+  await page.getByRole("button", { name: /Faro, select destination/ }).click();
+  await page.getByRole("button", { name: "Set Sail for Faro" }).click();
   await expect(page.getByRole("heading", { name: "Lisbon to Faro" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Latest arrival" })).toBeVisible({ timeout: 8_000 });
   await expect(page.getByRole("heading", { name: "Port operations at Faro" })).toBeVisible();

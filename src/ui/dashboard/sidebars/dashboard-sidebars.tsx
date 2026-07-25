@@ -1,10 +1,10 @@
 import { WORLD_CONTENT } from "@/content/content-catalog";
-import { getPort, getProduct, SUPPLY_PRICES } from "@/content/content-catalog";
+import { getProduct, SUPPLY_PRICES } from "@/content/content-catalog";
 import { SUPPLY_IDS, type GameState } from "@/core/model/game";
 import { averageUnitCost, usedCargo } from "@/core/rules/cargo";
 import { sellPrice } from "@/core/rules/market";
 import { portLevel, xpThreshold } from "@/core/rules/progression";
-import { displayName, formatUnitGold, SUPPLY_LABELS } from "../dashboard-helpers";
+import { formatUnitGold, SUPPLY_LABELS } from "../dashboard-helpers";
 import styles from "../meridian-dashboard.module.css";
 
 type DashboardSidebarProps = {
@@ -12,9 +12,6 @@ type DashboardSidebarProps = {
 };
 
 export function LongTermSidebar({ state }: DashboardSidebarProps) {
-  const port = getPort(state.fleet.locationPortId);
-  const regionName = displayName(port?.regionId ?? "unknown waters");
-
   return (
     <aside className={styles.leftSidebar} aria-label="Long-term status">
       <section className={styles.sidebarSection} aria-labelledby="captain-summary">
@@ -69,39 +66,6 @@ export function LongTermSidebar({ state }: DashboardSidebarProps) {
             <dd>{state.voyage ? "Underway" : "Docked"}</dd>
           </div>
         </dl>
-      </section>
-
-      <section className={styles.sidebarSection} aria-labelledby="region-summary">
-        <div className={styles.sectionHeading}>
-          <span className={styles.sectionIndex}>03</span>
-          <div>
-            <p>Known waters</p>
-            <h2 id="region-summary">{regionName}</h2>
-          </div>
-        </div>
-        <div className={styles.regionMap} aria-hidden="true">
-          <span className={styles.routeLine} />
-          <span className={`${styles.portDot} ${styles.portLisbon}`}>L</span>
-          <span className={`${styles.portDot} ${styles.portFaro}`}>F</span>
-          <span className={`${styles.portDot} ${styles.portTangier}`}>T</span>
-        </div>
-        <ul className={styles.portProgressList}>
-          {state.world.knownPortIds.map((portId) => {
-            const knownPort = getPort(portId);
-            const knownLevel = portLevel(state, portId);
-            return (
-              <li key={portId}>
-                <div>
-                  <span>{knownPort?.name ?? displayName(portId)}</span>
-                  <strong>Level {knownLevel}</strong>
-                </div>
-                <progress aria-label={`${knownPort?.name ?? portId} progression`} max="100" value={knownLevel}>
-                  {knownLevel}%
-                </progress>
-              </li>
-            );
-          })}
-        </ul>
       </section>
     </aside>
   );

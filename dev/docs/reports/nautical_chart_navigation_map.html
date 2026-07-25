@@ -563,7 +563,7 @@
           的人類導向總覽。
         </p>
         <p class="meta">
-          更新時間 2026-07-25 · 反映 Nautical Chart Navigation Child 02 實作狀態 · 原始碼與 tests
+          更新時間 2026-07-25 · 反映 Nautical Chart Navigation Child 03 實作狀態 · 原始碼與 tests
           才是權威；本頁負責幫人快速建立心智模型。
         </p>
         <nav class="toc" aria-label="Page sections">
@@ -1005,8 +1005,13 @@
             </tr>
             <tr>
               <td>Harbor production chart interaction</td>
-              <td><span class="status future">Child 03</span></td>
-              <td>目前只有 dev-only <code>/debug/chart</code>。</td>
+              <td><span class="status current">Current</span></td>
+              <td>
+                Harbor 以 replaceable map artwork 與 authored Port overlays 提供選點、quote 與 Set Sail；<code
+                  >/debug/chart</code
+                >
+                保留 topology diagnostics。
+              </td>
             </tr>
             <tr>
               <td>Region unlock、weather、dynamic edge legality</td>
@@ -1097,13 +1102,22 @@
               <td>出航 revalidation、Supply cost basis、pacing 與 exactly-once destination arrival。</td>
             </tr>
             <tr>
-              <td>可視化與 passage preview</td>
+              <td>Dev-only topology diagnostics</td>
               <td>
                 <a href="vscode://file/E:/Code/meridian-idle/src/app/debug/chart-inspector.tsx:66"
                   >chart-inspector.tsx:66</a
                 >
               </td>
               <td>Dev-only human feedback surface。</td>
+            </tr>
+            <tr>
+              <td>Harbor production chart</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/src/ui/dashboard/city-actions/nautical-chart.tsx:1"
+                  >nautical-chart.tsx</a
+                >
+              </td>
+              <td>Data-driven Port selection, selected Passage overlay, and semantic chart controls.</td>
             </tr>
             <tr>
               <td>Planner behavioral proof</td>
@@ -1120,8 +1134,8 @@
 
       <footer>
         Meridian Idle · Nautical Chart Navigation Map ·
-        本頁是人類導向的系統地圖，不是第二份權威規格。型別、公式、診斷與行為以原始碼和 tests 為準；Child 02／03 改變
-        consumer boundary 時應同步更新本頁。<code>vscode://</code>
+        本頁是人類導向的系統地圖，不是第二份權威規格。型別、公式、診斷與行為以原始碼和 tests 為準；navigation consumer
+        boundary 改變時應同步更新本頁。<code>vscode://</code>
         連結需在已開啟此 repository 的 VS Code 環境使用。
       </footer>
     </div>

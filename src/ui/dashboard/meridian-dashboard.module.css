@@ -63,7 +63,6 @@
 .voyageHeader > div,
 .workspaceHeading > div,
 .productHeading > div,
-.routeIdentity,
 .provisionLedger li > div {
   min-width: 0;
 }
@@ -268,8 +267,7 @@
 
 .placeholderCard p,
 .progressCard p,
-.atSeaMessage p,
-.routeIdentity p {
+.atSeaMessage p {
   margin: 6px 0 0;
   color: #8f968c;
   font-size: 0.67rem;
@@ -322,7 +320,6 @@
 .statList,
 .priceLedger,
 .voyageFacts,
-.harborRoutes dl,
 .cargoLedger dl {
   margin: 0;
 }
@@ -342,7 +339,6 @@
 .statList dt,
 .priceLedger dt,
 .voyageFacts dt,
-.harborRoutes dt,
 .cargoLedger dt {
   color: #738687;
   font-size: 0.54rem;
@@ -354,7 +350,6 @@
 .statList dd,
 .priceLedger dd,
 .voyageFacts dd,
-.harborRoutes dd,
 .cargoLedger dd {
   margin: 3px 0 0;
   color: #e6d8ba;
@@ -363,74 +358,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.regionMap {
-  position: relative;
-  height: 102px;
-  margin: 0 0 14px;
-  overflow: hidden;
-  border: 1px solid rgb(201 155 75 / 28%);
-  background:
-    radial-gradient(circle at 75% 30%, rgb(201 155 75 / 10%), transparent 35px),
-    repeating-linear-gradient(25deg, transparent 0 19px, rgb(201 155 75 / 5%) 20px), #0b2931;
-}
-
-.regionMap::before {
-  position: absolute;
-  top: -12px;
-  left: -20px;
-  width: 110px;
-  height: 78px;
-  border-radius: 40% 50% 55% 25%;
-  background: #4a5549;
-  box-shadow: inset -8px -7px #303f39;
-  content: "";
-}
-
-.routeLine {
-  position: absolute;
-  top: 49px;
-  left: 54px;
-  width: 125px;
-  border-top: 2px dotted var(--hud-brass);
-  transform: rotate(16deg);
-  transform-origin: left;
-}
-
-.portDot {
-  position: absolute;
-  z-index: 1;
-  display: grid;
-  width: 23px;
-  height: 23px;
-  place-items: center;
-  border: 2px solid #d7b46c;
-  border-radius: 50%;
-  background: #123844;
-  color: #f6e6c2;
-  font-size: 0.53rem;
-  font-weight: 800;
-  box-shadow: 0 0 0 3px rgb(5 20 24 / 65%);
-}
-
-.portLisbon {
-  top: 25px;
-  left: 47px;
-}
-
-.portFaro {
-  top: 60px;
-  left: 115px;
-}
-
-.portTangier {
-  top: 70px;
-  right: 25px;
-}
-
-.portProgressList,
 .marketGrid,
 .supplyManagementList,
-.harborRoutes,
 .activityList,
 .cargoLedger,
 .provisionLedger {
@@ -439,12 +368,6 @@
   list-style: none;
 }
 
-.portProgressList {
-  display: grid;
-  gap: 10px;
-}
-
-.portProgressList li > div,
 .productHeading,
 .cargoLedger li > div:first-child {
   display: flex;
@@ -452,18 +375,6 @@
   gap: 10px;
 }
 
-.portProgressList li > div {
-  margin-bottom: 5px;
-  color: #a9b0a4;
-  font-size: 0.64rem;
-}
-
-.portProgressList strong {
-  color: #d9c9a8;
-  font-weight: 600;
-}
-
-.portProgressList progress,
 .voyageProgress {
   display: block;
   width: 100%;
@@ -473,21 +384,14 @@
   background: #041519;
 }
 
-.portProgressList progress {
-  height: 5px;
-}
-
-.portProgressList progress::-webkit-progress-bar,
 .voyageProgress::-webkit-progress-bar {
   background: #041519;
 }
 
-.portProgressList progress::-webkit-progress-value,
 .voyageProgress::-webkit-progress-value {
   background: linear-gradient(90deg, #735124, #d0a34f);
 }
 
-.portProgressList progress::-moz-progress-bar,
 .voyageProgress::-moz-progress-bar {
   background: linear-gradient(90deg, #735124, #d0a34f);
 }
@@ -978,8 +882,7 @@
 }
 
 .commandIcon,
-.supplyIcon,
-.routeCompass {
+.supplyIcon {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
@@ -1136,13 +1039,11 @@
 }
 
 .priceLedger dt,
-.harborRoutes dt,
 .cargoLedger dt {
   color: #786d56;
 }
 
 .priceLedger dd,
-.harborRoutes dd,
 .cargoLedger dd {
   color: #2d2c25;
   font-weight: 600;
@@ -1375,66 +1276,307 @@
   font-size: 0.75rem;
 }
 
-.harborRoutes {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.harborRoutes > li {
-  display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
-  gap: 11px;
-  padding: 14px;
-  border: 1px solid #8e754d;
-  background: rgb(255 247 224 / 47%);
-}
-
-.routeCompass {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  font-size: 0.66rem;
-}
-
-.routeIdentity > span {
-  color: #75674e;
-  font-size: 0.54rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.routeIdentity > strong {
-  display: block;
-  margin-top: 2px;
-  font-family: var(--font-serif);
-  font-size: 1.13rem;
-}
-
-.routeIdentity p {
-  color: #655e4f;
-}
-
-.harborRoutes dl,
-.harborRouteActions {
-  grid-column: 1 / -1;
-}
-
 .harborRouteActions {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
 
-.harborRoutes dl {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-block: 1px solid rgb(95 77 50 / 35%);
+.nauticalChart {
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid #7f6848;
+  background: #0d2930;
+  color: #f6e6bf;
 }
 
-.harborRoutes dl > div {
-  padding: 8px 4px;
+.nauticalChartHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgb(226 197 132 / 28%);
+  background: rgb(5 25 29 / 82%);
+}
+
+.nauticalChartHeading p,
+.harborDetailPanel > p {
+  margin: 0;
+  color: #b6a47d;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nauticalChartHeading h4,
+.harborDetailPanel h4 {
+  margin: 3px 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.06rem;
+  font-weight: 600;
+}
+
+.nauticalChartHeading > span {
+  color: #d8ca9f;
+  font-size: 0.62rem;
+}
+
+.chartViewport {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #12343c;
+}
+
+.chartMapSurface {
+  position: absolute;
+  inset: 0;
+}
+
+.chartArtwork {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.chartRegion rect {
+  fill: rgb(11 42 48 / 18%);
+  stroke: rgb(242 218 160 / 35%);
+  stroke-dasharray: 16 12;
+  stroke-width: 5;
+}
+
+.chartRegion text {
+  fill: #eee0b8;
+  font-family: var(--font-sans);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+
+.chartSubRegion rect {
+  fill: rgb(68 144 154 / 15%);
+  stroke: rgb(151 211 205 / 28%);
+  stroke-width: 3;
+}
+
+.chartSubRegion text {
+  fill: #d3e0ca;
+  font-family: var(--font-sans);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.chartSeaLane,
+.chartBerthLane,
+.chartSelectedLane {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.chartSeaLane {
+  stroke: rgb(183 217 208 / 62%);
+  stroke-width: 3;
+}
+
+.chartBerthLane {
+  stroke: rgb(229 222 194 / 72%);
+  stroke-dasharray: 5 7;
+  stroke-width: 3;
+}
+
+.chartSelectedLane {
+  stroke: #efb657;
+  stroke-linecap: round;
+  stroke-width: 9;
+}
+
+.chartPortControls {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chartPortControls li {
+  position: absolute;
+  top: var(--chart-y);
+  left: var(--chart-x);
+  transform: translate(-50%, -50%);
+}
+
+.chartPortControls button {
+  display: grid;
+  min-width: 112px;
+  place-items: center;
+  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  color: #f9efcf;
+  cursor: pointer;
+  text-align: center;
+  text-shadow: 0 1px 3px #07181d;
+}
+
+.chartPortControls button > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 3px solid #f6e7be;
+  border-radius: 50%;
+  background: #123b46;
+  color: #efb657;
+  font-size: 0.76rem;
+  box-shadow: 0 0 0 4px rgb(7 27 32 / 65%);
+}
+
+.chartPortControls button[data-current-port="true"] > span {
+  border-radius: 5px;
+  background: #d89d3c;
+  color: #112b32;
+}
+
+.chartPortControls button[aria-pressed="true"] > span {
+  box-shadow:
+    0 0 0 5px rgb(245 227 180 / 72%),
+    0 0 0 9px rgb(7 27 32 / 65%);
+}
+
+.chartPortControls strong,
+.chartPortControls small {
+  display: block;
+}
+
+.chartPortControls strong {
+  margin-top: 5px;
+  font-family: var(--font-serif);
+  font-size: 0.87rem;
+}
+
+.chartPortControls small {
+  margin-top: 1px;
+  color: #e6d29f;
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.chartPortControls button:focus-visible {
+  outline: 3px solid #fff7d7;
+  outline-offset: 3px;
+}
+
+.chartLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 14px;
+  border-top: 1px solid rgb(226 197 132 / 28%);
+  background: rgb(5 25 29 / 88%);
+  color: #d9cda8;
+  font-size: 0.6rem;
+}
+
+.chartLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chartLegend i {
+  display: inline-block;
+  width: 18px;
+  height: 5px;
+}
+
+.chartLegendCurrent {
+  height: 12px !important;
+  border: 2px solid #d89d3c;
+  border-radius: 2px;
+  background: #d89d3c;
+}
+
+.chartLegendRoute {
+  border-radius: 99px;
+  background: #efb657;
+}
+
+.chartLegendBerth {
+  background: repeating-linear-gradient(90deg, #e5dec2 0 4px, transparent 4px 8px);
+}
+
+.harborDetailGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.harborDetailPanel {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgb(112 86 52 / 54%);
+  background: rgb(255 248 228 / 52%);
+}
+
+.harborFacts,
+.harborSupplyFacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 13px 0 0;
+  border-top: 1px solid rgb(95 77 50 / 35%);
+}
+
+.harborFacts > div,
+.harborSupplyFacts > div {
+  min-width: 0;
+  padding: 9px 7px 8px 0;
+  border-bottom: 1px solid rgb(95 77 50 / 18%);
+}
+
+.harborFacts dt,
+.harborSupplyFacts dt {
+  color: #786d56;
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.harborFacts dd,
+.harborSupplyFacts dd {
+  margin: 4px 0 0;
+  color: #2d2c25;
+  font-family: var(--font-serif);
+  font-size: 0.76rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.harborMarketStatus,
+.harborEmptyState {
+  margin: 13px 0 0;
+  color: #655e4f;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.harborRouteActions {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.harborRouteActions .unavailableReason {
+  margin: 0;
 }
 
 .voyageStatus {
@@ -1976,8 +2118,7 @@
   line-height: 1.4;
 }
 
-.supplyManagementList .unavailableReason,
-.harborRoutes .unavailableReason {
+.supplyManagementList .unavailableReason {
   grid-column: 1 / -1;
 }
 
@@ -2143,8 +2284,7 @@
     grid-column: 2;
   }
 
-  .marketGrid,
-  .harborRoutes {
+  .marketGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -2232,6 +2372,50 @@
 
   .supplyManagementList .actionButtons {
     grid-column: 1 / -1;
+  }
+
+  .harborDetailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .chartViewport {
+    aspect-ratio: auto;
+    overflow: visible;
+    background: transparent;
+  }
+
+  .chartMapSurface {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #12343c;
+  }
+
+  .chartPortControls {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin: 10px 0 0;
+  }
+
+  .chartPortControls li {
+    position: static;
+    transform: none;
+  }
+
+  .chartPortControls button {
+    width: 100%;
+    min-width: 0;
+    min-height: 74px;
+    padding: 6px 3px;
+    border: 1px solid rgb(240 222 174 / 36%);
+    background: rgb(5 25 29 / 76%);
+  }
+
+  .chartPortControls button > span {
+    width: 28px;
+    height: 28px;
   }
 }
 
@@ -2340,8 +2524,16 @@
     grid-template-columns: 1fr;
   }
 
-  .harborRoutes dl,
   .voyageFacts {
+    grid-template-columns: 1fr;
+  }
+
+  .harborFacts,
+  .harborSupplyFacts {
+    grid-template-columns: 1fr;
+  }
+
+  .chartPortControls {
     grid-template-columns: 1fr;
   }
 
