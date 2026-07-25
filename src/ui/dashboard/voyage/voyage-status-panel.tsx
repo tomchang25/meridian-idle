@@ -1,4 +1,4 @@
-import { getPort, getSubRegion } from "@/content/content-catalog";
+import { getNavPoint, getPort, getSubRegion } from "@/content/content-catalog";
 import type { Voyage } from "@/core/model/game";
 import { resolvedVoyageSubRegionId } from "@/core/rules/voyage";
 import type { Clock } from "@/runtime/clock";
@@ -14,6 +14,8 @@ type VoyageStatusPanelProps = {
 export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
   const displayNow = useVoyageClock(voyage, clock);
   const destinationPort = getPort(voyage.passage.destinationPortId);
+  const destinationNode = destinationPort ?? getNavPoint(voyage.passage.destinationPortId);
+  const originNode = getPort(voyage.passage.originPortId) ?? getNavPoint(voyage.passage.originPortId);
   const voyageDuration = Math.max(1, voyage.plannedArrivesAt - voyage.departedAt);
   const voyageElapsed = Math.min(voyageDuration, Math.max(0, (displayNow || voyage.departedAt) - voyage.departedAt));
   const voyageProgress = Math.floor((voyageElapsed / voyageDuration) * 100);
@@ -21,6 +23,12 @@ export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
   const resolvedSubRegionId = resolvedVoyageSubRegionId(voyage);
   const resolvedWaters = getSubRegion(resolvedSubRegionId ?? "")?.name ?? "Open waters";
   const consumedSupplies = voyage.progress.supplyLedger.consumedSupplies;
+  const currentEdge =
+    voyage.passage.kind === "planned" && voyage.progress.kind === "planned"
+      ? voyage.passage.edges[Math.min(voyage.passage.edges.length - 1, voyage.progress.completedEdgeCount)]
+      : undefined;
+  const nextWaypointId = currentEdge?.destinationNodeId ?? "";
+  const nextWaypoint = getPort(nextWaypointId) ?? getNavPoint(nextWaypointId);
 
   return (
     <section className={styles.actionPanel} aria-labelledby="action-panel-title">
@@ -29,18 +37,17 @@ export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
           <div>
             <p>Voyage in progress</p>
             <h2 id="action-panel-title">
-              {getPort(voyage.passage.originPortId)?.name ?? "Unknown Port"} to{" "}
-              {destinationPort?.name ?? "Unknown Port"}
+              {originNode?.name ?? "Unknown origin"} to {destinationNode?.name ?? "Unknown destination"}
             </h2>
           </div>
           <span className={styles.voyageBadge}>Risk {Math.round(voyage.passage.staticRisk * 100)}%</span>
         </div>
         <div className={styles.routeTrack} aria-hidden="true">
-          <span>{getPort(voyage.passage.originPortId)?.name ?? "Origin"}</span>
+          <span>{originNode?.name ?? "Origin"}</span>
           <i />
           <b>{voyageProgress}%</b>
           <i />
-          <span>{destinationPort?.name ?? "Destination"}</span>
+          <span>{destinationNode?.name ?? "Destination"}</span>
         </div>
         <progress className={styles.voyageProgress} aria-label="Voyage progress" max="100" value={voyageProgress}>
           {voyageProgress}%
@@ -61,6 +68,22 @@ export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
             <dt>Resolved waters</dt>
             <dd>{resolvedWaters}</dd>
           </div>
+          {voyage.passage.kind === "planned" && voyage.progress.kind === "planned" && (
+            <>
+              <div>
+                <dt>Current leg</dt>
+                <dd>
+                  {Math.min(voyage.passage.edges.length, voyage.progress.completedEdgeCount + 1)} of{" "}
+                  {voyage.passage.edges.length} ·{" "}
+                  {Math.max(0, voyage.passage.edges.length - voyage.progress.completedEdgeCount)} edges remaining
+                </dd>
+              </div>
+              <div>
+                <dt>Next waypoint</dt>
+                <dd>{nextWaypoint?.name ?? "Unknown waypoint"}</dd>
+              </div>
+            </>
+          )}
           <div>
             <dt>Supply cost</dt>
             <dd>{voyage.supplyCost} Gold basis</dd>

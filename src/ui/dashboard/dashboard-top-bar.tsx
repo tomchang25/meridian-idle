@@ -1,4 +1,4 @@
-import { getPort } from "@/content/content-catalog";
+import { getNavPoint, getPort } from "@/content/content-catalog";
 import { usedCargo } from "@/core/rules/cargo";
 import { portLevel } from "@/core/rules/progression";
 import type { DashboardStore } from "./dashboard-types";
@@ -11,6 +11,7 @@ type DashboardTopBarProps = {
 export function DashboardTopBar({ store }: DashboardTopBarProps) {
   const { saveStatus, state } = store;
   const port = getPort(state.fleet.locationPortId);
+  const heldPoint = getNavPoint(state.fleet.holdingNavPointId ?? "");
   const cargo = usedCargo(state);
   const level = portLevel(state, state.fleet.locationPortId);
   const saveLabel =
@@ -44,10 +45,8 @@ export function DashboardTopBar({ store }: DashboardTopBarProps) {
           </dd>
         </div>
         <div>
-          <dt>Port Level</dt>
-          <dd>
-            {port?.name ?? "Unknown"} {level}
-          </dd>
+          <dt>{heldPoint ? "Location" : "Port Level"}</dt>
+          <dd>{heldPoint ? heldPoint.name : `${port?.name ?? "Unknown"} ${level}`}</dd>
         </div>
       </dl>
 

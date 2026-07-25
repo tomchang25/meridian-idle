@@ -8,6 +8,10 @@ export type ActivityTone = "info" | "success" | "warning";
 export type CargoStack = { quantity: number; totalCostBasis: number };
 export type Fleet = {
   locationPortId: string;
+  /** Exact sea location while the Fleet is safely holding at a NavPoint. */
+  holdingNavPointId: string | null;
+  /** The completed Passage origin shown by the holding itinerary. */
+  holdingOriginNodeId: string | null;
   speed: number;
   gold: number;
   cargoCapacity: number;
@@ -132,7 +136,7 @@ export type MigrationReport = { fromVersion: 1; migratedAt: number; droppedField
 export type ActivityEntry = { id: string; at: number; message: string; tone: ActivityTone };
 
 export type GameState = {
-  schemaVersion: 8;
+  schemaVersion: 9;
   createdAt: number;
   world: { knownPortIds: string[] };
   fleet: Fleet;

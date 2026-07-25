@@ -76,14 +76,14 @@ function isLegalTraversal(edge: NavEdge, input: PassagePlannerInput): boolean {
  * the requested origin and destination may appear in a passage.
  */
 export function planPassage(input: PassagePlannerInput): PassagePlan | PassageDenial {
-  if (!input.world.getPort(input.originPortId))
+  if (!input.world.getPort(input.originPortId) && !input.world.getNavPoint(input.originPortId))
     return {
       kind: "denied",
       originPortId: input.originPortId,
       destinationPortId: input.destinationPortId,
       reason: "origin-not-port",
     };
-  if (!input.world.getPort(input.destinationPortId))
+  if (!input.world.getPort(input.destinationPortId) && !input.world.getNavPoint(input.destinationPortId))
     return {
       kind: "denied",
       originPortId: input.originPortId,
@@ -104,7 +104,7 @@ export function planPassage(input: PassagePlannerInput): PassagePlan | PassageDe
       destinationPortId: input.destinationPortId,
       reason: "invalid-speed",
     };
-  if (!input.knownPortIds.includes(input.destinationPortId))
+  if (input.world.getPort(input.destinationPortId) && !input.knownPortIds.includes(input.destinationPortId))
     return {
       kind: "denied",
       originPortId: input.originPortId,

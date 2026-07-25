@@ -63,7 +63,7 @@ export function LongTermSidebar({ state }: DashboardSidebarProps) {
           </div>
           <div>
             <dt>Status</dt>
-            <dd>{state.voyage ? "Underway" : "Docked"}</dd>
+            <dd>{state.voyage ? "Underway" : state.fleet.holdingNavPointId ? "Holding" : "Docked"}</dd>
           </div>
         </dl>
       </section>
@@ -203,7 +203,7 @@ export function ShortTermSidebar({ state }: DashboardSidebarProps) {
           )}
         </section>
         <div className={styles.progressCard}>
-          <span>Current Port standing</span>
+          <span>{state.fleet.holdingNavPointId ? "Last Port standing" : "Current Port standing"}</span>
           <strong>
             Level {level} / {state.portProgress[state.fleet.locationPortId]?.xp ?? 0} XP
           </strong>

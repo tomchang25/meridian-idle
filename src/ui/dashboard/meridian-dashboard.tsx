@@ -8,6 +8,7 @@ import { PortScenePanel } from "./scene/port-scene-panel";
 import { LongTermSidebar, ShortTermSidebar } from "./sidebars/dashboard-sidebars";
 import styles from "./meridian-dashboard.module.css";
 import { VoyageStatusPanel } from "./voyage/voyage-status-panel";
+import { NavPointHoldPanel } from "./voyage/nav-point-hold-panel";
 
 /** Owns the store for ordinary play. */
 export function MeridianDashboard() {
@@ -47,7 +48,10 @@ export function DashboardView({ store }: { store: DashboardStore }) {
     );
 
   return (
-    <main className={styles.shell} data-voyage-state={state.voyage ? "transit" : "docked"}>
+    <main
+      className={styles.shell}
+      data-voyage-state={state.voyage ? "transit" : state.fleet.holdingNavPointId ? "holding" : "docked"}
+    >
       <DashboardTopBar store={store} />
       <div className={styles.hudGrid}>
         <LongTermSidebar state={state} />
@@ -56,6 +60,8 @@ export function DashboardView({ store }: { store: DashboardStore }) {
           <DashboardFeedback store={store} />
           {state.voyage ? (
             <VoyageStatusPanel voyage={state.voyage} clock={store.clock} />
+          ) : state.fleet.holdingNavPointId ? (
+            <NavPointHoldPanel store={store} />
           ) : (
             <CityActionPanel store={store} />
           )}

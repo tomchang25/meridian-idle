@@ -26,7 +26,19 @@ export function settlePortEntry(
   destinationPortId: string,
   seed: number,
 ): { state: GameState; xpGained: number } {
-  if (destinationPortId === state.marketSession.portId) return { state, xpGained: 0 };
+  if (destinationPortId === state.marketSession.portId)
+    return {
+      state: {
+        ...state,
+        fleet: {
+          ...state.fleet,
+          locationPortId: destinationPortId,
+          holdingNavPointId: null,
+          holdingOriginNodeId: null,
+        },
+      },
+      xpGained: 0,
+    };
   const contributions = Object.entries(state.marketSession.netTrade).reduce((sum, [productId, quantity]) => {
     const family = content.getProductFamilyForProduct(productId);
     return (
@@ -49,7 +61,7 @@ export function settlePortEntry(
     xpGained: contributions,
     state: {
       ...state,
-      fleet: { ...state.fleet, locationPortId: destinationPortId },
+      fleet: { ...state.fleet, locationPortId: destinationPortId, holdingNavPointId: null, holdingOriginNodeId: null },
       portProgress: progress,
       marketSession: createMarketSession(destinationPortId, destinationLevel, seed),
     },

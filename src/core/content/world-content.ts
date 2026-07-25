@@ -52,6 +52,8 @@ export type NavPoint = {
   harborPortId?: string;
   subRegionId: string;
   chartPosition: ChartPosition;
+  /** A player may choose this point as a safe Passage terminal. */
+  canHoldPosition?: boolean;
 };
 
 export type NavEdgeSpan = { subRegionId: string; distance: number };

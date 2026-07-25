@@ -322,6 +322,28 @@ describe("MeridianDashboard", () => {
     expect(screen.getByText(/Source XP gained 12; committed supply cost 4/)).toBeVisible();
   });
 
+  it("opens a chart-backed sailing target picker from a safe holding position and can return", () => {
+    store.state.fleet.holdingNavPointId = "cape-st-vincent";
+    store.state.fleet.holdingOriginNodeId = "lisbon";
+    render(<MeridianDashboard />);
+
+    expect(screen.getByRole("heading", { name: "Cape St. Vincent" })).toBeVisible();
+    expect(screen.getByText("Awaiting your next order")).toBeVisible();
+    expect(screen.getByText("Paused")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Nautical Chart" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Choose sailing target" }));
+    expect(screen.getByRole("heading", { name: "Nautical Chart" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: /Faro, select destination/ }));
+    expect(screen.getByRole("heading", { name: "Faro" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Set Sail for Faro" }));
+    expect(store.departVoyage).toHaveBeenCalledWith("faro", "quote-faro");
+
+    fireEvent.click(screen.getByRole("button", { name: "← Back to holding position" }));
+    expect(screen.getByText("Awaiting your next order")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "Nautical Chart" })).not.toBeInTheDocument();
+  });
+
   it("disables Harbor departure when secure randomness is unavailable", () => {
     store.state.fleet.supplies.food.quantity = 2;
     store.state.fleet.supplies.water.quantity = 2;

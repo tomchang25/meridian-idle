@@ -98,7 +98,7 @@ function quoteId(
   supplyConsumptionMicroUnitsPerSecond: VoyageSupplies,
 ): string {
   return JSON.stringify({
-    originPortId: state.fleet.locationPortId,
+    originPortId: state.fleet.holdingNavPointId ?? state.fleet.locationPortId,
     destinationPortId,
     fleetSpeed: state.fleet.speed,
     knownPortIds: [...state.world.knownPortIds].sort(),
@@ -349,6 +349,28 @@ function finalizeVoyage(content: WorldContent, state: GameState, voyage: Voyage)
     completedVoyage = { ...voyage, progress, supplyCost: voyage.supplyCost + food.cost + water.cost };
     workingState = { ...workingState, voyage: completedVoyage };
   }
+  const heldPoint = content.getNavPoint(completedVoyage.passage.destinationPortId);
+  if (heldPoint?.canHoldPosition) {
+    return {
+      state: {
+        ...workingState,
+        voyage: null,
+        fleet: {
+          ...workingState.fleet,
+          holdingNavPointId: heldPoint.id,
+          holdingOriginNodeId: completedVoyage.passage.originPortId,
+        },
+      },
+      events: [
+        {
+          kind: "voyage-reached-nav-point",
+          at: completedVoyage.plannedArrivesAt,
+          voyageId: completedVoyage.id,
+          navPointId: heldPoint.id,
+        },
+      ],
+    };
+  }
   const arrival = settlePortEntry(
     content,
     { ...workingState, voyage: null },
@@ -427,9 +449,30 @@ export function previewVoyagePassage(
       error: "Voyage pacing is invalid.",
     };
 
+  const destinationPoint = content.getNavPoint(destinationPortId);
+  if (destinationPoint && !destinationPoint.canHoldPosition)
+    return {
+      destinationPortId,
+      quoteId: null,
+      passage: null,
+      scheduledDurationMilliseconds: null,
+      supplyConsumptionMicroUnitsPerSecond: null,
+      readiness: null,
+      error: "This Navigation Point cannot be used as a holding position.",
+    };
+  if (state.fleet.holdingNavPointId && destinationPoint)
+    return {
+      destinationPortId,
+      quoteId: null,
+      passage: null,
+      scheduledDurationMilliseconds: null,
+      supplyConsumptionMicroUnitsPerSecond: null,
+      readiness: null,
+      error: "Choose a known Port for the next Passage.",
+    };
   const plan = planPassage({
     world: content,
-    originPortId: state.fleet.locationPortId,
+    originPortId: state.fleet.holdingNavPointId ?? state.fleet.locationPortId,
     destinationPortId,
     knownPortIds: state.world.knownPortIds,
     speed: state.fleet.speed,

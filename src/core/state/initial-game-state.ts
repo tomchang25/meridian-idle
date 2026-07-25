@@ -7,11 +7,13 @@ function emptyStack(): CargoStack {
 
 export function createInitialGameState(now: number): GameState {
   return {
-    schemaVersion: 8,
+    schemaVersion: 9,
     createdAt: now,
     world: { knownPortIds: ["lisbon", "faro", "tangier"] },
     fleet: {
       locationPortId: "lisbon",
+      holdingNavPointId: null,
+      holdingOriginNodeId: null,
       speed: 100,
       gold: 2_000,
       cargoCapacity: 60,

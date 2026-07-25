@@ -10,10 +10,10 @@ import {
 } from "@/core/model/game";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 
-export const CURRENT_SAVE_VERSION = 8;
+export const CURRENT_SAVE_VERSION = 9;
 const SUPPLY_REMAINDER_THRESHOLD = 1_000_000_000;
 
-export type SaveEnvelope = { version: 8; savedAt: number; state: GameState };
+export type SaveEnvelope = { version: 9; savedAt: number; state: GameState };
 export type SaveLoadResult =
   { kind: "current"; envelope: SaveEnvelope } | { kind: "migrated"; envelope: SaveEnvelope } | { kind: "corrupt" };
 
@@ -58,6 +58,10 @@ type PersistedV7Voyage = Omit<Voyage, "progress">;
 type PersistedV7GameState = Omit<GameState, "schemaVersion" | "voyage"> & {
   schemaVersion: 7;
   voyage: PersistedV7Voyage | null;
+};
+type PersistedV8GameState = Omit<GameState, "schemaVersion" | "fleet"> & {
+  schemaVersion: 8;
+  fleet: Omit<GameState["fleet"], "holdingNavPointId" | "holdingOriginNodeId">;
 };
 
 type LegacyRouteVoyage = {
@@ -184,7 +188,7 @@ function isCargoStack(value: unknown): value is CargoStack {
   return isFiniteNonNegative(candidate.quantity) && isFiniteNonNegative(candidate.totalCostBasis);
 }
 
-function hasCurrentFleetShape(value: unknown): value is GameState["fleet"] {
+function hasV8FleetShape(value: unknown): value is PersistedV8GameState["fleet"] {
   if (!value || typeof value !== "object") return false;
   const fleet = value as Partial<GameState["fleet"]>;
   return (
@@ -196,6 +200,15 @@ function hasCurrentFleetShape(value: unknown): value is GameState["fleet"] {
     typeof fleet.autoRestockOnArrival === "boolean" &&
     !!fleet.supplyTargets &&
     SUPPLY_IDS.every((id) => isNonNegativeWhole(fleet.supplyTargets?.[id]) && isCargoStack(fleet.supplies?.[id]))
+  );
+}
+
+function hasCurrentFleetShape(value: unknown): value is GameState["fleet"] {
+  if (!hasV8FleetShape(value)) return false;
+  const fleet = value as Partial<GameState["fleet"]>;
+  return (
+    (fleet.holdingNavPointId === null || isNonEmptyString(fleet.holdingNavPointId)) &&
+    (fleet.holdingOriginNodeId === null || isNonEmptyString(fleet.holdingOriginNodeId))
   );
 }
 
@@ -449,15 +462,26 @@ function isVoyageProgress(value: unknown, passage: PassageSnapshot, voyage: Pers
   );
 }
 
-function isV8State(value: unknown): value is GameState {
+function isV8State(value: unknown): value is PersistedV8GameState {
   if (!value || typeof value !== "object") return false;
-  const state = value as Partial<GameState>;
-  if (state.schemaVersion !== 8 || !hasCurrentFleetShape(state.fleet) || !state.marketSession) return false;
+  const state = value as Partial<PersistedV8GameState>;
+  if (state.schemaVersion !== 8 || !hasV8FleetShape(state.fleet) || !state.marketSession) return false;
   if (state.voyage === null) return true;
   return (
     !!state.voyage &&
     isPersistedVoyage(state.voyage) &&
     isVoyageProgress(state.voyage.progress, state.voyage.passage, state.voyage)
+  );
+}
+function isV9State(value: unknown): value is GameState {
+  if (!value || typeof value !== "object") return false;
+  const state = value as Partial<GameState>;
+  if (state.schemaVersion !== 9 || !hasCurrentFleetShape(state.fleet) || !state.marketSession) return false;
+  return (
+    state.voyage === null ||
+    (!!state.voyage &&
+      isPersistedVoyage(state.voyage) &&
+      isVoyageProgress(state.voyage.progress, state.voyage.passage, state.voyage))
   );
 }
 
@@ -647,12 +671,20 @@ function prepaidProgress(voyage: PersistedV7Voyage): VoyageProgress {
   };
 }
 
-function migrateV7State(state: PersistedV7GameState): GameState {
+function migrateV7State(state: PersistedV7GameState): PersistedV8GameState {
   if (!state.voyage) return { ...state, schemaVersion: 8, voyage: null };
   return { ...state, schemaVersion: 8, voyage: { ...state.voyage, progress: prepaidProgress(state.voyage) } };
 }
 
-function migrateV6State(state: PersistedV6GameState): GameState {
+function migrateV8State(state: PersistedV8GameState): GameState {
+  return {
+    ...state,
+    schemaVersion: 9,
+    fleet: { ...state.fleet, holdingNavPointId: null, holdingOriginNodeId: null },
+  };
+}
+
+function migrateV6State(state: PersistedV6GameState): PersistedV8GameState {
   const v7: PersistedV7GameState = !state.voyage
     ? { ...state, schemaVersion: 7, voyage: null }
     : {
@@ -673,27 +705,37 @@ export function createSaveEnvelope(state: GameState, now: number): SaveEnvelope 
 export function loadSave(value: unknown, now: number): SaveLoadResult {
   if (!value || typeof value !== "object") return { kind: "corrupt" };
   const candidate = value as { version?: unknown; savedAt?: unknown; state?: unknown };
+  if (candidate.version === 9 && isFiniteNonNegative(candidate.savedAt) && isV9State(candidate.state))
+    return { kind: "current", envelope: { version: 9, savedAt: candidate.savedAt, state: candidate.state } };
   if (candidate.version === 8 && isFiniteNonNegative(candidate.savedAt) && isV8State(candidate.state))
-    return { kind: "current", envelope: { version: 8, savedAt: candidate.savedAt, state: candidate.state } };
+    return { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(candidate.state), now) };
   if (candidate.version === 7 && isFiniteNonNegative(candidate.savedAt) && isV7State(candidate.state))
-    return { kind: "migrated", envelope: createSaveEnvelope(migrateV7State(candidate.state), now) };
+    return { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV7State(candidate.state)), now) };
   if (candidate.version === 6 && isFiniteNonNegative(candidate.savedAt) && isV6State(candidate.state))
-    return { kind: "migrated", envelope: createSaveEnvelope(migrateV6State(candidate.state), now) };
+    return { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(candidate.state)), now) };
   if (candidate.version === 5 && isFiniteNonNegative(candidate.savedAt) && isV5State(candidate.state)) {
     const state = migrateV5State(candidate.state);
-    return state ? { kind: "migrated", envelope: createSaveEnvelope(migrateV6State(state), now) } : { kind: "corrupt" };
+    return state
+      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(state)), now) }
+      : { kind: "corrupt" };
   }
   if (candidate.version === 4 && isFiniteNonNegative(candidate.savedAt) && isV4State(candidate.state)) {
     const state = migrateV5State(migrateV4State(candidate.state));
-    return state ? { kind: "migrated", envelope: createSaveEnvelope(migrateV6State(state), now) } : { kind: "corrupt" };
+    return state
+      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(state)), now) }
+      : { kind: "corrupt" };
   }
   if (candidate.version === 3 && isFiniteNonNegative(candidate.savedAt) && isV3State(candidate.state)) {
     const state = migrateV5State(migrateV4State(migrateV3State(candidate.state)));
-    return state ? { kind: "migrated", envelope: createSaveEnvelope(migrateV6State(state), now) } : { kind: "corrupt" };
+    return state
+      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(state)), now) }
+      : { kind: "corrupt" };
   }
   if (candidate.version === 2 && isFiniteNonNegative(candidate.savedAt) && isV2State(candidate.state)) {
     const state = migrateV5State(migrateV4State(migrateV3State(migrateV2State(candidate.state, now))));
-    return state ? { kind: "migrated", envelope: createSaveEnvelope(migrateV6State(state), now) } : { kind: "corrupt" };
+    return state
+      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(state)), now) }
+      : { kind: "corrupt" };
   }
   if (candidate.version !== 1 || !candidate.state || typeof candidate.state !== "object") return { kind: "corrupt" };
   const legacyGold = (candidate.state as { resources?: { gold?: unknown } }).resources?.gold;

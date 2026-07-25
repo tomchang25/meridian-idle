@@ -66,7 +66,7 @@ export function supplyRestockPlan(content: WorldContent, state: GameState): Supp
   ) as Record<SupplyId, number>;
   const totalQuantity = SUPPLY_IDS.reduce((sum, id) => sum + deficits[id], 0);
   const port = content.getPort(state.fleet.locationPortId);
-  if (state.voyage)
+  if (state.voyage || state.fleet.holdingNavPointId)
     return { deficits, totalQuantity, totalCost: 0, error: "Supplies cannot be bought during a Voyage." };
   if (!port)
     return { deficits, totalQuantity, totalCost: 0, error: "Supply purchase is unavailable at the current location." };
@@ -122,7 +122,7 @@ export function supplyPurchaseError(
   quantity: number,
 ): string | null {
   const port = content.getPort(state.fleet.locationPortId);
-  if (state.voyage) return "Supplies cannot be bought during a Voyage.";
+  if (state.voyage || state.fleet.holdingNavPointId) return "Supplies cannot be bought while at sea.";
   if (!validQuantity(quantity)) return "Quantity must be a positive whole number.";
   if (!port) return "Supply purchase is unavailable at the current location.";
   const cost = content.supplyPrices[supplyId] * quantity;
@@ -159,7 +159,7 @@ export function buySupply(
 }
 export function discardSupply(state: GameState, supplyId: SupplyId, quantity: number): RuleResult {
   const stack = state.fleet.supplies[supplyId];
-  if (state.voyage || !validQuantity(quantity) || quantity > stack.quantity)
+  if (state.voyage || state.fleet.holdingNavPointId || !validQuantity(quantity) || quantity > stack.quantity)
     return { state, events: [], error: "Not enough Supply to discard." };
   const cost = removedCostBasis(stack, quantity);
   return {

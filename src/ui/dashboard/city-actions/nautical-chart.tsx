@@ -11,6 +11,9 @@ type NauticalChartProps = {
   knownPortIds: readonly string[];
   passage: PlannedPassageSnapshot | null;
   onSelectPort(portId: string): void;
+  showHoldableNavPoints?: boolean;
+  selectedNavPointId?: string | null;
+  onSelectNavPoint?(navPointId: string): void;
 };
 
 type Bounds = { minX: number; minY: number; maxX: number; maxY: number };
@@ -111,6 +114,9 @@ export function NauticalChart({
   knownPortIds,
   passage,
   onSelectPort,
+  showHoldableNavPoints = true,
+  selectedNavPointId = null,
+  onSelectNavPoint,
 }: NauticalChartProps) {
   const knownPorts = PORTS.filter((port) => knownPortIds.includes(port.id));
   const routeEdges = selectedEdges(passage);
@@ -122,7 +128,7 @@ export function NauticalChart({
           <p>Charted waters</p>
           <h4 id="nautical-chart-heading">Nautical Chart</h4>
         </div>
-        <span>Port markers are selectable</span>
+        <span>Port and holding markers are selectable</span>
       </div>
       <div className={styles.chartViewport}>
         <div className={styles.chartMapSurface}>
@@ -190,7 +196,7 @@ export function NauticalChart({
             })}
           </svg>
         </div>
-        <ul className={styles.chartPortControls} aria-label="Known ports">
+        <ul className={styles.chartPortControls} aria-label="Known ports and holding positions">
           {knownPorts.map((port) => {
             const isCurrent = port.id === currentPortId;
             const isSelected = port.id === selectedPortId;
@@ -212,6 +218,21 @@ export function NauticalChart({
               </li>
             );
           })}
+          {showHoldableNavPoints &&
+            NAV_POINTS.filter((point) => point.canHoldPosition).map((point) => (
+              <li key={point.id} style={portStyle(point.chartPosition)}>
+                <button
+                  type="button"
+                  aria-pressed={selectedNavPointId === point.id}
+                  onClick={() => onSelectNavPoint?.(point.id)}
+                  aria-label={`${point.name}, holding position${selectedNavPointId === point.id ? ", selected" : ""}`}
+                >
+                  <span aria-hidden="true">◇</span>
+                  <strong>{point.name}</strong>
+                  <small>Holding position</small>
+                </button>
+              </li>
+            ))}
         </ul>
       </div>
       <p className={styles.chartLegend}>

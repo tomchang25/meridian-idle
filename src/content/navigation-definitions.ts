@@ -43,6 +43,7 @@ export const NAV_POINTS: NavPoint[] = [
     kind: "headland",
     subRegionId: "algarve-coast",
     chartPosition: { x: 210, y: 500 },
+    canHoldPosition: true,
   },
 ];
 

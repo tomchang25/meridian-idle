@@ -18,6 +18,26 @@ function createDepartedVoyage() {
 }
 
 describe("voyage", () => {
+  it("arrives at a holdable NavPoint without settling a Port and can continue to a known Port", () => {
+    let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 2, 1).state;
+    state = buySupply(WORLD_CONTENT, state, "water", 2, 2).state;
+    const toCape = previewVoyagePassage(WORLD_CONTENT, state, "cape-st-vincent", 20);
+    const departed = departVoyage(WORLD_CONTENT, state, "cape-st-vincent", toCape.quoteId!, 100, 3, 20).state;
+    const held = resolveVoyage(WORLD_CONTENT, departed, 1_100).state;
+
+    expect(held.voyage).toBeNull();
+    expect(held.fleet.holdingNavPointId).toBe("cape-st-vincent");
+    expect(held.fleet.locationPortId).toBe("lisbon");
+    expect(held.marketSession.portId).toBe("lisbon");
+    expect(held.fleet.supplies.food.quantity).toBe(1);
+    expect(resolveVoyage(WORLD_CONTENT, held, 900_000).state).toBe(held);
+
+    const toFaro = previewVoyagePassage(WORLD_CONTENT, held, "faro", 20);
+    expect(toFaro.error).toBeNull();
+    const returned = departVoyage(WORLD_CONTENT, held, "faro", toFaro.quoteId!, 1_200, 4, 20).state;
+    expect(resolveVoyage(WORLD_CONTENT, returned, 2_200).state.fleet.locationPortId).toBe("faro");
+  });
+
   it("reserves Supplies at departure and consumes their quantity and cost basis on arrival", () => {
     const departed = createDepartedVoyage();
     expect(departed.fleet.supplies.food).toEqual({ quantity: 1, totalCostBasis: 8 });

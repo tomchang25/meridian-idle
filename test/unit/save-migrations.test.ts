@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
 
-describe("V8 save migration", () => {
+describe("V9 save migration", () => {
   it("creates one legal Lisbon world", () => {
     const state = createInitialGameState(100);
     expect(state.fleet.locationPortId).toBe("lisbon");
@@ -20,11 +20,23 @@ describe("V8 save migration", () => {
     expect(result.envelope.state.migrationReport?.droppedFields).toContain("running Action");
   });
 
-  it("round-trips a current V8 payload and rejects malformed saves", () => {
+  it("round-trips a current V9 payload, migrates V8, and rejects malformed saves", () => {
     const state = createInitialGameState(100);
     expect(loadSave(createSaveEnvelope(state, 200), 300)).toMatchObject({
       kind: "current",
       envelope: { savedAt: 200 },
+    });
+    const v8Fleet: Record<string, unknown> = structuredClone(state.fleet);
+    delete v8Fleet.holdingNavPointId;
+    delete v8Fleet.holdingOriginNodeId;
+    const v8State = { ...state, schemaVersion: 8 as const, fleet: v8Fleet };
+    expect(loadSave({ version: 8, savedAt: 200, state: v8State }, 300)).toMatchObject({
+      kind: "migrated",
+      envelope: {
+        version: 9,
+        savedAt: 300,
+        state: { fleet: { holdingNavPointId: null, holdingOriginNodeId: null } },
+      },
     });
     const malformedCurrent = createSaveEnvelope(state, 200);
     malformedCurrent.state.fleet.supplyTargets.food = 0.5;
@@ -72,7 +84,7 @@ describe("V8 save migration", () => {
     expect(result).toMatchObject({
       kind: "migrated",
       envelope: {
-        version: 8,
+        version: 9,
         savedAt: 800,
         state: {
           voyage: {
@@ -93,11 +105,11 @@ describe("V8 save migration", () => {
       consumedSupplies: { food: 1, water: 1 },
     });
 
-    const migratedV8 = structuredClone(result.envelope);
-    const migratedPassage = migratedV8.state.voyage?.passage;
+    const migratedV9 = structuredClone(result.envelope);
+    const migratedPassage = migratedV9.state.voyage?.passage;
     if (migratedPassage?.kind !== "planned") throw new Error("Expected a migrated planned Passage.");
     migratedPassage.edges[0].simulationEndOffsetMilliseconds = 39_999;
-    expect(loadSave(migratedV8, 800)).toEqual({ kind: "corrupt" });
+    expect(loadSave(migratedV9, 800)).toEqual({ kind: "corrupt" });
 
     const malformed = structuredClone(v6State);
     malformed.voyage.plannedArrivesAt = 2_101;
@@ -133,7 +145,7 @@ describe("V8 save migration", () => {
     expect(result).toMatchObject({
       kind: "migrated",
       envelope: {
-        version: 8,
+        version: 9,
         state: {
           voyage: {
             progress: {
@@ -164,7 +176,7 @@ describe("V8 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 8, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 9, savedAt: 300 });
     expect(result.envelope.state.fleet.supplyTargets.food).toBe(3);
     expect(result.envelope.state.fleet.autoRestockOnArrival).toBe(false);
   });
@@ -190,7 +202,7 @@ describe("V8 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 8, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 9, savedAt: 300 });
     expect(result.envelope.state.fleet.supplies.munitions).toEqual({ quantity: 4, totalCostBasis: 72 });
     expect(result.envelope.state.fleet.supplies.spares).toEqual({ quantity: 5, totalCostBasis: 120 });
     expect(result.envelope.state.fleet.supplyTargets).toMatchObject({ munitions: 4, spares: 5 });
@@ -205,7 +217,7 @@ describe("V8 save migration", () => {
 
     const result = loadSave({ version: 4, savedAt: 200, state: v4State }, 300);
 
-    expect(result).toMatchObject({ kind: "migrated", envelope: { version: 8, savedAt: 300 } });
+    expect(result).toMatchObject({ kind: "migrated", envelope: { version: 9, savedAt: 300 } });
     if (result.kind !== "migrated") return;
     expect(result.envelope.state.fleet.speed).toBe(100);
   });
@@ -234,7 +246,7 @@ describe("V8 save migration", () => {
     expect(result).toMatchObject({
       kind: "migrated",
       envelope: {
-        version: 8,
+        version: 9,
         state: {
           voyage: {
             departedAt: 100,

@@ -563,7 +563,7 @@
           的人類導向總覽。
         </p>
         <p class="meta">
-          更新時間 2026-07-25 · 反映 Nautical Chart Navigation Child 04 實作狀態 · 原始碼與 tests
+          更新時間 2026-07-25 · 反映 Nautical Chart Navigation Child 05 實作狀態 · 原始碼與 tests
           才是權威；本頁負責幫人快速建立心智模型。
         </p>
         <nav class="toc" aria-label="Page sections">
@@ -1014,6 +1014,14 @@
               </td>
             </tr>
             <tr>
+              <td>Holdable NavPoint 與下一段 Passage continuation</td>
+              <td><span class="status current">Current</span></td>
+              <td>
+                Cape St. Vincent 可作為航程終點；抵達後進入不消耗時間／Supplies、也不觸發 Events 的 Holding
+                position。玩家從該點選擇一個已知 Port 作下一段 Passage，實際進港時才結算 Port arrival。
+              </td>
+            </tr>
+            <tr>
               <td>Harbor production chart interaction</td>
               <td><span class="status current">Current</span></td>
               <td>
@@ -1105,13 +1113,13 @@
               <td>Pure deterministic core functions。</td>
             </tr>
             <tr>
-              <td>Voyage quote、boundary resolver 與 arrival settlement</td>
+              <td>Voyage quote、boundary resolver、NavPoint hold 與 arrival settlement</td>
               <td>
                 <a href="vscode://file/E:/Code/meridian-idle/src/core/rules/voyage.ts:86">voyage.ts:86</a>
               </td>
               <td>
-                出航 revalidation、fixed-point Supply ledger、pacing、ordered boundaries 與 exactly-once destination
-                arrival。
+                出航 revalidation、fixed-point Supply ledger、pacing、ordered boundaries、NavPoint Holding position 與
+                exactly-once Port arrival。
               </td>
             </tr>
             <tr>
@@ -1130,7 +1138,9 @@
                   >nautical-chart.tsx</a
                 >
               </td>
-              <td>Data-driven Port selection, selected Passage overlay, and semantic chart controls.</td>
+              <td>
+                Data-driven Port／holdable NavPoint selection、selected Passage overlay, and semantic chart controls.
+              </td>
             </tr>
             <tr>
               <td>Planner behavioral proof</td>

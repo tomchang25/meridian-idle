@@ -1,4 +1,4 @@
-import { getPort } from "@/content/content-catalog";
+import { getNavPoint, getPort } from "@/content/content-catalog";
 import type { GameState } from "@/core/model/game";
 import { displayName } from "../dashboard-helpers";
 import styles from "../meridian-dashboard.module.css";
@@ -9,6 +9,7 @@ type PortScenePanelProps = {
 
 export function PortScenePanel({ state }: PortScenePanelProps) {
   const { voyage } = state;
+  const heldPoint = getNavPoint(state.fleet.holdingNavPointId ?? "");
   const port = getPort(state.fleet.locationPortId);
   const destinationPort = voyage ? getPort(voyage.passage.destinationPortId) : undefined;
   const regionName = displayName(port?.regionId ?? "unknown waters");
@@ -19,16 +20,24 @@ export function PortScenePanel({ state }: PortScenePanelProps) {
         <p>
           {voyage
             ? `${displayName(getPort(voyage.passage.originPortId)?.regionId ?? "open water")} / Open Water`
-            : `${regionName} / ${port?.name ?? "Unknown Port"}`}
+            : heldPoint
+              ? `Open Water / ${heldPoint.name}`
+              : `${regionName} / ${port?.name ?? "Unknown Port"}`}
         </p>
         <h2 id="scene-title">
           {voyage
             ? `Underway to ${destinationPort?.name ?? "Unknown Port"}`
-            : `Port operations at ${port?.name ?? "Unknown Port"}`}
+            : heldPoint
+              ? `Holding position at ${heldPoint.name}`
+              : `Port operations at ${port?.name ?? "Unknown Port"}`}
         </h2>
         <div className={styles.sceneTags}>
-          <span>{voyage ? "Underway" : "Docked"}</span>
-          {voyage ? <span>Static risk {Math.round(voyage.passage.staticRisk * 100)}%</span> : <span>Market open</span>}
+          <span>{voyage ? "Underway" : heldPoint ? "Holding" : "Docked"}</span>
+          {voyage ? (
+            <span>Static risk {Math.round(voyage.passage.staticRisk * 100)}%</span>
+          ) : (
+            <span>{heldPoint ? "Orders required" : "Market open"}</span>
+          )}
         </div>
       </div>
 
@@ -38,7 +47,7 @@ export function PortScenePanel({ state }: PortScenePanelProps) {
         <div className={`${styles.pixelCloud} ${styles.cloudTwo}`} />
         <div className={styles.farHills} />
 
-        {!voyage ? (
+        {!voyage && !heldPoint ? (
           <>
             <div className={`${styles.pixelBuilding} ${styles.buildingOne}`} />
             <div className={`${styles.pixelBuilding} ${styles.buildingTwo}`} />

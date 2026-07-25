@@ -18,6 +18,7 @@ export type GameEvent = { at: number } & (
   | { kind: "product-bought"; productId: string; productName: string; quantity: number; cost: number }
   | { kind: "product-sold"; productId: string; quantity: number; revenue: number; profit: number }
   | { kind: "voyage-departed"; voyageId: string; destinationPortId: string }
+  | { kind: "voyage-reached-nav-point"; voyageId: string; navPointId: string }
   | { kind: "voyage-arrived"; voyageId: string; destinationPortId: string }
   | { kind: "voyage-auto-restock-failed"; voyageId: string; reason: string }
 );

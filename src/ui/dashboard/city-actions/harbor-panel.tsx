@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getPort, getRegion, getSubRegion, PRODUCTS } from "@/content/content-catalog";
+import { getNavPoint, getPort, getRegion, getSubRegion, PRODUCTS } from "@/content/content-catalog";
 import { portLevel } from "@/core/rules/progression";
 import { displayName, formatRemaining } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";
@@ -26,6 +26,7 @@ export function HarborPanel({ store }: HarborPanelProps) {
   const currentPortId = state.fleet.locationPortId;
   const [selectedPortId, setSelectedPortId] = useState(currentPortId);
   const selectedPort = getPort(selectedPortId);
+  const selectedNavPoint = getNavPoint(selectedPortId);
   const currentPort = getPort(currentPortId);
   const isCurrentPort = selectedPortId === currentPortId;
   const preview = isCurrentPort ? null : store.previewVoyage(selectedPortId);
@@ -64,19 +65,27 @@ export function HarborPanel({ store }: HarborPanelProps) {
         knownPortIds={state.world.knownPortIds}
         passage={passage}
         onSelectPort={setSelectedPortId}
+        selectedNavPointId={selectedNavPoint?.id ?? null}
+        onSelectNavPoint={setSelectedPortId}
       />
       <div className={styles.harborDetailGrid}>
         <section className={styles.harborDetailPanel} aria-labelledby="selected-port-heading">
           <p>Selected Port</p>
-          <h4 id="selected-port-heading">{selectedPort?.name ?? "Unknown Port"}</h4>
+          <h4 id="selected-port-heading">{selectedPort?.name ?? selectedNavPoint?.name ?? "Unknown destination"}</h4>
           <dl className={styles.harborFacts}>
             <div>
               <dt>Region</dt>
-              <dd>{getRegion(selectedPort?.regionId ?? "")?.name ?? "Unknown waters"}</dd>
+              <dd>
+                {getRegion(selectedPort?.regionId ?? getSubRegion(selectedNavPoint?.subRegionId ?? "")?.regionId ?? "")
+                  ?.name ?? "Unknown waters"}
+              </dd>
             </div>
             <div>
               <dt>SubRegion</dt>
-              <dd>{getSubRegion(selectedPort?.subRegionId ?? "")?.name ?? "Unknown waters"}</dd>
+              <dd>
+                {getSubRegion(selectedPort?.subRegionId ?? selectedNavPoint?.subRegionId ?? "")?.name ??
+                  "Unknown waters"}
+              </dd>
             </div>
             <div>
               <dt>Port Level</dt>
@@ -94,7 +103,9 @@ export function HarborPanel({ store }: HarborPanelProps) {
           <p className={styles.harborMarketStatus}>
             {isCurrentPort
               ? "Current Market Session is available at this berth."
-              : "Market prices are available after docking."}
+              : selectedNavPoint
+                ? "Holding position does not open a Market Session."
+                : "Market prices are available after docking."}
           </p>
         </section>
         <section className={styles.harborDetailPanel} aria-labelledby="passage-preview-heading">
@@ -152,7 +163,7 @@ export function HarborPanel({ store }: HarborPanelProps) {
               aria-describedby={departureReasonId}
               onClick={() => preview?.quoteId && store.departVoyage(selectedPortId, preview.quoteId)}
             >
-              Set Sail for {selectedPort?.name ?? "destination"}
+              Set Sail for {selectedPort?.name ?? selectedNavPoint?.name ?? "destination"}
             </button>
             <p className={styles.unavailableReason} id={departureReasonId}>
               {unavailableReason}

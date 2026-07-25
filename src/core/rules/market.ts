@@ -26,6 +26,7 @@ export function createMarketSession(portId: string, level: number, seed: number)
   };
 }
 function currentPort(content: WorldContent, state: GameState) {
+  if (state.fleet.holdingNavPointId) return undefined;
   const port = content.getPort(state.fleet.locationPortId);
   return port && state.marketSession.portId === port.id ? port : undefined;
 }

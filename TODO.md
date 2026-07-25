@@ -54,6 +54,7 @@ One line, no reasoning, no backing document.
 One line, no reasoning, no backing document.
 
 - [structure] `eslint.config.mjs` boundary-violation messages point to `dev/standards/project_structure.md`, renamed to `project_structure.addendum.md`; update all 8 references
+- [debug] `/debug/game?timeScale=20` never persists because `GameRuntime` treats any `initialState` as harness mode (`saveStatus` stuck `unavailable`); give the paced debug surface its own save slot, or make the pacing multiplier a normal Settings toggle on hydrated saves instead
 
 ---
 
@@ -61,6 +62,10 @@ One line, no reasoning, no backing document.
 
 Preliminary concepts — larger than a one-liner, but a single `###` sub-section says enough. They are not necessarily actionable yet. Use one `###` heading per idea. When an idea outgrows its sub-section, becomes actionable, or needs a stable link, move it to its own `dev/docs/plans/<file>.md` and delete it here. Delete stale ideas that never grow.
 
-### Supply event consequences
+### NavPoint activities
 
-Food must mitigate starvation risk, with fishing, whaling, and island landings as alternative recovery paths. Water must mitigate dehydration risk, with water-storage equipment and island landings as alternatives. Medicine must treat disease and wounded crew. Munitions must avoid a severe naval-combat penalty. Spares must repair Fleet damage. Future Event resolution may consume the matching Supply or impose its defined adverse consequence when unavailable.
+Build authored timed Action rounds such as Patrol, Fishing, Salvage, and Exploration on top of the safe NavPoint holding state. Each round needs an explicit duration, Supply accounting, deterministic outcome, cancellation behavior, and return to holding position. Repeat policy must define reserve warnings, stop conditions, and whether a return Port must be selected before automatic repetition begins. Event and Combat outcomes remain owned by V5 Core Child 06; this draft owns only how a NavPoint Action pauses, resumes, or returns to holding around those interruptions.
+
+### Crew and maritime survival
+
+Define canonical Crew count and capacity before Crew size changes baseline Food and Water demand. The same plan must own recruitment, replenishment, morale, direct shortage consequences, and deterministic loss boundaries so Crew is not introduced as a fixed placeholder number. Food must mitigate starvation risk, with fishing, whaling, and island landings as alternative recovery paths. Water must mitigate dehydration risk, with water-storage equipment and island landings as alternatives. Medicine must treat disease and wounded Crew. Munitions must avoid a severe naval-combat penalty. Spares must repair Fleet damage. Interactive crisis decisions and their timeout defaults should integrate with the Event contract owned by V5 Core rather than becoming a NavPoint-only event system.

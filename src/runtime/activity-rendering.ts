@@ -54,6 +54,13 @@ export function activityEntryFor(event: GameEvent): ActivityEntry {
         message: `Arrived at ${event.destinationPortId}.`,
         tone: "success",
       };
+    case "voyage-reached-nav-point":
+      return {
+        id: `${event.voyageId}-nav-point`,
+        at: event.at,
+        message: `Holding position at ${event.navPointId}.`,
+        tone: "info",
+      };
     case "voyage-auto-restock-failed":
       return {
         id: `${event.voyageId}-restock-failed`,
