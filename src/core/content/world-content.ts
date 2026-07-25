@@ -20,11 +20,56 @@ export type Product = {
 
 export type PortCatalogEntry = { productId: string; unlockLevel: 1 | 20 | 50 | 75 };
 
+export type ChartPosition = { x: number; y: number };
+
+export type Region = {
+  id: string;
+  name: string;
+};
+
+export type SubRegion = {
+  id: string;
+  name: string;
+  regionId: string;
+};
+
 export type Port = {
   id: string;
   name: string;
   regionId: string;
+  subRegionId: string;
+  chartPosition: ChartPosition;
   catalog: PortCatalogEntry[];
+};
+
+export type NavPointKind = "harbor-approach" | "headland";
+
+export type NavPoint = {
+  id: string;
+  name: string;
+  kind: NavPointKind;
+  /** Present only on a harbor approach, identifying the Port it serves. */
+  harborPortId?: string;
+  subRegionId: string;
+  chartPosition: ChartPosition;
+};
+
+export type NavEdgeSpan = { subRegionId: string; distance: number };
+
+export type NavEdge = {
+  id: string;
+  originNodeId: string;
+  destinationNodeId: string;
+  distance: number;
+  staticRisk: number;
+  traversalModifier: number;
+  spans: NavEdgeSpan[];
+};
+
+export type NavigationConstants = {
+  timePerDistanceUnitMilliseconds: number;
+  supplyConsumptionPerSecond: { food: number; water: number };
+  debugTimeScale: number;
 };
 
 export type Route = {
@@ -44,8 +89,14 @@ export type Route = {
  */
 export type WorldContent = {
   getPort(id: string): Port | undefined;
+  getRegion(id: string): Region | undefined;
+  getSubRegion(id: string): SubRegion | undefined;
+  getNavPoint(id: string): NavPoint | undefined;
+  getNavEdge(id: string): NavEdge | undefined;
+  getOutgoingNavEdges(nodeId: string): readonly NavEdge[];
   getProduct(id: string): Product | undefined;
   getProductFamilyForProduct(productId: string): ProductFamily | undefined;
   getRoute(id: string): Route | undefined;
   readonly supplyPrices: Record<SupplyId, number>;
+  readonly navigationConstants: NavigationConstants;
 };

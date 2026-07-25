@@ -6,6 +6,7 @@ describe("V5 save migration", () => {
   it("creates one legal Lisbon world", () => {
     const state = createInitialGameState(100);
     expect(state.fleet.locationPortId).toBe("lisbon");
+    expect(state.fleet.speed).toBe(100);
     expect(state.fleet.gold).toBe(2_000);
     expect(state.migrationReport).toBeNull();
   });
@@ -49,7 +50,7 @@ describe("V5 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 4, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 5, savedAt: 300 });
     expect(result.envelope.state.fleet.supplyTargets.food).toBe(3);
     expect(result.envelope.state.fleet.autoRestockOnArrival).toBe(false);
   });
@@ -75,10 +76,23 @@ describe("V5 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 4, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 5, savedAt: 300 });
     expect(result.envelope.state.fleet.supplies.munitions).toEqual({ quantity: 4, totalCostBasis: 72 });
     expect(result.envelope.state.fleet.supplies.spares).toEqual({ quantity: 5, totalCostBasis: 120 });
     expect(result.envelope.state.fleet.supplyTargets).toMatchObject({ munitions: 4, spares: 5 });
     expect(result.envelope.state.activity[0].message).toContain("renamed without changing");
+  });
+
+  it("backfills Fleet speed when loading the prior V4 schema", () => {
+    const current = createInitialGameState(100);
+    const { speed, ...fleet } = current.fleet;
+    expect(speed).toBe(100);
+    const v4State = { ...current, schemaVersion: 4 as const, fleet };
+
+    const result = loadSave({ version: 4, savedAt: 200, state: v4State }, 300);
+
+    expect(result).toMatchObject({ kind: "migrated", envelope: { version: 5, savedAt: 300 } });
+    if (result.kind !== "migrated") return;
+    expect(result.envelope.state.fleet.speed).toBe(100);
   });
 });

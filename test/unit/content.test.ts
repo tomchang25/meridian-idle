@@ -3,10 +3,15 @@ import {
   getProduct,
   getProductFamilyForProduct,
   PORTS,
+  NAV_EDGES,
+  NAVIGATION_CONSTANTS,
+  NAV_POINTS,
   PRODUCTS,
   PRODUCT_FAMILIES,
+  REGIONS,
   ROUTES,
   STARTING_PORT_ID,
+  SUB_REGIONS,
   SUPPLY_PRICES,
 } from "@/content/content-catalog";
 import { validateCatalog, type ContentCatalog } from "@/content/catalog-validation";
@@ -16,6 +21,11 @@ const shippedCatalog: ContentCatalog = {
   products: PRODUCTS,
   ports: PORTS,
   routes: ROUTES,
+  regions: REGIONS,
+  subRegions: SUB_REGIONS,
+  navPoints: NAV_POINTS,
+  navEdges: NAV_EDGES,
+  navigationConstants: NAVIGATION_CONSTANTS,
   supplyPrices: SUPPLY_PRICES,
   startingPortId: STARTING_PORT_ID,
 };
@@ -31,6 +41,12 @@ function codesFor(catalog: ContentCatalog): string[] {
 describe("core content", () => {
   it("provides every playable port with a valid ten-product catalog", () => {
     expect(PORTS).toHaveLength(3);
+    expect(validateCatalog(shippedCatalog)).toEqual([]);
+  });
+
+  it("authors a complete, clean navigation graph alongside legacy Routes", () => {
+    expect(NAV_POINTS).toHaveLength(4);
+    expect(NAV_EDGES).toHaveLength(12);
     expect(validateCatalog(shippedCatalog)).toEqual([]);
   });
 
@@ -131,5 +147,58 @@ describe("catalog validation", () => {
 
   it("rejects an invalid Supply price", () => {
     expect(codesFor(withCatalog({ supplyPrices: { ...SUPPLY_PRICES, food: 0 } }))).toContain("invalid-supply-price");
+  });
+
+  it("reports navigation graph identity, endpoint, and measurement failures", () => {
+    expect(codesFor(withCatalog({ regions: [...REGIONS, { ...REGIONS[0] }] }))).toContain("duplicate-region");
+    expect(codesFor(withCatalog({ subRegions: [...SUB_REGIONS, { ...SUB_REGIONS[0] }] }))).toContain(
+      "duplicate-sub-region",
+    );
+    expect(codesFor(withCatalog({ navPoints: [...NAV_POINTS, { ...NAV_POINTS[0] }] }))).toContain(
+      "duplicate-nav-point",
+    );
+    expect(codesFor(withCatalog({ navEdges: [...NAV_EDGES, { ...NAV_EDGES[0] }] }))).toContain("duplicate-nav-edge");
+    expect(codesFor(withCatalog({ navEdges: [{ ...NAV_EDGES[0], originNodeId: "atlantis" }] }))).toContain(
+      "unknown-edge-origin",
+    );
+    expect(codesFor(withCatalog({ navEdges: [{ ...NAV_EDGES[0], destinationNodeId: "atlantis" }] }))).toContain(
+      "unknown-edge-destination",
+    );
+    expect(codesFor(withCatalog({ navEdges: [{ ...NAV_EDGES[0], distance: 0 }] }))).toContain("invalid-edge-distance");
+    expect(codesFor(withCatalog({ navEdges: [{ ...NAV_EDGES[0], staticRisk: 2 }] }))).toContain("invalid-edge-risk");
+    expect(codesFor(withCatalog({ navEdges: [{ ...NAV_EDGES[0], traversalModifier: 0 }] }))).toContain(
+      "invalid-traversal-modifier",
+    );
+  });
+
+  it("reports navigation topology, chart, and graph reachability failures", () => {
+    expect(codesFor(withCatalog({ subRegions: [{ ...SUB_REGIONS[0], regionId: "atlantis" }] }))).toContain(
+      "unknown-sub-region-region",
+    );
+    expect(codesFor(withCatalog({ ports: [{ ...PORTS[0], subRegionId: "atlantis" }] }))).toContain(
+      "unknown-port-sub-region",
+    );
+    expect(codesFor(withCatalog({ ports: [{ ...PORTS[0], chartPosition: { x: 1_001, y: 0 } }] }))).toContain(
+      "invalid-port-chart-position",
+    );
+    expect(
+      codesFor(
+        withCatalog({ ports: [{ ...PORTS[0], chartPosition: undefined } as unknown as (typeof PORTS)[number]] }),
+      ),
+    ).toContain("missing-port-chart-position");
+    expect(
+      codesFor(withCatalog({ navEdges: [{ ...NAV_EDGES[0], spans: [{ subRegionId: "atlantis", distance: 1 }] }] })),
+    ).toContain("unknown-edge-span-sub-region");
+    expect(
+      codesFor(
+        withCatalog({ navEdges: [{ ...NAV_EDGES[0], spans: [{ subRegionId: "tagus-approaches", distance: 1 }] }] }),
+      ),
+    ).toContain("invalid-edge-span-distance");
+    expect(
+      codesFor(withCatalog({ navEdges: NAV_EDGES.filter((edge) => !edge.id.startsWith("lisbon-berth")) })),
+    ).toContain("invalid-berth-edge-pair");
+    expect(
+      codesFor(withCatalog({ navEdges: NAV_EDGES.filter((edge) => edge.destinationNodeId !== "tangier-approach") })),
+    ).toContain("unreachable-graph-port");
   });
 });

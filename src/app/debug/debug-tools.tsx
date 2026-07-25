@@ -24,4 +24,11 @@ export const DEBUG_TOOLS: DebugTool[] = [
       import("@/app/debug/scenario-testbed").then((module) => ({ default: module.ScenarioTestbed })),
     ),
   },
+  {
+    id: "chart",
+    path: "/debug/chart",
+    title: "Nautical chart inspector",
+    description: "Inspect authored navigation topology and preview port-to-port passage quotes.",
+    Component: lazy(() => import("@/app/debug/chart-inspector").then((module) => ({ default: module.ChartInspector }))),
+  },
 ];

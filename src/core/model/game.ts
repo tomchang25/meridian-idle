@@ -8,6 +8,7 @@ export type ActivityTone = "info" | "success" | "warning";
 export type CargoStack = { quantity: number; totalCostBasis: number };
 export type Fleet = {
   locationPortId: string;
+  speed: number;
   gold: number;
   cargoCapacity: number;
   hp: number;
@@ -49,7 +50,7 @@ export type MigrationReport = { fromVersion: 1; migratedAt: number; droppedField
 export type ActivityEntry = { id: string; at: number; message: string; tone: ActivityTone };
 
 export type V5GameState = {
-  schemaVersion: 4;
+  schemaVersion: 5;
   createdAt: number;
   world: { knownPortIds: string[] };
   fleet: Fleet;

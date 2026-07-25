@@ -1,4 +1,5 @@
 import type { Clock } from "@/runtime/clock";
+export { DEBUG_TIME_SCALE } from "@/content/navigation-definitions";
 
 /**
  * A clock a test drives by hand. Simulated time only moves when `advance` is
@@ -28,4 +29,11 @@ export function createHarnessClock(start: number = HARNESS_EPOCH): HarnessClock 
       return current;
     },
   };
+}
+
+/** Makes a Clock advance simulated time by a fixed multiple of its base clock. */
+export function createScaledClock(base: Clock, factor: number): Clock {
+  const startedAt = base.now();
+  const scale = Math.max(0, factor);
+  return { now: () => startedAt + (base.now() - startedAt) * scale };
 }

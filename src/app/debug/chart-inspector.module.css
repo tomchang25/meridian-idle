@@ -1,0 +1,255 @@
+.inspector {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  color: var(--color-ink);
+}
+
+.header,
+.columns,
+.controls,
+.legend {
+  display: flex;
+}
+
+.header {
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.header h1,
+.header p,
+.panel h2,
+.chartPanel h2 {
+  margin-top: 0;
+}
+
+.eyebrow {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chartPanel,
+.panel {
+  margin-top: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 25%, transparent);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.chart {
+  width: 100%;
+  max-height: 52rem;
+  background: #eaf7fa;
+  border-radius: 0.5rem;
+}
+
+.gridLine {
+  stroke: #bedde4;
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.edgeBase,
+.seaEdge,
+.berthEdge,
+.selectedRouteHalo {
+  stroke-linecap: round;
+}
+
+.edgeBase {
+  stroke: #d9e3e8;
+  stroke-width: 14;
+}
+.seaEdge {
+  stroke-width: 7;
+}
+.berthEdge {
+  stroke: #64748b;
+  stroke-width: 6;
+  stroke-dasharray: 11 9;
+}
+.inactiveEdge {
+  opacity: 0.56;
+}
+.selectedRouteHalo {
+  stroke: #38bdf8;
+  stroke-width: 17;
+  opacity: 0.75;
+}
+.edgeBadge {
+  fill: #ffffff;
+  stroke-width: 2;
+}
+.edgeLabel,
+.nodeLabel {
+  fill: #172554;
+  font-size: 18px;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+.edgeLabel {
+  font-size: 16px;
+  font-weight: 700;
+  stroke-width: 3px;
+}
+.portLabel {
+  fill: #0f172a;
+  font-size: 21px;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
+.port {
+  fill: #0f172a;
+  stroke: #f8fafc;
+  stroke-width: 5;
+}
+.selectedNode {
+  stroke: #38bdf8;
+  stroke-width: 8;
+}
+.approach {
+  fill: #f8fafc;
+  stroke: #0f172a;
+  stroke-width: 4;
+}
+.headland {
+  fill: #f59e0b;
+  stroke: #78350f;
+  stroke-width: 3;
+}
+.regionGroup {
+  fill: transparent;
+  stroke: #64748b;
+  stroke-width: 2;
+  stroke-dasharray: 14 10;
+  opacity: 0.72;
+}
+.subRegionGroup {
+  fill-opacity: 0.075;
+  stroke-width: 2;
+  stroke-dasharray: 7 7;
+  opacity: 0.82;
+}
+.regionLabel,
+.subRegionLabel {
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  paint-order: stroke;
+  stroke: #eaf7fa;
+  stroke-linejoin: round;
+}
+.regionLabel {
+  fill: #475569;
+  font-size: 15px;
+  stroke-width: 5px;
+}
+.subRegionLabel {
+  font-size: 13px;
+  stroke-width: 4px;
+}
+
+.legend {
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  list-style: none;
+  padding: 0;
+}
+
+.legend li {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.swatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+}
+.lineSwatch {
+  width: 1.5rem;
+  height: 0;
+  border-top: 0.3rem solid;
+  border-radius: 999px;
+}
+.selectedSwatch {
+  border-color: #0369a1;
+  border-top-style: dashed;
+}
+.berthSwatch {
+  border-color: #94a3b8;
+}
+.chartNote {
+  margin: 0.75rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.columns {
+  align-items: start;
+  gap: 1rem;
+}
+.panel {
+  flex: 1;
+  min-width: 0;
+}
+.controls {
+  gap: 1rem;
+}
+.controls label {
+  display: grid;
+  gap: 0.25rem;
+}
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.summary div {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-ink) 15%, transparent);
+  padding-bottom: 0.5rem;
+}
+.summary dt {
+  color: var(--color-muted);
+}
+.summary dd {
+  margin: 0.15rem 0 0;
+  font-weight: 700;
+}
+.breakdown,
+.diagnostics {
+  padding-left: 1.25rem;
+}
+.breakdown li,
+.diagnostics li {
+  margin-top: 0.5rem;
+}
+.clean {
+  color: #166534;
+}
+.denial {
+  color: #b91c1c;
+}
+
+@media (max-width: 45rem) {
+  .header,
+  .columns {
+    flex-direction: column;
+  }
+  .panel {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .chart {
+    max-height: 42rem;
+  }
+}

@@ -1,14 +1,18 @@
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { SUPPLY_IDS, type CargoStack, type V5GameState } from "@/core/model/game";
 
-export const CURRENT_SAVE_VERSION = 4;
+export const CURRENT_SAVE_VERSION = 5;
 
-export type SaveEnvelope = { version: 4; savedAt: number; state: V5GameState };
+export type SaveEnvelope = { version: 5; savedAt: number; state: V5GameState };
 export type SaveLoadResult =
   { kind: "current"; envelope: SaveEnvelope } | { kind: "migrated"; envelope: SaveEnvelope } | { kind: "corrupt" };
-type V3GameState = Omit<V5GameState, "schemaVersion" | "fleet"> & {
+type V4GameState = Omit<V5GameState, "schemaVersion" | "fleet"> & {
+  schemaVersion: 4;
+  fleet: Omit<V5GameState["fleet"], "speed">;
+};
+type V3GameState = Omit<V4GameState, "schemaVersion" | "fleet"> & {
   schemaVersion: 3;
-  fleet: Omit<V5GameState["fleet"], "supplyTargets" | "autoRestockOnArrival">;
+  fleet: Omit<V4GameState["fleet"], "supplyTargets" | "autoRestockOnArrival">;
 };
 type V2GameState = Omit<V3GameState, "schemaVersion" | "fleet"> & {
   schemaVersion: 2;
@@ -38,6 +42,24 @@ function isNonNegativeWhole(value: unknown): value is number {
 function isV5State(value: unknown): value is V5GameState {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<V5GameState>;
+  return (
+    candidate.schemaVersion === 5 &&
+    !!candidate.fleet &&
+    typeof candidate.fleet.locationPortId === "string" &&
+    !!candidate.marketSession &&
+    isFiniteNonNegative(candidate.fleet.gold) &&
+    typeof candidate.fleet.speed === "number" &&
+    Number.isFinite(candidate.fleet.speed) &&
+    candidate.fleet.speed > 0 &&
+    typeof candidate.fleet.autoRestockOnArrival === "boolean" &&
+    !!candidate.fleet.supplyTargets &&
+    SUPPLY_IDS.every((id) => isNonNegativeWhole(candidate.fleet?.supplyTargets?.[id]))
+  );
+}
+
+function isV4State(value: unknown): value is V4GameState {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<V4GameState>;
   return (
     candidate.schemaVersion === 4 &&
     !!candidate.fleet &&
@@ -106,7 +128,7 @@ function migrateV2State(state: V2GameState, now: number): V3GameState {
     ],
   };
 }
-function migrateV3State(state: V3GameState): V5GameState {
+function migrateV3State(state: V3GameState): V4GameState {
   return {
     ...state,
     schemaVersion: 4,
@@ -114,10 +136,13 @@ function migrateV3State(state: V3GameState): V5GameState {
       ...state.fleet,
       supplyTargets: Object.fromEntries(
         SUPPLY_IDS.map((id) => [id, state.fleet.supplies[id].quantity]),
-      ) as V5GameState["fleet"]["supplyTargets"],
+      ) as V4GameState["fleet"]["supplyTargets"],
       autoRestockOnArrival: false,
     },
   };
+}
+function migrateV4State(state: V4GameState): V5GameState {
+  return { ...state, schemaVersion: 5, fleet: { ...state.fleet, speed: 100 } };
 }
 
 export function createSaveEnvelope(state: V5GameState, now: number): SaveEnvelope {
@@ -127,14 +152,16 @@ export function createSaveEnvelope(state: V5GameState, now: number): SaveEnvelop
 export function loadSave(value: unknown, now: number): SaveLoadResult {
   if (!value || typeof value !== "object") return { kind: "corrupt" };
   const candidate = value as { version?: unknown; savedAt?: unknown; state?: unknown };
-  if (candidate.version === 4 && isFiniteNonNegative(candidate.savedAt) && isV5State(candidate.state))
-    return { kind: "current", envelope: { version: 4, savedAt: candidate.savedAt, state: candidate.state } };
+  if (candidate.version === 5 && isFiniteNonNegative(candidate.savedAt) && isV5State(candidate.state))
+    return { kind: "current", envelope: { version: 5, savedAt: candidate.savedAt, state: candidate.state } };
+  if (candidate.version === 4 && isFiniteNonNegative(candidate.savedAt) && isV4State(candidate.state))
+    return { kind: "migrated", envelope: createSaveEnvelope(migrateV4State(candidate.state), now) };
   if (candidate.version === 3 && isFiniteNonNegative(candidate.savedAt) && isV3State(candidate.state))
-    return { kind: "migrated", envelope: createSaveEnvelope(migrateV3State(candidate.state), now) };
+    return { kind: "migrated", envelope: createSaveEnvelope(migrateV4State(migrateV3State(candidate.state)), now) };
   if (candidate.version === 2 && isFiniteNonNegative(candidate.savedAt) && isV2State(candidate.state))
     return {
       kind: "migrated",
-      envelope: createSaveEnvelope(migrateV3State(migrateV2State(candidate.state, now)), now),
+      envelope: createSaveEnvelope(migrateV4State(migrateV3State(migrateV2State(candidate.state, now))), now),
     };
   if (candidate.version !== 1 || !candidate.state || typeof candidate.state !== "object") return { kind: "corrupt" };
   const legacyGold = (candidate.state as { resources?: { gold?: unknown } }).resources?.gold;
@@ -143,7 +170,7 @@ export function loadSave(value: unknown, now: number): SaveLoadResult {
   state.fleet.gold = legacyGold;
   state.migrationReport = { fromVersion: 1, migratedAt: now, droppedFields: DROPPED_V1_FIELDS, acknowledged: false };
   state.activity = [
-    { id: `v1-migrated-${now}`, at: now, message: "V4 save migrated. Review the migration report.", tone: "warning" },
+    { id: `v1-migrated-${now}`, at: now, message: "V5 save migrated. Review the migration report.", tone: "warning" },
   ];
   return { kind: "migrated", envelope: createSaveEnvelope(state, now) };
 }

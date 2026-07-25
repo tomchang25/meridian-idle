@@ -18,6 +18,8 @@ export const PORTS: Port[] = [
     id: "lisbon",
     name: "Lisbon",
     regionId: "iberian-atlantic",
+    subRegionId: "tagus-approaches",
+    chartPosition: { x: 250, y: 150 },
     catalog: catalog(["cod", "olive-oil", "wool-cloth", "iron-ingot"], ["salt", "wine", "rope"], "lisbon-cork", [
       "ceramic",
       "glassware",
@@ -27,6 +29,8 @@ export const PORTS: Port[] = [
     id: "faro",
     name: "Faro",
     regionId: "iberian-atlantic",
+    subRegionId: "algarve-coast",
+    chartPosition: { x: 550, y: 420 },
     catalog: catalog(["tuna", "olive-oil", "wool-cloth", "salt"], ["wine", "rope", "copper-ingot"], "faro-pig", [
       "iron-ingot",
       "glassware",
@@ -36,6 +40,8 @@ export const PORTS: Port[] = [
     id: "tangier",
     name: "Tangier",
     regionId: "maghreb-coast",
+    subRegionId: "gibraltar-approaches",
+    chartPosition: { x: 810, y: 820 },
     catalog: catalog(
       ["barley", "olive-oil", "wool-cloth", "copper-ingot"],
       ["salt", "wine", "leather"],
