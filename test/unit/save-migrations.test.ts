@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { WORLD_CONTENT } from "@/content/content-catalog";
+import { buySupply } from "@/core/rules/cargo";
+import { departVoyage, previewVoyagePassage } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
 
-describe("V9 save migration", () => {
+function readyToSail() {
+  const withFood = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 2, 1).state;
+  return buySupply(WORLD_CONTENT, withFood, "water", 2, 2).state;
+}
+
+describe("V10 save migration", () => {
   it("creates one legal Lisbon world", () => {
     const state = createInitialGameState(100);
     expect(state.fleet.locationPortId).toBe("lisbon");
@@ -20,12 +28,19 @@ describe("V9 save migration", () => {
     expect(result.envelope.state.migrationReport?.droppedFields).toContain("running Action");
   });
 
-  it("round-trips a current V9 payload, migrates V8, and rejects malformed saves", () => {
+  it("round-trips a current V10 payload, migrates V9 and V8, and rejects malformed saves", () => {
     const state = createInitialGameState(100);
     expect(loadSave(createSaveEnvelope(state, 200), 300)).toMatchObject({
       kind: "current",
       envelope: { savedAt: 200 },
     });
+
+    const v9State = { ...state, schemaVersion: 9 as const };
+    expect(loadSave({ version: 9, savedAt: 200, state: v9State }, 300)).toMatchObject({
+      kind: "migrated",
+      envelope: { version: 10, savedAt: 300, state: { fleet: state.fleet } },
+    });
+
     const v8Fleet: Record<string, unknown> = structuredClone(state.fleet);
     delete v8Fleet.holdingNavPointId;
     delete v8Fleet.holdingOriginNodeId;
@@ -33,7 +48,7 @@ describe("V9 save migration", () => {
     expect(loadSave({ version: 8, savedAt: 200, state: v8State }, 300)).toMatchObject({
       kind: "migrated",
       envelope: {
-        version: 9,
+        version: 10,
         savedAt: 300,
         state: { fleet: { holdingNavPointId: null, holdingOriginNodeId: null } },
       },
@@ -42,6 +57,46 @@ describe("V9 save migration", () => {
     malformedCurrent.state.fleet.supplyTargets.food = 0.5;
     expect(loadSave(malformedCurrent, 300)).toEqual({ kind: "corrupt" });
     expect(loadSave({ version: 1, state: { resources: { gold: Number.NaN } } }, 300)).toEqual({ kind: "corrupt" });
+  });
+
+  it("migrates an active V9 Voyage by stamping a false mid-edge marker without changing its route", () => {
+    const state = readyToSail();
+    const departed = departVoyage(
+      WORLD_CONTENT,
+      state,
+      "faro",
+      previewVoyagePassage(WORLD_CONTENT, state, "faro").quoteId!,
+      100,
+      3,
+    );
+    const v9State = { ...departed.state, schemaVersion: 9 as const };
+
+    const result = loadSave({ version: 9, savedAt: 500, state: v9State }, 800);
+
+    expect(result).toMatchObject({
+      kind: "migrated",
+      envelope: {
+        version: 10,
+        savedAt: 800,
+        state: { voyage: { passage: { departedMidEdge: false, destinationPortId: "faro" } } },
+      },
+    });
+  });
+
+  it("rejects a current V10 payload with a malformed mid-edge marker", () => {
+    const state = readyToSail();
+    const departed = departVoyage(
+      WORLD_CONTENT,
+      state,
+      "faro",
+      previewVoyagePassage(WORLD_CONTENT, state, "faro").quoteId!,
+      100,
+      3,
+    );
+    const envelope = createSaveEnvelope(departed.state, 200);
+    if (envelope.state.voyage?.passage.kind !== "planned") throw new Error("Expected a planned Passage.");
+    (envelope.state.voyage.passage as unknown as Record<string, unknown>).departedMidEdge = "not-a-boolean";
+    expect(loadSave(envelope, 300)).toEqual({ kind: "corrupt" });
   });
 
   it("migrates a valid active V6 Passage without duplicating its scheduled wait", () => {
@@ -84,7 +139,7 @@ describe("V9 save migration", () => {
     expect(result).toMatchObject({
       kind: "migrated",
       envelope: {
-        version: 9,
+        version: 10,
         savedAt: 800,
         state: {
           voyage: {
@@ -145,7 +200,7 @@ describe("V9 save migration", () => {
     expect(result).toMatchObject({
       kind: "migrated",
       envelope: {
-        version: 9,
+        version: 10,
         state: {
           voyage: {
             progress: {
@@ -176,7 +231,7 @@ describe("V9 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 9, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 10, savedAt: 300 });
     expect(result.envelope.state.fleet.supplyTargets.food).toBe(3);
     expect(result.envelope.state.fleet.autoRestockOnArrival).toBe(false);
   });
@@ -202,7 +257,7 @@ describe("V9 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 9, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 10, savedAt: 300 });
     expect(result.envelope.state.fleet.supplies.munitions).toEqual({ quantity: 4, totalCostBasis: 72 });
     expect(result.envelope.state.fleet.supplies.spares).toEqual({ quantity: 5, totalCostBasis: 120 });
     expect(result.envelope.state.fleet.supplyTargets).toMatchObject({ munitions: 4, spares: 5 });
@@ -217,7 +272,7 @@ describe("V9 save migration", () => {
 
     const result = loadSave({ version: 4, savedAt: 200, state: v4State }, 300);
 
-    expect(result).toMatchObject({ kind: "migrated", envelope: { version: 9, savedAt: 300 } });
+    expect(result).toMatchObject({ kind: "migrated", envelope: { version: 10, savedAt: 300 } });
     if (result.kind !== "migrated") return;
     expect(result.envelope.state.fleet.speed).toBe(100);
   });
@@ -246,7 +301,7 @@ describe("V9 save migration", () => {
     expect(result).toMatchObject({
       kind: "migrated",
       envelope: {
-        version: 9,
+        version: 10,
         state: {
           voyage: {
             departedAt: 100,

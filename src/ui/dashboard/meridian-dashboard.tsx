@@ -59,7 +59,7 @@ export function DashboardView({ store }: { store: DashboardStore }) {
           <PortScenePanel state={state} />
           <DashboardFeedback store={store} />
           {state.voyage ? (
-            <VoyageStatusPanel voyage={state.voyage} clock={store.clock} />
+            <VoyageStatusPanel voyage={state.voyage} store={store} />
           ) : state.fleet.holdingNavPointId ? (
             <NavPointHoldPanel store={store} />
           ) : (

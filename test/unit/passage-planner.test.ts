@@ -51,6 +51,7 @@ describe("passage planner", () => {
     const edges: NavEdge[] = [
       {
         id: "beta-first",
+        corridorId: "beta-first",
         originNodeId: "lisbon",
         destinationNodeId: "beta",
         distance: 1,
@@ -60,6 +61,7 @@ describe("passage planner", () => {
       },
       {
         id: "beta-last",
+        corridorId: "beta-last",
         originNodeId: "beta",
         destinationNodeId: "faro",
         distance: 1,
@@ -69,6 +71,7 @@ describe("passage planner", () => {
       },
       {
         id: "alpha-first",
+        corridorId: "alpha-first",
         originNodeId: "lisbon",
         destinationNodeId: "alpha",
         distance: 1,
@@ -78,6 +81,7 @@ describe("passage planner", () => {
       },
       {
         id: "alpha-last",
+        corridorId: "alpha-last",
         originNodeId: "alpha",
         destinationNodeId: "faro",
         distance: 1,
@@ -102,6 +106,7 @@ describe("passage planner", () => {
     const edges: NavEdge[] = [
       {
         id: "first",
+        corridorId: "first",
         originNodeId: "lisbon",
         destinationNodeId: "sea",
         distance: 0.25,
@@ -111,6 +116,7 @@ describe("passage planner", () => {
       },
       {
         id: "second",
+        corridorId: "second",
         originNodeId: "sea",
         destinationNodeId: "faro",
         distance: 0.25,

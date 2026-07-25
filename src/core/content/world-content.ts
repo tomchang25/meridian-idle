@@ -52,14 +52,16 @@ export type NavPoint = {
   harborPortId?: string;
   subRegionId: string;
   chartPosition: ChartPosition;
-  /** A player may choose this point as a safe Passage terminal. */
-  canHoldPosition?: boolean;
+  /** A player may select this point on the chart as a Passage destination. Holding at a node reached any other way needs no such authorization. */
+  isChartDestination?: boolean;
 };
 
 export type NavEdgeSpan = { subRegionId: string; distance: number };
 
 export type NavEdge = {
   id: string;
+  /** Identifies the two-way water corridor this edge belongs to; its reverse edge shares this id. */
+  corridorId: string;
   originNodeId: string;
   destinationNodeId: string;
   distance: number;

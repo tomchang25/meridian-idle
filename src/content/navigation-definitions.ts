@@ -43,12 +43,12 @@ export const NAV_POINTS: NavPoint[] = [
     kind: "headland",
     subRegionId: "algarve-coast",
     chartPosition: { x: 210, y: 500 },
-    canHoldPosition: true,
+    isChartDestination: true,
   },
 ];
 
 function directedPair(
-  id: string,
+  corridorId: string,
   originNodeId: string,
   destinationNodeId: string,
   distance: number,
@@ -56,15 +56,25 @@ function directedPair(
   spans: NavEdge["spans"],
 ): NavEdge[] {
   return [
-    { id: `${id}-outbound`, originNodeId, destinationNodeId, distance, staticRisk, traversalModifier: 1, spans },
     {
-      id: `${id}-inbound`,
+      id: `${corridorId}-outbound`,
+      corridorId,
+      originNodeId,
+      destinationNodeId,
+      distance,
+      staticRisk,
+      traversalModifier: 1,
+      spans,
+    },
+    {
+      id: `${corridorId}-inbound`,
+      corridorId,
       originNodeId: destinationNodeId,
       destinationNodeId: originNodeId,
       distance,
       staticRisk,
       traversalModifier: 1,
-      spans,
+      spans: [...spans].reverse(),
     },
   ];
 }

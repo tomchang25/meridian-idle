@@ -66,6 +66,10 @@ function reachableGraphPorts(catalog: ContentCatalog): Set<string> {
   return reached;
 }
 
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0;
+}
+
 function hasChartPosition(position: unknown): boolean {
   if (!position || typeof position !== "object") return false;
   const candidate = position as { x?: unknown; y?: unknown };
@@ -213,6 +217,42 @@ export function validateCatalog(catalog: ContentCatalog): ContentDiagnostic[] {
       if (otherNode?.kind !== "harbor-approach" || otherNode.harborPortId !== portNodeId)
         report("invalid-berth-edge", edge.id, "Berth edges must connect a Port and its harbor approach.");
     }
+    if (!isNonEmptyString(edge.corridorId))
+      report("missing-corridor-id", edge.id, "Navigation edge must name an authored corridor identity.");
+  }
+
+  const edgesByCorridor = new Map<string, NavEdge[]>();
+  for (const edge of catalog.navEdges) {
+    if (!isNonEmptyString(edge.corridorId)) continue;
+    const group = edgesByCorridor.get(edge.corridorId) ?? [];
+    group.push(edge);
+    edgesByCorridor.set(edge.corridorId, group);
+  }
+  for (const [corridorId, edges] of edgesByCorridor) {
+    if (edges.length !== 2) {
+      report("invalid-corridor-size", corridorId, "Navigation corridor must contain exactly two directed edges.");
+      continue;
+    }
+    const [outbound, inbound] = edges;
+    const mirroredSpans =
+      outbound.spans.length === inbound.spans.length &&
+      outbound.spans.every((span, index) => {
+        const mirror = inbound.spans[inbound.spans.length - 1 - index];
+        return !!mirror && span.subRegionId === mirror.subRegionId && span.distance === mirror.distance;
+      });
+    const mirrored =
+      outbound.originNodeId === inbound.destinationNodeId &&
+      outbound.destinationNodeId === inbound.originNodeId &&
+      outbound.distance === inbound.distance &&
+      outbound.staticRisk === inbound.staticRisk &&
+      outbound.traversalModifier === inbound.traversalModifier &&
+      mirroredSpans;
+    if (!mirrored)
+      report(
+        "mismatched-corridor",
+        corridorId,
+        "Navigation corridor's two directed edges must mirror endpoints, distance, risk, and reversed span order.",
+      );
   }
 
   for (const port of catalog.ports) {

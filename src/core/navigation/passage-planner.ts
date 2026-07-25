@@ -3,7 +3,12 @@ import type { NavEdge, WorldContent } from "@/core/content/world-content";
 export const SUPPLY_CONSUMPTION_SCALE = 1_000_000;
 
 export type PassageDenialReason =
-  "origin-not-port" | "destination-not-port" | "destination-unknown" | "same-port" | "invalid-speed" | "no-legal-path";
+  | "origin-unknown-node"
+  | "destination-unknown-node"
+  | "destination-unknown"
+  | "same-port"
+  | "invalid-speed"
+  | "no-legal-path";
 
 export type PassagePlan = {
   kind: "planned";
@@ -81,14 +86,15 @@ export function planPassage(input: PassagePlannerInput): PassagePlan | PassageDe
       kind: "denied",
       originPortId: input.originPortId,
       destinationPortId: input.destinationPortId,
-      reason: "origin-not-port",
+      reason: "origin-unknown-node",
     };
-  if (!input.world.getPort(input.destinationPortId) && !input.world.getNavPoint(input.destinationPortId))
+  const destinationPoint = input.world.getNavPoint(input.destinationPortId);
+  if (!input.world.getPort(input.destinationPortId) && !destinationPoint)
     return {
       kind: "denied",
       originPortId: input.originPortId,
       destinationPortId: input.destinationPortId,
-      reason: "destination-not-port",
+      reason: "destination-unknown-node",
     };
   if (input.originPortId === input.destinationPortId)
     return {
@@ -104,7 +110,10 @@ export function planPassage(input: PassagePlannerInput): PassagePlan | PassageDe
       destinationPortId: input.destinationPortId,
       reason: "invalid-speed",
     };
-  if (input.world.getPort(input.destinationPortId) && !input.knownPortIds.includes(input.destinationPortId))
+  const knownDestinationPortId = input.world.getPort(input.destinationPortId)
+    ? input.destinationPortId
+    : destinationPoint?.harborPortId;
+  if (knownDestinationPortId && !input.knownPortIds.includes(knownDestinationPortId))
     return {
       kind: "denied",
       originPortId: input.originPortId,

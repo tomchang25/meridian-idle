@@ -174,6 +174,69 @@ describe("GameRuntime", () => {
     expect(runtime.getSnapshot().saveStatus).toBe("saved");
   });
 
+  it("breaks off mid-Voyage, reschedules the boundary to the connector, and holds at the chosen exit", async () => {
+    vi.useFakeTimers();
+    const clock = controllableClock();
+    const runtime = new GameRuntime({ repository: repository(), seedSource, clock, voyagePacingMultiplier: 20 });
+    runtime.startNewGame();
+    runtime.setSupplyTarget("food", 2);
+    runtime.setSupplyTarget("water", 2);
+    runtime.restockAllSupplies();
+    departForFaro(runtime);
+
+    clock.advance(500);
+    const preview = runtime.previewBreakOff();
+    expect(preview.kind).toBe("mid-edge");
+    if (preview.kind !== "mid-edge") throw new Error("Expected a mid-edge break-off preview.");
+    expect(preview.next.nodeId).toBe("cape-st-vincent");
+
+    runtime.breakOffVoyage("next", preview.next.quoteId!);
+    const connector = runtime.getSnapshot().state.voyage;
+    expect(connector?.passage.destinationPortId).toBe("cape-st-vincent");
+
+    // The superseded Passage must never arrive; only the connector's own boundary should fire.
+    const delta = connector!.plannedArrivesAt - clock.now();
+    clock.advance(delta);
+    await vi.advanceTimersByTimeAsync(delta);
+
+    expect(runtime.getSnapshot().state.voyage).toBeNull();
+    expect(runtime.getSnapshot().state.fleet.holdingNavPointId).toBe("cape-st-vincent");
+    expect(runtime.getSnapshot().state.fleet.locationPortId).toBe("lisbon");
+  });
+
+  it("rejects break-off atomically when injected secure randomness becomes unavailable", async () => {
+    let available = true;
+    const flakySeed: SeedSource = {
+      isAvailable: () => available,
+      nextSeed: () => {
+        if (!available) throw new Error("Secure randomness is unavailable.");
+        return 3;
+      },
+    };
+    const clock = controllableClock();
+    const runtime = new GameRuntime({
+      repository: repository(),
+      seedSource: flakySeed,
+      clock,
+      voyagePacingMultiplier: 20,
+    });
+    runtime.startNewGame();
+    runtime.setSupplyTarget("food", 2);
+    runtime.setSupplyTarget("water", 2);
+    runtime.restockAllSupplies();
+    departForFaro(runtime);
+
+    available = false;
+    clock.advance(500);
+    const breakOffPreview = runtime.previewBreakOff();
+    if (breakOffPreview.kind !== "mid-edge") throw new Error("Expected a mid-edge break-off preview.");
+    const voyageBefore = runtime.getSnapshot().state.voyage;
+    runtime.breakOffVoyage("next", breakOffPreview.next.quoteId!);
+
+    expect(runtime.getSnapshot().state.voyage).toBe(voyageBefore);
+    expect(runtime.getSnapshot().commandError).toBe("Secure randomness is unavailable; break-off was not changed.");
+  });
+
   it("notifies subscribers on every commit and stops after unsubscribe", () => {
     const runtime = new GameRuntime({ repository: repository(), seedSource, clock: controllableClock() });
     let notifications = 0;

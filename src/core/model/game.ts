@@ -107,6 +107,8 @@ export type PlannedPassageSnapshot = PassageSnapshotBase & {
   kind: "planned";
   edges: PassageEdgeSnapshot[];
   totalDistance: number;
+  /** True when this Passage began mid-edge from a break-off, so its origin is open water rather than a place the Fleet actually departed from. */
+  departedMidEdge: boolean;
 };
 
 export type LegacyRoutePassageSnapshot = PassageSnapshotBase & {
@@ -136,7 +138,7 @@ export type MigrationReport = { fromVersion: 1; migratedAt: number; droppedField
 export type ActivityEntry = { id: string; at: number; message: string; tone: ActivityTone };
 
 export type GameState = {
-  schemaVersion: 9;
+  schemaVersion: 10;
   createdAt: number;
   world: { knownPortIds: string[] };
   fleet: Fleet;

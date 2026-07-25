@@ -1,7 +1,8 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SaveStatus } from "@/runtime/use-game-store";
-import type { GameState } from "@/core/model/game";
+import type { GameState, PlannedPassageSnapshot } from "@/core/model/game";
+import type { BreakOffExitOption, BreakOffPreview } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { MeridianDashboard } from "@/ui/dashboard/meridian-dashboard";
 
@@ -63,6 +64,10 @@ const store = {
     error: null,
   })),
   departVoyage: vi.fn(),
+  previewBreakOff: vi.fn((): BreakOffPreview => ({ kind: "unavailable", error: "The Fleet is not underway." })),
+  breakOffVoyage: vi.fn(),
+  breakOffAtNode: vi.fn(),
+  clock: { now: () => 0 },
 };
 
 vi.mock("@/runtime/use-game-store", () => ({ useGameStore: () => store }));
@@ -77,6 +82,7 @@ describe("MeridianDashboard", () => {
     store.commandError = null;
     store.canGenerateVoyageSeed = true;
     vi.clearAllMocks();
+    store.previewBreakOff.mockReturnValue({ kind: "unavailable", error: "The Fleet is not underway." });
   });
 
   afterEach(cleanup);
@@ -278,6 +284,7 @@ describe("MeridianDashboard", () => {
         pacingMultiplier: 20,
         staticRisk: 0.1,
         requiredSupplies: { food: 1, water: 1 },
+        departedMidEdge: false,
       },
       progress: {
         kind: "planned",
@@ -320,6 +327,76 @@ describe("MeridianDashboard", () => {
     expect(screen.queryByRole("button", { name: "Check arrival" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Latest arrival" })).toBeVisible();
     expect(screen.getByText(/Source XP gained 12; committed supply cost 4/)).toBeVisible();
+  });
+
+  it("offers both break-off exits while underway and wires the chosen exit to breakOffVoyage", () => {
+    const now = Date.now();
+    store.state.voyage = {
+      id: "voyage-1",
+      departedAt: now - 1_000,
+      plannedArrivesAt: now + 1_000,
+      passage: {
+        kind: "planned",
+        originPortId: "lisbon",
+        destinationPortId: "faro",
+        edges: [],
+        totalDistance: 20,
+        plannedSailingDurationMilliseconds: 40_000,
+        pacingMultiplier: 20,
+        staticRisk: 0.1,
+        requiredSupplies: { food: 1, water: 1 },
+        departedMidEdge: false,
+      },
+      progress: {
+        kind: "planned",
+        resolvedAt: now - 1_000,
+        resolvedSimulationOffsetMilliseconds: 20_000,
+        completedSpanCount: 0,
+        completedEdgeCount: 0,
+        position: {
+          kind: "edge",
+          edgeId: "fixture-edge",
+          originNodeId: "lisbon-approach",
+          destinationNodeId: "cape-st-vincent",
+          simulationOffsetMilliseconds: 20_000,
+        },
+        nextBoundaryAt: now + 1_000,
+        supplyLedger: {
+          accountingMode: "accruing",
+          consumedSupplies: { food: 0, water: 0 },
+          remainderMicroUnitMilliseconds: { food: 0, water: 0 },
+          supplyConsumptionMicroUnitsPerSecond: { food: 20_000, water: 20_000 },
+        },
+      },
+      supplyCost: 2,
+      seed: 7,
+    };
+    const priorOption: BreakOffExitOption = {
+      exit: "prior",
+      nodeId: "lisbon-approach",
+      quoteId: "quote-prior",
+      passage: { kind: "planned", staticRisk: 0.02 } as unknown as PlannedPassageSnapshot,
+      scheduledDurationMilliseconds: 300,
+      supplyConsumptionMicroUnitsPerSecond: { food: 20_000, water: 20_000 },
+      readiness: { food: { required: 1, aboard: 2, missing: 0 }, water: { required: 1, aboard: 2, missing: 0 } },
+      error: null,
+    };
+    const nextOption: BreakOffExitOption = {
+      ...priorOption,
+      exit: "next",
+      nodeId: "cape-st-vincent",
+      quoteId: "quote-next",
+    };
+    store.previewBreakOff.mockReturnValue({ kind: "mid-edge", prior: priorOption, next: nextOption });
+
+    render(<MeridianDashboard />);
+
+    expect(screen.getByText("Lisbon Approach")).toBeVisible();
+    expect(screen.getByText("Cape St. Vincent")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Break off back" }));
+    expect(store.breakOffVoyage).toHaveBeenCalledWith("prior", "quote-prior");
+    fireEvent.click(screen.getByRole("button", { name: "Break off onward" }));
+    expect(store.breakOffVoyage).toHaveBeenCalledWith("next", "quote-next");
   });
 
   it("opens a chart-backed sailing target picker from a safe holding position and can return", () => {

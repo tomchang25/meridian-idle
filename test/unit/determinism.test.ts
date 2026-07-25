@@ -6,7 +6,13 @@ import { createRandomStream } from "@/core/random/random-stream";
 import { createRandomStreams, deriveSeed } from "@/core/random/random-streams";
 import { buySupply, setAutoRestockOnArrival, setSupplyTarget } from "@/core/rules/cargo";
 import { buyProduct } from "@/core/rules/market";
-import { departVoyage, previewVoyagePassage, resolveVoyage } from "@/core/rules/voyage";
+import {
+  breakOffVoyage,
+  departVoyage,
+  previewBreakOff,
+  previewVoyagePassage,
+  resolveVoyage,
+} from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
 
@@ -109,6 +115,42 @@ describe("determinism", () => {
 
     expect(lateResolution.events).toEqual(onTime.events.slice(-lateResolution.events.length));
     expect(lateResolution.state).toEqual(onTime.state);
+  });
+
+  function runBreakOffCommands(from: GameState): { state: GameState; events: GameEvent[] } {
+    const events: GameEvent[] = [];
+    let state = from;
+    const step = (result: { state: GameState; events: readonly GameEvent[] }) => {
+      state = result.state;
+      events.push(...result.events);
+    };
+
+    step(buySupply(WORLD_CONTENT, state, "food", 2, 10));
+    step(buySupply(WORLD_CONTENT, state, "water", 2, 20));
+    step(departForFaro(state));
+    const preview = previewBreakOff(WORLD_CONTENT, state, 600, 20);
+    if (preview.kind !== "mid-edge") throw new Error("Expected a mid-edge break-off preview.");
+    step(breakOffVoyage(WORLD_CONTENT, state, 600, "next", preview.next.quoteId!, 5, 20));
+
+    return { state, events };
+  }
+
+  it("reproduces the same break-off connector and holding outcome across runs, save round-trip, and offline resolution", () => {
+    const firstRun = runBreakOffCommands(createInitialGameState(0));
+    const first = { state: resolveVoyage(WORLD_CONTENT, firstRun.state, 2_000).state, events: firstRun.events };
+    const second = runBreakOffCommands(createInitialGameState(0));
+    expect(second.events).toEqual(firstRun.events);
+    expect(second.state).toEqual(firstRun.state);
+    expect(first.state.fleet.holdingNavPointId).toBe("cape-st-vincent");
+
+    const roundTripped = runBreakOffCommands(createInitialGameState(0));
+    const loaded = loadSave(createSaveEnvelope(roundTripped.state, 600), 600);
+    expect(loaded.kind).toBe("current");
+    if (loaded.kind === "corrupt") throw new Error("Round-tripped save must load.");
+    expect(resolveVoyage(WORLD_CONTENT, loaded.envelope.state, 2_000).state).toEqual(first.state);
+
+    const offline = runBreakOffCommands(createInitialGameState(0));
+    expect(resolveVoyage(WORLD_CONTENT, offline.state, 900_000).state).toEqual(first.state);
   });
 });
 

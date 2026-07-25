@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { SupplyId, GameState } from "@/core/model/game";
+import type { BreakOffExitId } from "@/core/rules/voyage";
 import { GameRuntime, type SaveRepository, type SaveStatus } from "@/runtime/game-runtime";
 import type { Clock } from "@/runtime/clock";
 import type { SeedSource } from "@/runtime/seed-source";
@@ -67,6 +68,9 @@ export function useGameStore({
       sellProduct: (productId: string, quantity: number) => runtime.sellProduct(productId, quantity),
       previewVoyage: (destinationPortId: string) => runtime.previewVoyage(destinationPortId),
       departVoyage: (destinationPortId: string, quoteId: string) => runtime.departVoyage(destinationPortId, quoteId),
+      previewBreakOff: () => runtime.previewBreakOff(),
+      breakOffVoyage: (exit: BreakOffExitId, quoteId: string) => runtime.breakOffVoyage(exit, quoteId),
+      breakOffAtNode: (quoteId: string) => runtime.breakOffAtNode(quoteId),
     }),
     [runtime, snapshot],
   );

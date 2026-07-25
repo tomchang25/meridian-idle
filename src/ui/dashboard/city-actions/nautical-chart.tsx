@@ -11,7 +11,7 @@ type NauticalChartProps = {
   knownPortIds: readonly string[];
   passage: PlannedPassageSnapshot | null;
   onSelectPort(portId: string): void;
-  showHoldableNavPoints?: boolean;
+  showNavPointDestinations?: boolean;
   selectedNavPointId?: string | null;
   onSelectNavPoint?(navPointId: string): void;
 };
@@ -114,7 +114,7 @@ export function NauticalChart({
   knownPortIds,
   passage,
   onSelectPort,
-  showHoldableNavPoints = true,
+  showNavPointDestinations = true,
   selectedNavPointId = null,
   onSelectNavPoint,
 }: NauticalChartProps) {
@@ -218,8 +218,8 @@ export function NauticalChart({
               </li>
             );
           })}
-          {showHoldableNavPoints &&
-            NAV_POINTS.filter((point) => point.canHoldPosition).map((point) => (
+          {showNavPointDestinations &&
+            NAV_POINTS.filter((point) => point.isChartDestination).map((point) => (
               <li key={point.id} style={portStyle(point.chartPosition)}>
                 <button
                   type="button"

@@ -135,6 +135,29 @@ describe("useGameStore", () => {
     expect(result.current.commandError).toBe("Secure randomness is unavailable; Voyage departure was not changed.");
   });
 
+  it("exposes break-off preview and commit through the hook", async () => {
+    let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 2, 1).state;
+    state = buySupply(WORLD_CONTENT, state, "water", 2, 2).state;
+    state = departForFaro(state, 1_000, 20).state;
+    const currentNow = 1_500;
+    const dependencies: GameStoreDependencies = {
+      repository: repository(createSaveEnvelope(state, 1_000)),
+      seedSource: fixedSeedSource,
+      clock: { now: () => currentNow },
+      voyagePacingMultiplier: 20,
+    };
+    const { result } = renderHook(() => useGameStore(dependencies));
+    await settleHydration();
+
+    const preview = result.current.previewBreakOff();
+    expect(preview.kind).toBe("mid-edge");
+    if (preview.kind !== "mid-edge") return;
+
+    act(() => result.current.breakOffVoyage("next", preview.next.quoteId!));
+
+    expect(result.current.state.voyage?.passage.destinationPortId).toBe("cape-st-vincent");
+  });
+
   it("reschedules after clock rollback and applies one arrival in Strict Mode", async () => {
     vi.useFakeTimers();
     let currentNow = 100;

@@ -9,9 +9,14 @@ import {
 } from "@/core/rules/cargo";
 import { buyProduct as applyProductBuy, sellProduct as applyProductSell } from "@/core/rules/market";
 import {
+  breakOffAtNode as applyBreakOffAtNode,
+  breakOffVoyage as applyBreakOffVoyage,
   departVoyage as applyDeparture,
+  previewBreakOff,
   previewVoyagePassage,
   resolveVoyage as applyVoyageResolution,
+  type BreakOffExitId,
+  type BreakOffPreview,
   type VoyagePassagePreview,
 } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
@@ -268,6 +273,48 @@ export class GameRuntime {
   /** Settles an arrival that is now due; a no-op while the Voyage is still at sea. */
   resolveVoyage(): void {
     this.commit(applyVoyageResolution(WORLD_CONTENT, this.snapshot.state, this.clock.now()));
+  }
+
+  previewBreakOff(): BreakOffPreview {
+    return previewBreakOff(WORLD_CONTENT, this.snapshot.state, this.clock.now(), this.voyagePacingMultiplier);
+  }
+
+  breakOffVoyage(exit: BreakOffExitId, quoteId: string): void {
+    let seed: number | null = null;
+    try {
+      seed = this.seedSource.nextSeed();
+    } catch {
+      seed = null;
+    }
+    if (seed === null) {
+      this.publish({ commandError: "Secure randomness is unavailable; break-off was not changed." });
+      return;
+    }
+    this.commit(
+      applyBreakOffVoyage(
+        WORLD_CONTENT,
+        this.snapshot.state,
+        this.clock.now(),
+        exit,
+        quoteId,
+        seed,
+        this.voyagePacingMultiplier,
+      ),
+    );
+  }
+
+  breakOffAtNode(quoteId: string): void {
+    let seed: number | null = null;
+    try {
+      seed = this.seedSource.nextSeed();
+    } catch {
+      seed = null;
+    }
+    if (seed === null) {
+      this.publish({ commandError: "Secure randomness is unavailable; break-off was not changed." });
+      return;
+    }
+    this.commit(applyBreakOffAtNode(WORLD_CONTENT, this.snapshot.state, this.clock.now(), quoteId, seed));
   }
 
   // --- internals ----------------------------------------------------------

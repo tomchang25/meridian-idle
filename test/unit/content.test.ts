@@ -164,4 +164,16 @@ describe("catalog validation", () => {
       codesFor(withCatalog({ navEdges: NAV_EDGES.filter((edge) => edge.destinationNodeId !== "tangier-approach") })),
     ).toContain("unreachable-graph-port");
   });
+
+  it("requires every navigation edge to belong to a mirrored two-edge corridor", () => {
+    expect(codesFor(withCatalog({ navEdges: [{ ...NAV_EDGES[0], corridorId: "" }] }))).toContain("missing-corridor-id");
+    const [outbound, inbound] = NAV_EDGES.filter((edge) => edge.corridorId === "lisbon-cape");
+    expect(codesFor(withCatalog({ navEdges: [outbound] }))).toContain("invalid-corridor-size");
+    expect(codesFor(withCatalog({ navEdges: [outbound, { ...inbound, distance: inbound.distance + 1 }] }))).toContain(
+      "mismatched-corridor",
+    );
+    expect(
+      codesFor(withCatalog({ navEdges: [outbound, { ...inbound, spans: [...inbound.spans].reverse() }] })),
+    ).toContain("mismatched-corridor");
+  });
 });

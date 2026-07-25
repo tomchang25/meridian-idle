@@ -47,6 +47,13 @@ export function activityEntryFor(event: GameEvent): ActivityEntry {
         message: `Departed for ${event.destinationPortId}.`,
         tone: "info",
       };
+    case "voyage-broke-off":
+      return {
+        id: `${event.voyageId}-broke-off`,
+        at: event.at,
+        message: `Broke off, now sailing toward ${event.destinationPortId}.`,
+        tone: "info",
+      };
     case "voyage-arrived":
       return {
         id: `${event.voyageId}-arrived`,

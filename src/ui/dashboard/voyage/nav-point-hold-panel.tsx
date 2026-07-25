@@ -81,7 +81,7 @@ export function NavPointHoldPanel({ store }: NavPointHoldPanelProps) {
             knownPortIds={state.world.knownPortIds}
             passage={passage}
             onSelectPort={setDestinationPortId}
-            showHoldableNavPoints={false}
+            showNavPointDestinations={false}
           />
           <section className={styles.holdingPassagePreview} aria-labelledby="holding-passage-preview">
             <div>

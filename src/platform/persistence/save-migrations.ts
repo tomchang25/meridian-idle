@@ -1,8 +1,10 @@
 import {
   SUPPLY_IDS,
   type CargoStack,
+  type LegacyRoutePassageSnapshot,
   type PassageEdgeSnapshot,
   type PassageSnapshot,
+  type PlannedPassageSnapshot,
   type GameState,
   type Voyage,
   type VoyageProgress,
@@ -10,10 +12,10 @@ import {
 } from "@/core/model/game";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 
-export const CURRENT_SAVE_VERSION = 9;
+export const CURRENT_SAVE_VERSION = 10;
 const SUPPLY_REMAINDER_THRESHOLD = 1_000_000_000;
 
-export type SaveEnvelope = { version: 9; savedAt: number; state: GameState };
+export type SaveEnvelope = { version: 10; savedAt: number; state: GameState };
 export type SaveLoadResult =
   { kind: "current"; envelope: SaveEnvelope } | { kind: "migrated"; envelope: SaveEnvelope } | { kind: "corrupt" };
 
@@ -54,14 +56,22 @@ type PersistedV6GameState = Omit<GameState, "schemaVersion" | "voyage"> & {
   voyage: PersistedV6Voyage | null;
 };
 
-type PersistedV7Voyage = Omit<Voyage, "progress">;
+type PersistedV9PlannedPassageSnapshot = Omit<PlannedPassageSnapshot, "departedMidEdge">;
+type PersistedV9PassageSnapshot = PersistedV9PlannedPassageSnapshot | LegacyRoutePassageSnapshot;
+type PersistedV9Voyage = Omit<Voyage, "passage"> & { passage: PersistedV9PassageSnapshot };
+type PersistedV9GameState = Omit<GameState, "schemaVersion" | "voyage"> & {
+  schemaVersion: 9;
+  voyage: PersistedV9Voyage | null;
+};
+type PersistedV7Voyage = Omit<Voyage, "progress" | "passage"> & { passage: PersistedV9PassageSnapshot };
 type PersistedV7GameState = Omit<GameState, "schemaVersion" | "voyage"> & {
   schemaVersion: 7;
   voyage: PersistedV7Voyage | null;
 };
-type PersistedV8GameState = Omit<GameState, "schemaVersion" | "fleet"> & {
+type PersistedV8GameState = Omit<GameState, "schemaVersion" | "fleet" | "voyage"> & {
   schemaVersion: 8;
   fleet: Omit<GameState["fleet"], "holdingNavPointId" | "holdingOriginNodeId">;
+  voyage: PersistedV9Voyage | null;
 };
 
 type LegacyRouteVoyage = {
@@ -286,7 +296,7 @@ function isV6PassageSnapshot(value: unknown): value is PersistedV6PassageSnapsho
   return previousOffset === planned.simulationDurationMilliseconds;
 }
 
-function isPassageSnapshot(value: unknown): value is PassageSnapshot {
+function isPassageSnapshot(value: unknown, requireDepartedMidEdge: boolean): value is PassageSnapshot {
   if (!value || typeof value !== "object") return false;
   const passage = value as Partial<PassageSnapshot>;
   if (
@@ -307,7 +317,8 @@ function isPassageSnapshot(value: unknown): value is PassageSnapshot {
     planned.kind !== "planned" ||
     !Array.isArray(planned.edges) ||
     typeof planned.totalDistance !== "number" ||
-    !(planned.totalDistance > 0)
+    !(planned.totalDistance > 0) ||
+    (requireDepartedMidEdge && typeof (planned as Partial<PlannedPassageSnapshot>).departedMidEdge !== "boolean")
   )
     return false;
   if (planned.edges.length === 0 || !planned.edges.every(isPassageEdgeSnapshot)) return false;
@@ -369,7 +380,7 @@ function isV6State(value: unknown): value is PersistedV6GameState {
   );
 }
 
-function isPersistedVoyage(value: unknown): value is PersistedV7Voyage {
+function isPersistedVoyage(value: unknown, requireDepartedMidEdge: boolean): value is PersistedV7Voyage {
   if (!value || typeof value !== "object") return false;
   return (
     isNonEmptyString((value as Partial<PersistedV7Voyage>).id) &&
@@ -378,7 +389,7 @@ function isPersistedVoyage(value: unknown): value is PersistedV7Voyage {
     (value as Partial<PersistedV7Voyage>).plannedArrivesAt! >= (value as Partial<PersistedV7Voyage>).departedAt! &&
     isFiniteNonNegative((value as Partial<PersistedV7Voyage>).supplyCost) &&
     isValidSeed((value as Partial<PersistedV7Voyage>).seed) &&
-    isPassageSnapshot((value as Partial<PersistedV7Voyage>).passage)
+    isPassageSnapshot((value as Partial<PersistedV7Voyage>).passage, requireDepartedMidEdge)
   );
 }
 
@@ -389,7 +400,7 @@ function isV7State(value: unknown): value is PersistedV7GameState {
     state.schemaVersion === 7 &&
     hasCurrentFleetShape(state.fleet) &&
     !!state.marketSession &&
-    (state.voyage === null || isPersistedVoyage(state.voyage))
+    (state.voyage === null || isPersistedVoyage(state.voyage, false))
   );
 }
 
@@ -412,7 +423,7 @@ function isSupplyLedger(value: unknown): boolean {
   );
 }
 
-function isVoyageProgress(value: unknown, passage: PassageSnapshot, voyage: PersistedV7Voyage): boolean {
+function isVoyageProgress(value: unknown, passage: PersistedV9PassageSnapshot, voyage: PersistedV7Voyage): boolean {
   if (!value || typeof value !== "object") return false;
   const progress = value as Partial<VoyageProgress>;
   const ledger = progress.supplyLedger;
@@ -469,18 +480,29 @@ function isV8State(value: unknown): value is PersistedV8GameState {
   if (state.voyage === null) return true;
   return (
     !!state.voyage &&
-    isPersistedVoyage(state.voyage) &&
+    isPersistedVoyage(state.voyage, false) &&
     isVoyageProgress(state.voyage.progress, state.voyage.passage, state.voyage)
   );
 }
-function isV9State(value: unknown): value is GameState {
+function isV9State(value: unknown): value is PersistedV9GameState {
   if (!value || typeof value !== "object") return false;
-  const state = value as Partial<GameState>;
+  const state = value as Partial<PersistedV9GameState>;
   if (state.schemaVersion !== 9 || !hasCurrentFleetShape(state.fleet) || !state.marketSession) return false;
   return (
     state.voyage === null ||
     (!!state.voyage &&
-      isPersistedVoyage(state.voyage) &&
+      isPersistedVoyage(state.voyage, false) &&
+      isVoyageProgress(state.voyage.progress, state.voyage.passage, state.voyage))
+  );
+}
+function isV10State(value: unknown): value is GameState {
+  if (!value || typeof value !== "object") return false;
+  const state = value as Partial<GameState>;
+  if (state.schemaVersion !== 10 || !hasCurrentFleetShape(state.fleet) || !state.marketSession) return false;
+  return (
+    state.voyage === null ||
+    (!!state.voyage &&
+      isPersistedVoyage(state.voyage, true) &&
       isVoyageProgress(state.voyage.progress, state.voyage.passage, state.voyage))
   );
 }
@@ -606,7 +628,7 @@ function migrateV5State(state: PersistedV5GameState): PersistedV6GameState | nul
   };
 }
 
-function migrateV6Passage(passage: PersistedV6PassageSnapshot): PassageSnapshot {
+function migrateV6Passage(passage: PersistedV6PassageSnapshot): PersistedV9PassageSnapshot {
   if (passage.kind === "legacy-route") {
     return {
       kind: "legacy-route",
@@ -632,7 +654,9 @@ function migrateV6Passage(passage: PersistedV6PassageSnapshot): PassageSnapshot 
   };
 }
 
-function firstPlannedBoundaryAt(voyage: Pick<Voyage, "departedAt" | "plannedArrivesAt" | "passage">): number {
+function firstPlannedBoundaryAt(
+  voyage: Pick<Voyage, "departedAt" | "plannedArrivesAt"> & { passage: PersistedV9PassageSnapshot },
+): number {
   if (voyage.passage.kind !== "planned") return voyage.plannedArrivesAt;
   const firstOffset = voyage.passage.edges[0]?.spans[0]?.simulationEndOffsetMilliseconds;
   if (!firstOffset) return voyage.plannedArrivesAt;
@@ -676,12 +700,21 @@ function migrateV7State(state: PersistedV7GameState): PersistedV8GameState {
   return { ...state, schemaVersion: 8, voyage: { ...state.voyage, progress: prepaidProgress(state.voyage) } };
 }
 
-function migrateV8State(state: PersistedV8GameState): GameState {
+function migrateV8State(state: PersistedV8GameState): PersistedV9GameState {
   return {
     ...state,
     schemaVersion: 9,
     fleet: { ...state.fleet, holdingNavPointId: null, holdingOriginNodeId: null },
   };
+}
+
+function migrateV9State(state: PersistedV9GameState): GameState {
+  if (!state.voyage) return { ...state, schemaVersion: 10, voyage: null };
+  const passage: PassageSnapshot =
+    state.voyage.passage.kind === "legacy-route"
+      ? state.voyage.passage
+      : { ...state.voyage.passage, departedMidEdge: false };
+  return { ...state, schemaVersion: 10, voyage: { ...state.voyage, passage } };
 }
 
 function migrateV6State(state: PersistedV6GameState): PersistedV8GameState {
@@ -705,36 +738,44 @@ export function createSaveEnvelope(state: GameState, now: number): SaveEnvelope 
 export function loadSave(value: unknown, now: number): SaveLoadResult {
   if (!value || typeof value !== "object") return { kind: "corrupt" };
   const candidate = value as { version?: unknown; savedAt?: unknown; state?: unknown };
+  if (candidate.version === 10 && isFiniteNonNegative(candidate.savedAt) && isV10State(candidate.state))
+    return { kind: "current", envelope: { version: 10, savedAt: candidate.savedAt, state: candidate.state } };
   if (candidate.version === 9 && isFiniteNonNegative(candidate.savedAt) && isV9State(candidate.state))
-    return { kind: "current", envelope: { version: 9, savedAt: candidate.savedAt, state: candidate.state } };
+    return { kind: "migrated", envelope: createSaveEnvelope(migrateV9State(candidate.state), now) };
   if (candidate.version === 8 && isFiniteNonNegative(candidate.savedAt) && isV8State(candidate.state))
-    return { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(candidate.state), now) };
+    return { kind: "migrated", envelope: createSaveEnvelope(migrateV9State(migrateV8State(candidate.state)), now) };
   if (candidate.version === 7 && isFiniteNonNegative(candidate.savedAt) && isV7State(candidate.state))
-    return { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV7State(candidate.state)), now) };
+    return {
+      kind: "migrated",
+      envelope: createSaveEnvelope(migrateV9State(migrateV8State(migrateV7State(candidate.state))), now),
+    };
   if (candidate.version === 6 && isFiniteNonNegative(candidate.savedAt) && isV6State(candidate.state))
-    return { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(candidate.state)), now) };
+    return {
+      kind: "migrated",
+      envelope: createSaveEnvelope(migrateV9State(migrateV8State(migrateV6State(candidate.state))), now),
+    };
   if (candidate.version === 5 && isFiniteNonNegative(candidate.savedAt) && isV5State(candidate.state)) {
     const state = migrateV5State(candidate.state);
     return state
-      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(state)), now) }
+      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV9State(migrateV8State(migrateV6State(state))), now) }
       : { kind: "corrupt" };
   }
   if (candidate.version === 4 && isFiniteNonNegative(candidate.savedAt) && isV4State(candidate.state)) {
     const state = migrateV5State(migrateV4State(candidate.state));
     return state
-      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(state)), now) }
+      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV9State(migrateV8State(migrateV6State(state))), now) }
       : { kind: "corrupt" };
   }
   if (candidate.version === 3 && isFiniteNonNegative(candidate.savedAt) && isV3State(candidate.state)) {
     const state = migrateV5State(migrateV4State(migrateV3State(candidate.state)));
     return state
-      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(state)), now) }
+      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV9State(migrateV8State(migrateV6State(state))), now) }
       : { kind: "corrupt" };
   }
   if (candidate.version === 2 && isFiniteNonNegative(candidate.savedAt) && isV2State(candidate.state)) {
     const state = migrateV5State(migrateV4State(migrateV3State(migrateV2State(candidate.state, now))));
     return state
-      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV8State(migrateV6State(state)), now) }
+      ? { kind: "migrated", envelope: createSaveEnvelope(migrateV9State(migrateV8State(migrateV6State(state))), now) }
       : { kind: "corrupt" };
   }
   if (candidate.version !== 1 || !candidate.state || typeof candidate.state !== "object") return { kind: "corrupt" };

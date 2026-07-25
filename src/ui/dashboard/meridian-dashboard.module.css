@@ -1674,6 +1674,24 @@
   grid-column: 1 / -1;
 }
 
+.breakOffPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.breakOffPanel .workspaceIntro {
+  margin: 0;
+}
+
+.breakOffExit {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.breakOffExit .unavailableReason {
+  grid-column: 1 / -1;
+}
+
 .holdingDestinationPicker > .workspaceIntro {
   margin: 17px 0 -2px;
 }

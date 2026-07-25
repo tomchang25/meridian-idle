@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { WORLD_CONTENT } from "@/content/content-catalog";
 import { buySupply, setAutoRestockOnArrival, setSupplyTarget } from "@/core/rules/cargo";
-import { departVoyage, previewVoyagePassage, resolveVoyage } from "@/core/rules/voyage";
+import {
+  breakOffAtNode,
+  breakOffVoyage,
+  departVoyage,
+  previewBreakOff,
+  previewVoyagePassage,
+  resolveVoyage,
+} from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
 
@@ -184,5 +191,152 @@ describe("voyage", () => {
     expect(arrived.fleet.supplies.water.quantity).toBe(0);
     // The failure precedes arrival so the rendered arrival entry stays newest.
     expect(resolution.events.map((event) => event.kind)).toEqual(["voyage-auto-restock-failed", "voyage-arrived"]);
+  });
+});
+
+describe("break-off", () => {
+  function stockedFleet(quantity: number) {
+    let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", quantity, 1).state;
+    state = buySupply(WORLD_CONTENT, state, "water", quantity, 2).state;
+    return state;
+  }
+
+  it("quotes both exits mid-edge, holds at a non-chart-destination NavPoint, and can continue from it", () => {
+    const departed = departForFaro(stockedFleet(2), 100, 20).state;
+
+    const preview = previewBreakOff(WORLD_CONTENT, departed, 600, 20);
+    expect(preview.kind).toBe("mid-edge");
+    if (preview.kind !== "mid-edge") return;
+    expect(preview.prior).toMatchObject({ exit: "prior", nodeId: "lisbon-approach", error: null });
+    expect(preview.next).toMatchObject({ exit: "next", nodeId: "cape-st-vincent", error: null });
+
+    const result = breakOffVoyage(WORLD_CONTENT, departed, 600, "prior", preview.prior.quoteId!, 5, 20);
+    expect(result.error).toBeUndefined();
+    expect(result.events).toEqual([
+      { kind: "voyage-broke-off", at: 600, voyageId: result.state.voyage!.id, destinationPortId: "lisbon-approach" },
+    ]);
+    expect(result.state.fleet.supplies).toEqual(departed.fleet.supplies);
+    const connector = result.state.voyage!;
+    expect(connector.progress.supplyLedger).toMatchObject({
+      remainderMicroUnitMilliseconds: { food: 200_000_000, water: 200_000_000 },
+    });
+
+    const held = resolveVoyage(WORLD_CONTENT, result.state, connector.plannedArrivesAt).state;
+    expect(held.voyage).toBeNull();
+    expect(held.fleet.holdingNavPointId).toBe("lisbon-approach");
+    expect(held.fleet.locationPortId).toBe("lisbon");
+    expect(held.fleet.supplies.food.quantity).toBe(1);
+    expect(held.fleet.supplies.water.quantity).toBe(1);
+
+    const toFaro = previewVoyagePassage(WORLD_CONTENT, held, "faro", 20);
+    expect(toFaro.error).toBeNull();
+    const returned = departVoyage(WORLD_CONTENT, held, "faro", toFaro.quoteId!, 1_700, 6, 20).state;
+    expect(resolveVoyage(WORLD_CONTENT, returned, 10_000).state.fleet.locationPortId).toBe("faro");
+  });
+
+  it("completes an immediate hold when the resolved position lands exactly on a node", () => {
+    const departed = departForFaro(stockedFleet(2), 100, 20).state;
+
+    const preview = previewBreakOff(WORLD_CONTENT, departed, 300, 20);
+    expect(preview).toMatchObject({ kind: "at-node", nodeId: "lisbon-approach" });
+    if (preview.kind !== "at-node") return;
+
+    const result = breakOffAtNode(WORLD_CONTENT, departed, 300, preview.quoteId, 5);
+    expect(result.error).toBeUndefined();
+    expect(result.events.map((event) => event.kind)).toEqual(["voyage-broke-off", "voyage-reached-nav-point"]);
+    expect(result.state.voyage).toBeNull();
+    expect(result.state.fleet.holdingNavPointId).toBe("lisbon-approach");
+    expect(result.state.fleet.supplies).toEqual(departed.fleet.supplies);
+  });
+
+  it("refuses break-off with an explicit reason when not underway, arrived, or supplies are short", () => {
+    const idleState = stockedFleet(2);
+    expect(previewBreakOff(WORLD_CONTENT, idleState, 600)).toEqual({
+      kind: "unavailable",
+      error: "The Fleet is not underway.",
+    });
+
+    const departed = departForFaro(stockedFleet(2), 100, 20).state;
+    expect(previewBreakOff(WORLD_CONTENT, departed, 2_100, 20)).toEqual({
+      kind: "unavailable",
+      error: "The Voyage has already arrived; resolve arrival before breaking off.",
+    });
+
+    const short = departForFaro(stockedFleet(2), 100, 20).state;
+    short.fleet.supplies.food.quantity = 0;
+    short.fleet.supplies.water.quantity = 0;
+    const preview = previewBreakOff(WORLD_CONTENT, short, 600, 20);
+    expect(preview.kind).toBe("mid-edge");
+    if (preview.kind !== "mid-edge") return;
+    expect(preview.prior.error).toMatch(/Requires Food/);
+    expect(preview.next.error).toMatch(/Requires Food/);
+    const result = breakOffVoyage(WORLD_CONTENT, short, 600, "prior", preview.prior.quoteId!, 5, 20);
+    expect(result.error).toMatch(/Requires Food/);
+    expect(result.state).toBe(short);
+  });
+
+  it("keeps a quote valid while the Fleet moves along the same edge, and rejects it once the exit node changes", () => {
+    const departed = departForFaro(stockedFleet(3), 100, 20).state;
+    const quotedAt = 500;
+    const preview = previewBreakOff(WORLD_CONTENT, departed, quotedAt, 20);
+    if (preview.kind !== "mid-edge") throw new Error("Expected a mid-edge preview.");
+    const quoteId = preview.next.quoteId!;
+    expect(preview.next.nodeId).toBe("cape-st-vincent");
+
+    // The panel repaints on a timer while the Fleet keeps sailing, so a click is
+    // always some milliseconds behind the quote it was rendered from.
+    for (const clickAt of [quotedAt, quotedAt + 50, quotedAt + 250, quotedAt + 400]) {
+      const result = breakOffVoyage(WORLD_CONTENT, departed, clickAt, "next", quoteId, 5, 20);
+      expect(result.error).toBeUndefined();
+      expect(result.state.voyage?.passage.destinationPortId).toBe("cape-st-vincent");
+    }
+
+    // Crossing into the next edge changes what "continue onward" means, so the
+    // same confirmation must now be refused.
+    const afterBoundary = previewBreakOff(WORLD_CONTENT, departed, 1_400, 20);
+    if (afterBoundary.kind !== "mid-edge") throw new Error("Expected a mid-edge preview.");
+    expect(afterBoundary.next.nodeId).toBe("faro-approach");
+    const crossed = breakOffVoyage(WORLD_CONTENT, departed, 1_400, "next", quoteId, 5, 20);
+    expect(crossed.error).toBe("This break-off quote is stale. Review the latest exit details.");
+    expect(crossed.state).toBe(departed);
+  });
+
+  it("rejects a stale break-off quote without mutating state", () => {
+    const departed = departForFaro(stockedFleet(2), 100, 20).state;
+    const preview = previewBreakOff(WORLD_CONTENT, departed, 600, 20);
+    if (preview.kind !== "mid-edge") throw new Error("Expected a mid-edge preview.");
+
+    const staleState = { ...departed, fleet: { ...departed.fleet, speed: 50 } };
+    const result = breakOffVoyage(WORLD_CONTENT, staleState, 600, "next", preview.next.quoteId!, 5, 20);
+
+    expect(result.error).toBe("This break-off quote is stale. Review the latest exit details.");
+    expect(result.state).toBe(staleState);
+  });
+
+  it("refuses break-off for a legacy-route Voyage", () => {
+    const state = createInitialGameState(100);
+    const legacyV5 = {
+      ...state,
+      schemaVersion: 5 as const,
+      voyage: {
+        id: "voyage-lisbon-faro-100",
+        routeId: "lisbon-faro",
+        originPortId: "lisbon",
+        destinationPortId: "faro",
+        departedAt: 100,
+        plannedArrivesAt: 2_100,
+        staticRisk: 0.1,
+        requiredSupplies: { food: 1, water: 1 },
+        supplyCost: 12,
+        seed: 3,
+      },
+    };
+    const loaded = loadSave({ version: 5, savedAt: 500, state: legacyV5 }, 800);
+    if (loaded.kind !== "migrated") throw new Error("Expected a migrated legacy-route Voyage.");
+
+    expect(previewBreakOff(WORLD_CONTENT, loaded.envelope.state, 900)).toEqual({
+      kind: "unavailable",
+      error: "Break-off is unavailable for this Voyage.",
+    });
   });
 });

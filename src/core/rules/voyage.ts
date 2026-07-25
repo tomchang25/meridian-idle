@@ -1,4 +1,4 @@
-import type { NavEdge, WorldContent } from "@/core/content/world-content";
+import type { NavEdge, NavEdgeSpan, WorldContent } from "@/core/content/world-content";
 import {
   estimatePassage,
   planPassage,
@@ -40,7 +40,7 @@ function denialMessage(reason: PassageDenialReason): string {
     case "destination-unknown":
       return "This destination is still locked.";
     case "same-port":
-      return "The Fleet is already docked at this destination.";
+      return "The Fleet is already at this destination.";
     case "invalid-speed":
       return "The Fleet has no valid sailing speed.";
     case "no-legal-path":
@@ -233,11 +233,12 @@ function initialProgress(
   departedAt: number,
   plannedArrivesAt: number,
   supplyConsumptionMicroUnitsPerSecond: VoyageSupplies,
+  remainderMicroUnitMilliseconds: VoyageSupplies = { food: 0, water: 0 },
 ): VoyageProgress {
   return plannedProgressAt(passage, { departedAt, plannedArrivesAt, passage }, 0, {
     accountingMode: "accruing",
     consumedSupplies: { food: 0, water: 0 },
-    remainderMicroUnitMilliseconds: { food: 0, water: 0 },
+    remainderMicroUnitMilliseconds,
     supplyConsumptionMicroUnitsPerSecond,
   });
 }
@@ -328,6 +329,60 @@ function updateVoyageAfterBoundary(
   return { state: { ...nextState, voyage: nextVoyage }, voyage: nextVoyage };
 }
 
+/** Settles a Voyage at a node it actually reached: holds at any non-Port node, or invokes Port entry settlement. */
+function arriveAtNode(
+  content: WorldContent,
+  state: GameState,
+  nodeId: string,
+  originNodeId: string,
+  arrivedAt: number,
+  voyageId: string,
+  seed: number,
+  supplyCost: number,
+): RuleResult {
+  const heldPoint = content.getNavPoint(nodeId);
+  if (heldPoint) {
+    return {
+      state: {
+        ...state,
+        voyage: null,
+        fleet: { ...state.fleet, holdingNavPointId: heldPoint.id, holdingOriginNodeId: originNodeId },
+      },
+      events: [{ kind: "voyage-reached-nav-point", at: arrivedAt, voyageId, navPointId: heldPoint.id }],
+    };
+  }
+  const arrival = settlePortEntry(content, { ...state, voyage: null }, nodeId, seed);
+  let settledState = arrival.state;
+  const events: GameEvent[] = [];
+  if (settledState.fleet.autoRestockOnArrival) {
+    const plan = supplyRestockPlan(content, settledState);
+    if (plan.totalQuantity > 0) {
+      const restock = restockSupplies(content, settledState, arrivedAt, { kind: "voyage-arrival", voyageId });
+      if (restock.error) {
+        events.push({ kind: "voyage-auto-restock-failed", at: arrivedAt, voyageId, reason: restock.error });
+      } else {
+        settledState = restock.state;
+        events.push(...restock.events);
+      }
+    }
+  }
+  events.push({ kind: "voyage-arrived", at: arrivedAt, voyageId, destinationPortId: nodeId });
+  return {
+    state: {
+      ...settledState,
+      voyage: null,
+      latestVoyageResult: {
+        voyageId,
+        arrivedAt,
+        destinationPortId: nodeId,
+        sourceXpGained: arrival.xpGained,
+        supplyCost,
+      },
+    },
+    events,
+  };
+}
+
 function finalizeVoyage(content: WorldContent, state: GameState, voyage: Voyage): RuleResult {
   let workingState = state;
   let completedVoyage = voyage;
@@ -349,76 +404,16 @@ function finalizeVoyage(content: WorldContent, state: GameState, voyage: Voyage)
     completedVoyage = { ...voyage, progress, supplyCost: voyage.supplyCost + food.cost + water.cost };
     workingState = { ...workingState, voyage: completedVoyage };
   }
-  const heldPoint = content.getNavPoint(completedVoyage.passage.destinationPortId);
-  if (heldPoint?.canHoldPosition) {
-    return {
-      state: {
-        ...workingState,
-        voyage: null,
-        fleet: {
-          ...workingState.fleet,
-          holdingNavPointId: heldPoint.id,
-          holdingOriginNodeId: completedVoyage.passage.originPortId,
-        },
-      },
-      events: [
-        {
-          kind: "voyage-reached-nav-point",
-          at: completedVoyage.plannedArrivesAt,
-          voyageId: completedVoyage.id,
-          navPointId: heldPoint.id,
-        },
-      ],
-    };
-  }
-  const arrival = settlePortEntry(
+  return arriveAtNode(
     content,
-    { ...workingState, voyage: null },
+    workingState,
     completedVoyage.passage.destinationPortId,
+    completedVoyage.passage.originPortId,
+    completedVoyage.plannedArrivesAt,
+    completedVoyage.id,
     completedVoyage.seed,
+    completedVoyage.supplyCost,
   );
-  let settledState = arrival.state;
-  const events: GameEvent[] = [];
-  if (settledState.fleet.autoRestockOnArrival) {
-    const plan = supplyRestockPlan(content, settledState);
-    if (plan.totalQuantity > 0) {
-      const restock = restockSupplies(content, settledState, completedVoyage.plannedArrivesAt, {
-        kind: "voyage-arrival",
-        voyageId: completedVoyage.id,
-      });
-      if (restock.error) {
-        events.push({
-          kind: "voyage-auto-restock-failed",
-          at: completedVoyage.plannedArrivesAt,
-          voyageId: completedVoyage.id,
-          reason: restock.error,
-        });
-      } else {
-        settledState = restock.state;
-        events.push(...restock.events);
-      }
-    }
-  }
-  events.push({
-    kind: "voyage-arrived",
-    at: completedVoyage.plannedArrivesAt,
-    voyageId: completedVoyage.id,
-    destinationPortId: completedVoyage.passage.destinationPortId,
-  });
-  return {
-    state: {
-      ...settledState,
-      voyage: null,
-      latestVoyageResult: {
-        voyageId: completedVoyage.id,
-        arrivedAt: completedVoyage.plannedArrivesAt,
-        destinationPortId: completedVoyage.passage.destinationPortId,
-        sourceXpGained: arrival.xpGained,
-        supplyCost: completedVoyage.supplyCost,
-      },
-    },
-    events,
-  };
 }
 
 /** Quotes a destination from canonical state without mutating it. */
@@ -450,7 +445,7 @@ export function previewVoyagePassage(
     };
 
   const destinationPoint = content.getNavPoint(destinationPortId);
-  if (destinationPoint && !destinationPoint.canHoldPosition)
+  if (destinationPoint && !destinationPoint.isChartDestination)
     return {
       destinationPortId,
       quoteId: null,
@@ -458,7 +453,7 @@ export function previewVoyagePassage(
       scheduledDurationMilliseconds: null,
       supplyConsumptionMicroUnitsPerSecond: null,
       readiness: null,
-      error: "This Navigation Point cannot be used as a holding position.",
+      error: "This Navigation Point cannot be selected as a Passage destination.",
     };
   if (state.fleet.holdingNavPointId && destinationPoint)
     return {
@@ -500,6 +495,7 @@ export function previewVoyagePassage(
     pacingMultiplier,
     requiredSupplies: { ...estimate.requiredSupplies },
     staticRisk: estimate.staticRisk,
+    departedMidEdge: false,
   };
   const scheduledDurationMilliseconds = scheduledDuration(passage.plannedSailingDurationMilliseconds, pacingMultiplier);
   const readiness = supplyReadiness(state, passage.requiredSupplies);
@@ -570,7 +566,7 @@ export function departVoyage(
     progress: initialProgress(voyageBase.passage, now, plannedArrivesAt, preview.supplyConsumptionMicroUnitsPerSecond),
   };
   return {
-    state: { ...state, voyage },
+    state: { ...state, voyage, fleet: { ...state.fleet, holdingNavPointId: null, holdingOriginNodeId: null } },
     events: [
       { kind: "voyage-departed", at: now, voyageId: voyage.id, destinationPortId: voyage.passage.destinationPortId },
     ],
@@ -611,4 +607,347 @@ export function resolveVoyage(content: WorldContent, state: GameState, now: numb
       return finalizeVoyage(content, workingState, workingVoyage);
   }
   return { state: workingState, events: [] };
+}
+
+// --- Break-off -------------------------------------------------------------
+
+export type BreakOffExitId = "prior" | "next";
+
+export type BreakOffExitOption = {
+  exit: BreakOffExitId;
+  nodeId: string;
+  quoteId: string | null;
+  passage: PlannedPassageSnapshot | null;
+  scheduledDurationMilliseconds: number | null;
+  supplyConsumptionMicroUnitsPerSecond: VoyageSupplies | null;
+  readiness: { food: SupplyReadiness; water: SupplyReadiness } | null;
+  error: string | null;
+};
+
+export type BreakOffPreview =
+  | { kind: "unavailable"; error: string }
+  | { kind: "at-node"; nodeId: string; quoteId: string }
+  | { kind: "mid-edge"; prior: BreakOffExitOption; next: BreakOffExitOption };
+
+const BREAK_OFF_UNAVAILABLE_MESSAGE = "Break-off is unavailable for this Voyage.";
+
+function splitEdgeSpans(
+  spans: readonly NavEdgeSpan[],
+  travelDistance: number,
+): { traveled: NavEdgeSpan[]; remaining: NavEdgeSpan[] } {
+  const traveled: NavEdgeSpan[] = [];
+  const remaining: NavEdgeSpan[] = [];
+  let consumed = 0;
+  for (const span of spans) {
+    const spanStart = consumed;
+    const spanEnd = consumed + span.distance;
+    if (spanEnd <= travelDistance) traveled.push({ ...span });
+    else if (spanStart >= travelDistance) remaining.push({ ...span });
+    else {
+      const traveledPart = travelDistance - spanStart;
+      traveled.push({ subRegionId: span.subRegionId, distance: traveledPart });
+      remaining.push({ subRegionId: span.subRegionId, distance: span.distance - traveledPart });
+    }
+    consumed = spanEnd;
+  }
+  return { traveled, remaining };
+}
+
+type ResolvedBreakOffPosition = { resolvedState: GameState; resolvedVoyage: Voyage };
+
+function resolveBreakOffPosition(
+  content: WorldContent,
+  state: GameState,
+  now: number,
+): ResolvedBreakOffPosition | { error: string } {
+  const voyage = state.voyage;
+  if (!voyage) return { error: "The Fleet is not underway." };
+  if (voyage.passage.kind !== "planned" || voyage.progress.kind !== "planned")
+    return { error: BREAK_OFF_UNAVAILABLE_MESSAGE };
+  if (voyage.progress.supplyLedger.accountingMode !== "accruing") return { error: BREAK_OFF_UNAVAILABLE_MESSAGE };
+  const targetOffset = Math.max(voyage.progress.resolvedSimulationOffsetMilliseconds, simulationOffsetAt(voyage, now));
+  if (targetOffset >= voyage.passage.plannedSailingDurationMilliseconds)
+    return { error: "The Voyage has already arrived; resolve arrival before breaking off." };
+  const resolved = updateVoyageAfterBoundary(state, voyage, targetOffset);
+  if (!resolved) return { error: "Voyage Supply accounting is unavailable." };
+  return { resolvedState: resolved.state, resolvedVoyage: resolved.voyage };
+}
+
+/**
+ * Identifies the decision the player is confirming — this Voyage, this exit
+ * direction, this exit node — rather than the connector geometry it produces.
+ * The Fleet moves continuously while the panel is on screen, so binding the
+ * quote to a derived distance would reject almost every real click; binding it
+ * to the exit node still rejects a confirmation that crossed an edge boundary
+ * and now means a different destination.
+ */
+function breakOffQuoteId(
+  state: GameState,
+  voyage: Voyage,
+  exit: BreakOffExitId,
+  exitNodeId: string,
+  pacingMultiplier: number,
+): string {
+  return JSON.stringify({
+    voyageId: voyage.id,
+    exit,
+    exitNodeId,
+    fleetSpeed: state.fleet.speed,
+    supplies: { food: state.fleet.supplies.food.quantity, water: state.fleet.supplies.water.quantity },
+    pacingMultiplier,
+  });
+}
+
+function unavailableOption(exit: BreakOffExitId, nodeId: string, error: string): BreakOffExitOption {
+  return {
+    exit,
+    nodeId,
+    quoteId: null,
+    passage: null,
+    scheduledDurationMilliseconds: null,
+    supplyConsumptionMicroUnitsPerSecond: null,
+    readiness: null,
+    error,
+  };
+}
+
+function buildBreakOffOption(
+  content: WorldContent,
+  resolvedState: GameState,
+  resolvedVoyage: Voyage,
+  exit: BreakOffExitId,
+  pacingMultiplier: number,
+): BreakOffExitOption {
+  const passage = resolvedVoyage.passage as PlannedPassageSnapshot;
+  const position = (resolvedVoyage.progress as Extract<VoyageProgress, { kind: "planned" }>).position as Extract<
+    VoyagePosition,
+    { kind: "edge" }
+  >;
+  const edgeIndex = passage.edges.findIndex((edge) => edge.id === position.edgeId);
+  const edge = passage.edges[edgeIndex];
+  if (!edge) return unavailableOption(exit, position.destinationNodeId, BREAK_OFF_UNAVAILABLE_MESSAGE);
+  const rawEdge = content.getNavEdge(edge.id);
+  if (!rawEdge)
+    return unavailableOption(
+      exit,
+      exit === "next" ? edge.destinationNodeId : edge.originNodeId,
+      BREAK_OFF_UNAVAILABLE_MESSAGE,
+    );
+
+  const edgeStartOffset = edgeIndex === 0 ? 0 : passage.edges[edgeIndex - 1].simulationEndOffsetMilliseconds;
+  const edgeEndOffset = edge.simulationEndOffsetMilliseconds;
+  const traveledFraction =
+    (position.simulationOffsetMilliseconds - edgeStartOffset) / (edgeEndOffset - edgeStartOffset);
+  const traveledDistance = Math.round(rawEdge.distance * traveledFraction);
+  const remainingDistance = rawEdge.distance - traveledDistance;
+
+  let originNodeId: string;
+  let destinationNodeId: string;
+  let syntheticEdge: NavEdge;
+  if (exit === "next") {
+    originNodeId = rawEdge.originNodeId;
+    destinationNodeId = rawEdge.destinationNodeId;
+    if (remainingDistance <= 0)
+      return unavailableOption(exit, destinationNodeId, "The Fleet has already reached this node.");
+    syntheticEdge = {
+      id: `${rawEdge.id}-break-off-next`,
+      corridorId: rawEdge.corridorId,
+      originNodeId,
+      destinationNodeId,
+      distance: remainingDistance,
+      staticRisk: rawEdge.staticRisk * (remainingDistance / rawEdge.distance),
+      traversalModifier: rawEdge.traversalModifier,
+      spans: splitEdgeSpans(rawEdge.spans, traveledDistance).remaining,
+    };
+  } else {
+    originNodeId = rawEdge.destinationNodeId;
+    destinationNodeId = rawEdge.originNodeId;
+    if (traveledDistance <= 0)
+      return unavailableOption(exit, destinationNodeId, "The Fleet has not yet left this node.");
+    const reverseEdge = content
+      .getOutgoingNavEdges(rawEdge.destinationNodeId)
+      .find(
+        (candidate) =>
+          candidate.corridorId === rawEdge.corridorId && candidate.destinationNodeId === rawEdge.originNodeId,
+      );
+    if (!reverseEdge) return unavailableOption(exit, destinationNodeId, "No legal passage returns to this node.");
+    syntheticEdge = {
+      id: `${rawEdge.id}-break-off-prior`,
+      corridorId: reverseEdge.corridorId,
+      originNodeId,
+      destinationNodeId,
+      distance: traveledDistance,
+      staticRisk: reverseEdge.staticRisk * (traveledDistance / rawEdge.distance),
+      traversalModifier: reverseEdge.traversalModifier,
+      spans: splitEdgeSpans(reverseEdge.spans, rawEdge.distance - traveledDistance).remaining,
+    };
+  }
+
+  const plan = {
+    kind: "planned" as const,
+    originPortId: originNodeId,
+    destinationPortId: destinationNodeId,
+    edges: [syntheticEdge],
+    totalDistance: syntheticEdge.distance,
+    unroundedDurationMilliseconds:
+      (syntheticEdge.distance / resolvedState.fleet.speed) *
+      syntheticEdge.traversalModifier *
+      content.navigationConstants.timePerDistanceUnitMilliseconds,
+  };
+  const estimate = estimatePassage(plan, content, resolvedState.fleet.speed);
+  const passageSnapshot: PlannedPassageSnapshot = {
+    kind: "planned",
+    originPortId: originNodeId,
+    destinationPortId: destinationNodeId,
+    edges: resolveEdgeTimeline(estimate.edges, content, resolvedState.fleet.speed, estimate.durationMilliseconds),
+    totalDistance: estimate.totalDistance,
+    plannedSailingDurationMilliseconds: estimate.durationMilliseconds,
+    pacingMultiplier,
+    requiredSupplies: { ...estimate.requiredSupplies },
+    staticRisk: estimate.staticRisk,
+    departedMidEdge: true,
+  };
+  const scheduledDurationMilliseconds = scheduledDuration(
+    passageSnapshot.plannedSailingDurationMilliseconds,
+    pacingMultiplier,
+  );
+  const readiness = supplyReadiness(resolvedState, passageSnapshot.requiredSupplies);
+  const error =
+    readiness.food.missing > 0 || readiness.water.missing > 0
+      ? `Requires Food ${readiness.food.required} and Water ${readiness.water.required} before departure.`
+      : null;
+  return {
+    exit,
+    nodeId: destinationNodeId,
+    quoteId: breakOffQuoteId(resolvedState, resolvedVoyage, exit, destinationNodeId, pacingMultiplier),
+    passage: passageSnapshot,
+    scheduledDurationMilliseconds,
+    supplyConsumptionMicroUnitsPerSecond: estimate.supplyConsumptionMicroUnitsPerSecond,
+    readiness,
+    error,
+  };
+}
+
+/** Quotes both legal break-off exits, or the immediate hold, from canonical state without mutating it. */
+export function previewBreakOff(
+  content: WorldContent,
+  state: GameState,
+  now: number,
+  pacingMultiplier = 1,
+): BreakOffPreview {
+  if (!validPacingMultiplier(pacingMultiplier)) return { kind: "unavailable", error: "Voyage pacing is invalid." };
+  const resolved = resolveBreakOffPosition(content, state, now);
+  if ("error" in resolved) return { kind: "unavailable", error: resolved.error };
+  const { resolvedState, resolvedVoyage } = resolved;
+  const position = (resolvedVoyage.progress as Extract<VoyageProgress, { kind: "planned" }>).position;
+  if (position.kind === "node")
+    return {
+      kind: "at-node",
+      nodeId: position.nodeId,
+      quoteId: JSON.stringify({ voyageId: resolvedVoyage.id, nodeId: position.nodeId, kind: "at-node" }),
+    };
+  return {
+    kind: "mid-edge",
+    prior: buildBreakOffOption(content, resolvedState, resolvedVoyage, "prior", pacingMultiplier),
+    next: buildBreakOffOption(content, resolvedState, resolvedVoyage, "next", pacingMultiplier),
+  };
+}
+
+/** Commits the immutable original Passage's remaining traversal as a fresh connector Passage to the chosen exit node. */
+export function breakOffVoyage(
+  content: WorldContent,
+  state: GameState,
+  now: number,
+  exit: BreakOffExitId,
+  expectedQuoteId: string,
+  seed: number,
+  pacingMultiplier = 1,
+): RuleResult {
+  const preview = previewBreakOff(content, state, now, pacingMultiplier);
+  if (preview.kind === "unavailable") return { state, events: [], error: preview.error };
+  if (preview.kind === "at-node")
+    return { state, events: [], error: "The Fleet has already reached a node; hold there instead." };
+  const option = exit === "prior" ? preview.prior : preview.next;
+  if (option.error) return { state, events: [], error: option.error };
+  if (
+    !option.passage ||
+    !option.quoteId ||
+    option.quoteId !== expectedQuoteId ||
+    !option.scheduledDurationMilliseconds ||
+    !option.supplyConsumptionMicroUnitsPerSecond
+  )
+    return { state, events: [], error: "This break-off quote is stale. Review the latest exit details." };
+  if (!Number.isSafeInteger(now) || now < 0) return { state, events: [], error: "Break-off time is invalid." };
+  if (!Number.isInteger(seed) || seed <= 0 || seed > 0xffff_ffff)
+    return { state, events: [], error: "A secure non-zero Voyage seed is required." };
+
+  const resolved = resolveBreakOffPosition(content, state, now);
+  if ("error" in resolved) return { state, events: [], error: resolved.error };
+  const { resolvedState, resolvedVoyage } = resolved;
+
+  const plannedArrivesAt = now + option.scheduledDurationMilliseconds;
+  const voyageBase = {
+    id: `voyage-break-off-${exit}-${resolvedVoyage.id}-${now}`,
+    departedAt: now,
+    plannedArrivesAt,
+    passage: { ...option.passage, edges: cloneSnapshotEdges(option.passage.edges) },
+    supplyCost: 0,
+    seed,
+  };
+  const voyage: Voyage = {
+    ...voyageBase,
+    progress: initialProgress(
+      voyageBase.passage,
+      now,
+      plannedArrivesAt,
+      option.supplyConsumptionMicroUnitsPerSecond,
+      resolvedVoyage.progress.supplyLedger.remainderMicroUnitMilliseconds,
+    ),
+  };
+  return {
+    state: { ...resolvedState, voyage },
+    events: [
+      { kind: "voyage-broke-off", at: now, voyageId: voyage.id, destinationPortId: voyage.passage.destinationPortId },
+    ],
+  };
+}
+
+/** Commits an immediate break-off when the resolved position already lands exactly on a node. */
+export function breakOffAtNode(
+  content: WorldContent,
+  state: GameState,
+  now: number,
+  expectedQuoteId: string,
+  seed: number,
+): RuleResult {
+  const preview = previewBreakOff(content, state, now);
+  if (preview.kind === "unavailable") return { state, events: [], error: preview.error };
+  if (preview.kind === "mid-edge") return { state, events: [], error: "The Fleet is still mid-edge; choose an exit." };
+  if (preview.quoteId !== expectedQuoteId)
+    return { state, events: [], error: "This break-off quote is stale. Review the latest exit details." };
+  if (!Number.isSafeInteger(now) || now < 0) return { state, events: [], error: "Break-off time is invalid." };
+  if (!Number.isInteger(seed) || seed <= 0 || seed > 0xffff_ffff)
+    return { state, events: [], error: "A secure non-zero Voyage seed is required." };
+
+  const resolved = resolveBreakOffPosition(content, state, now);
+  if ("error" in resolved) return { state, events: [], error: resolved.error };
+  const { resolvedState, resolvedVoyage } = resolved;
+  const arrival = arriveAtNode(
+    content,
+    resolvedState,
+    preview.nodeId,
+    resolvedVoyage.passage.originPortId,
+    now,
+    resolvedVoyage.id,
+    seed,
+    resolvedVoyage.supplyCost,
+  );
+  if (arrival.error) return arrival;
+  return {
+    state: arrival.state,
+    events: [
+      { kind: "voyage-broke-off", at: now, voyageId: resolvedVoyage.id, destinationPortId: preview.nodeId },
+      ...arrival.events,
+    ],
+  };
 }
