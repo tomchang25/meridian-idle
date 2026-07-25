@@ -14,6 +14,8 @@
 
 ### Changed
 
+- 2026-07-25 — [build] The project now builds and runs on plain Vite instead of the vinext/Next runtime, the Cloudflare Worker scaffold, and the PWA service worker, matching the sibling tickstrike-web project.
+- 2026-07-25 — [debug] Developer tooling now lives behind a dev-only `/debug` hub, and the scenario test harness moved from the root URL to `/debug/game`; the real game never reads a scenario from the URL.
 - 2026-07-21 — [architecture] Layer dependency rules are now enforced by lint, so a forbidden cross-layer import fails verification instead of drifting unnoticed.
 - 2026-07-21 — [architecture] Game source now lives under one `src/` layout sharing the tickstrike-web layer taxonomy, with the `@/` alias pointing at it.
 - 2026-07-21 — [architecture] Domain rules now report outcomes as semantic events, and player-facing activity copy is rendered in one place outside the domain layer.

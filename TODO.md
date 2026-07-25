@@ -24,7 +24,7 @@ In-flight and ready-to-implement work lives in `## Active` — promoted from `##
 > Ship a phase: remove it from that file and append `CHANGELOG.md`, leaving this line untouched.
 > When all phases ship: archive the plan file and delete this line.
 
-- [debug] Add a dev-only `/debug` hub and move the scenario harness to `/debug/game` — [ref plans/debug-hub-shell.implementation_spec.md]
+Nothing currently in progress.
 
 ---
 
@@ -32,7 +32,6 @@ In-flight and ready-to-implement work lives in `## Active` — promoted from `##
 
 Queued work, large enough to have a pre-plan file in `dev/docs/plans/`. Promote a line to `## Active` when building starts; if it goes stale here, retire it to `## Draft`.
 
-- [build] Strip vinext, the Cloudflare Worker, and the PWA scaffold down to a plain Vite React SPA — [ref plans/build_plain-vite-spa.implementation_spec.md]
 - [product] Build the V5 manual Product trade, Port progression, voyage risk, Items, combat, and Expedition core — [ref plans/v5-core.md]
 - [navigation] Replace static Known waters and direct Port routes with an accessible nautical-chart departure surface, spatial passage graph, and boundary-aware Voyage flow — [ref plans/nautical-chart-navigation.md]
 - [architecture] Land the canvas presentation contract and semantic DOM mirror with the first canvas scene — [ref plans/architecture-foundation.md]
