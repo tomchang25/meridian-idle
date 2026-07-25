@@ -14,7 +14,9 @@ test("loads a mid-voyage scenario and reaches arrival by advancing simulated tim
   const debugApi = await page.evaluate(() => Boolean(window.__MERIDIAN__));
   expect(debugApi).toBe(true);
 
-  await page.evaluate(() => window.__MERIDIAN__!.advanceTime(10_000));
+  // The scenario commits an unpaced Lisbon-to-Faro Passage, so simulated time
+  // must clear its full 40-second sailing duration in this single step.
+  await page.evaluate(() => window.__MERIDIAN__!.advanceTime(45_000));
 
   await expect(page.getByRole("heading", { name: "Latest arrival" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Port operations at Faro" })).toBeVisible();
