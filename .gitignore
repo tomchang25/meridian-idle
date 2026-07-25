@@ -30,6 +30,7 @@ yarn-error.log*
 .env*
 .opencode
 .vscode
+.claude
 
 # build output
 *.tsbuildinfo
