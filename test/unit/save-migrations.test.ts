@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
 
-describe("V7 save migration", () => {
+describe("V8 save migration", () => {
   it("creates one legal Lisbon world", () => {
     const state = createInitialGameState(100);
     expect(state.fleet.locationPortId).toBe("lisbon");
@@ -20,7 +20,7 @@ describe("V7 save migration", () => {
     expect(result.envelope.state.migrationReport?.droppedFields).toContain("running Action");
   });
 
-  it("round-trips a current V7 payload and rejects malformed saves", () => {
+  it("round-trips a current V8 payload and rejects malformed saves", () => {
     const state = createInitialGameState(100);
     expect(loadSave(createSaveEnvelope(state, 200), 300)).toMatchObject({
       kind: "current",
@@ -72,7 +72,7 @@ describe("V7 save migration", () => {
     expect(result).toMatchObject({
       kind: "migrated",
       envelope: {
-        version: 7,
+        version: 8,
         savedAt: 800,
         state: {
           voyage: {
@@ -88,16 +88,62 @@ describe("V7 save migration", () => {
     });
     if (result.kind !== "migrated") return;
     expect(result.envelope.state.voyage?.passage).not.toHaveProperty("scheduledDurationMilliseconds");
+    expect(result.envelope.state.voyage?.progress.supplyLedger).toMatchObject({
+      accountingMode: "prepaid",
+      consumedSupplies: { food: 1, water: 1 },
+    });
 
-    const migratedV7 = structuredClone(result.envelope);
-    const migratedPassage = migratedV7.state.voyage?.passage;
+    const migratedV8 = structuredClone(result.envelope);
+    const migratedPassage = migratedV8.state.voyage?.passage;
     if (migratedPassage?.kind !== "planned") throw new Error("Expected a migrated planned Passage.");
     migratedPassage.edges[0].simulationEndOffsetMilliseconds = 39_999;
-    expect(loadSave(migratedV7, 800)).toEqual({ kind: "corrupt" });
+    expect(loadSave(migratedV8, 800)).toEqual({ kind: "corrupt" });
 
     const malformed = structuredClone(v6State);
     malformed.voyage.plannedArrivesAt = 2_101;
     expect(loadSave({ version: 6, savedAt: 500, state: malformed }, 800)).toEqual({ kind: "corrupt" });
+  });
+
+  it("migrates an active V7 Voyage into prepaid boundary progress", () => {
+    const current = createInitialGameState(100);
+    const v7State = {
+      ...current,
+      schemaVersion: 7 as const,
+      voyage: {
+        id: "voyage-lisbon-faro-100",
+        departedAt: 100,
+        plannedArrivesAt: 2_100,
+        passage: {
+          kind: "legacy-route" as const,
+          legacyRouteId: "lisbon-faro",
+          originPortId: "lisbon",
+          destinationPortId: "faro",
+          plannedSailingDurationMilliseconds: 2_000,
+          pacingMultiplier: 1,
+          requiredSupplies: { food: 1, water: 1 },
+          staticRisk: 0.1,
+        },
+        supplyCost: 12,
+        seed: 3,
+      },
+    };
+
+    const result = loadSave({ version: 7, savedAt: 500, state: v7State }, 800);
+
+    expect(result).toMatchObject({
+      kind: "migrated",
+      envelope: {
+        version: 8,
+        state: {
+          voyage: {
+            progress: {
+              kind: "legacy-route",
+              supplyLedger: { accountingMode: "prepaid", consumedSupplies: { food: 1, water: 1 } },
+            },
+          },
+        },
+      },
+    });
   });
 
   it("migrates V3 Supply quantities into targets without enabling arrival automation", () => {
@@ -118,7 +164,7 @@ describe("V7 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 7, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 8, savedAt: 300 });
     expect(result.envelope.state.fleet.supplyTargets.food).toBe(3);
     expect(result.envelope.state.fleet.autoRestockOnArrival).toBe(false);
   });
@@ -144,7 +190,7 @@ describe("V7 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 7, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 8, savedAt: 300 });
     expect(result.envelope.state.fleet.supplies.munitions).toEqual({ quantity: 4, totalCostBasis: 72 });
     expect(result.envelope.state.fleet.supplies.spares).toEqual({ quantity: 5, totalCostBasis: 120 });
     expect(result.envelope.state.fleet.supplyTargets).toMatchObject({ munitions: 4, spares: 5 });
@@ -159,7 +205,7 @@ describe("V7 save migration", () => {
 
     const result = loadSave({ version: 4, savedAt: 200, state: v4State }, 300);
 
-    expect(result).toMatchObject({ kind: "migrated", envelope: { version: 7, savedAt: 300 } });
+    expect(result).toMatchObject({ kind: "migrated", envelope: { version: 8, savedAt: 300 } });
     if (result.kind !== "migrated") return;
     expect(result.envelope.state.fleet.speed).toBe(100);
   });
@@ -188,7 +234,7 @@ describe("V7 save migration", () => {
     expect(result).toMatchObject({
       kind: "migrated",
       envelope: {
-        version: 7,
+        version: 8,
         state: {
           voyage: {
             departedAt: 100,

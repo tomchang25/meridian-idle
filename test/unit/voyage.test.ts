@@ -18,11 +18,17 @@ function createDepartedVoyage() {
 }
 
 describe("voyage", () => {
-  it("commits Supply quantity and cost basis exactly once", () => {
+  it("reserves Supplies at departure and consumes their quantity and cost basis on arrival", () => {
     const departed = createDepartedVoyage();
-    expect(departed.fleet.supplies.food).toEqual({ quantity: 0, totalCostBasis: 0 });
-    expect(departed.fleet.supplies.water).toEqual({ quantity: 0, totalCostBasis: 0 });
-    expect(departed.voyage?.supplyCost).toBe(12);
+    expect(departed.fleet.supplies.food).toEqual({ quantity: 1, totalCostBasis: 8 });
+    expect(departed.fleet.supplies.water).toEqual({ quantity: 1, totalCostBasis: 4 });
+    expect(departed.voyage?.supplyCost).toBe(0);
+    expect(departed.voyage?.progress.supplyLedger.consumedSupplies).toEqual({ food: 0, water: 0 });
+
+    const arrived = resolveVoyage(WORLD_CONTENT, departed, 2_100).state;
+    expect(arrived.fleet.supplies.food).toEqual({ quantity: 0, totalCostBasis: 0 });
+    expect(arrived.fleet.supplies.water).toEqual({ quantity: 0, totalCostBasis: 0 });
+    expect(arrived.latestVoyageResult?.supplyCost).toBe(12);
   });
 
   it("keeps simulation costs constant while pacing only compresses the arrival schedule", () => {
@@ -65,8 +71,31 @@ describe("voyage", () => {
   it("treats clock rollback as a no-op and completes at the exact boundary", () => {
     const departed = createDepartedVoyage();
     expect(resolveVoyage(WORLD_CONTENT, departed, 99).state).toBe(departed);
-    expect(resolveVoyage(WORLD_CONTENT, departed, 2_099).state).toBe(departed);
+    const beforeArrival = resolveVoyage(WORLD_CONTENT, departed, 2_099).state;
+    expect(beforeArrival.voyage?.progress).toMatchObject({
+      resolvedSimulationOffsetMilliseconds: 36_000,
+      position: { kind: "node", nodeId: "faro-approach" },
+    });
+    expect(beforeArrival.fleet.supplies).toEqual(departed.fleet.supplies);
     expect(resolveVoyage(WORLD_CONTENT, departed, 2_100).state.fleet.locationPortId).toBe("faro");
+  });
+
+  it("deducts whole Supply units at fixed-point elapsed thresholds", () => {
+    let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 2, 1).state;
+    state = buySupply(WORLD_CONTENT, state, "water", 2, 2).state;
+    state = { ...state, fleet: { ...state.fleet, speed: 50 } };
+    const preview = previewVoyagePassage(WORLD_CONTENT, state, "faro", 20);
+    const departed = departVoyage(WORLD_CONTENT, state, "faro", preview.quoteId!, 100, 3, 20).state;
+
+    const firstUnit = resolveVoyage(WORLD_CONTENT, departed, 2_600).state;
+    expect(firstUnit.voyage?.progress.supplyLedger.consumedSupplies).toEqual({ food: 1, water: 1 });
+    expect(firstUnit.fleet.supplies.food.quantity).toBe(1);
+    expect(firstUnit.fleet.supplies.water.quantity).toBe(1);
+
+    const arrived = resolveVoyage(WORLD_CONTENT, firstUnit, 4_100).state;
+    expect(arrived.fleet.supplies.food.quantity).toBe(0);
+    expect(arrived.fleet.supplies.water.quantity).toBe(0);
+    expect(arrived.latestVoyageResult?.supplyCost).toBe(24);
   });
 
   it("produces the same persisted result at exact and long-offline resolution times", () => {

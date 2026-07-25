@@ -1,5 +1,7 @@
 import type { NavEdge, WorldContent } from "@/core/content/world-content";
 
+export const SUPPLY_CONSUMPTION_SCALE = 1_000_000;
+
 export type PassageDenialReason =
   "origin-not-port" | "destination-not-port" | "destination-unknown" | "same-port" | "invalid-speed" | "no-legal-path";
 
@@ -33,8 +35,17 @@ export type PassageQuote = PassagePlan & {
   durationMilliseconds: number;
   debugDurationMilliseconds: number;
   requiredSupplies: { food: number; water: number };
+  supplyConsumptionMicroUnitsPerSecond: { food: number; water: number };
   staticRisk: number;
 };
+
+function fixedPointRate(unitsPerSecond: number): number {
+  return Math.round(unitsPerSecond * SUPPLY_CONSUMPTION_SCALE);
+}
+
+function requiredSupply(durationMilliseconds: number, microUnitsPerSecond: number): number {
+  return Math.ceil((durationMilliseconds * microUnitsPerSecond) / (1_000 * SUPPLY_CONSUMPTION_SCALE));
+}
 
 type Candidate = PassagePlan & { edgeIds: readonly string[] };
 
@@ -166,15 +177,19 @@ export function estimatePassage(plan: PassagePlan, world: WorldContent, speed: n
     0,
   );
   const durationMilliseconds = Math.round(unroundedDurationMilliseconds);
-  const durationSeconds = durationMilliseconds / 1_000;
   const { food, water } = world.navigationConstants.supplyConsumptionPerSecond;
+  const supplyConsumptionMicroUnitsPerSecond = { food: fixedPointRate(food), water: fixedPointRate(water) };
 
   return {
     ...plan,
     unroundedDurationMilliseconds,
     durationMilliseconds,
     debugDurationMilliseconds: durationMilliseconds / world.navigationConstants.debugTimeScale,
-    requiredSupplies: { food: Math.ceil(durationSeconds * food), water: Math.ceil(durationSeconds * water) },
+    requiredSupplies: {
+      food: requiredSupply(durationMilliseconds, supplyConsumptionMicroUnitsPerSecond.food),
+      water: requiredSupply(durationMilliseconds, supplyConsumptionMicroUnitsPerSecond.water),
+    },
+    supplyConsumptionMicroUnitsPerSecond,
     staticRisk: 1 - plan.edges.reduce((remaining, edge) => remaining * (1 - edge.staticRisk), 1),
   };
 }

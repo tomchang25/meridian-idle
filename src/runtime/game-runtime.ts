@@ -73,7 +73,7 @@ export class GameRuntime {
   private generation = 0;
   private hydrated: boolean;
   private lastSavedState: GameState | null = null;
-  private arrivalTimer: ReturnType<typeof setTimeout> | undefined;
+  private voyageTimer: ReturnType<typeof setTimeout> | undefined;
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
   private hydrationTimer: ReturnType<typeof setTimeout> | undefined;
   private disposed = false;
@@ -97,7 +97,7 @@ export class GameRuntime {
       saveStatus: initialState ? "unavailable" : "loading",
       commandError: null,
     };
-    if (initialState) this.scheduleArrival();
+    if (initialState) this.scheduleVoyageResolution();
   }
 
   // --- subscription -------------------------------------------------------
@@ -140,7 +140,7 @@ export class GameRuntime {
       this.hydrate();
       return;
     }
-    this.scheduleArrival();
+    this.scheduleVoyageResolution();
   }
 
   /** Loads the persisted world. Does nothing when started from an authored one. */
@@ -277,10 +277,10 @@ export class GameRuntime {
   }
 
   private clearTimers(): void {
-    clearTimeout(this.arrivalTimer);
+    clearTimeout(this.voyageTimer);
     clearTimeout(this.saveTimer);
     clearTimeout(this.hydrationTimer);
-    this.arrivalTimer = undefined;
+    this.voyageTimer = undefined;
     this.saveTimer = undefined;
     this.hydrationTimer = undefined;
   }
@@ -292,7 +292,7 @@ export class GameRuntime {
     this.lastSavedState = null;
     this.snapshot = { state, saveStatus, commandError: null };
     this.emit();
-    this.scheduleArrival();
+    this.scheduleVoyageResolution();
     this.scheduleSave();
   }
 
@@ -303,7 +303,7 @@ export class GameRuntime {
     this.snapshot = { ...this.snapshot, state, commandError: result.error ?? null };
     this.emit();
     if (changed) {
-      this.scheduleArrival();
+      this.scheduleVoyageResolution();
       this.scheduleSave();
     }
   }
@@ -318,24 +318,24 @@ export class GameRuntime {
     for (const listener of this.listeners) listener();
   }
 
-  /** Wakes exactly once per Voyage, when its planned arrival is due. */
-  private scheduleArrival(): void {
-    clearTimeout(this.arrivalTimer);
-    this.arrivalTimer = undefined;
+  /** Wakes at the next canonical Voyage boundary; timers never define elapsed progress. */
+  private scheduleVoyageResolution(): void {
+    clearTimeout(this.voyageTimer);
+    this.voyageTimer = undefined;
     const voyage = this.snapshot.state.voyage;
     if (!voyage || this.disposed) return;
 
     const generation = this.generation;
     const wake = () => {
       if (this.isStale(generation)) return;
-      const remaining = voyage.plannedArrivesAt - this.clock.now();
+      const remaining = voyage.progress.nextBoundaryAt - this.clock.now();
       if (remaining > 0) {
-        this.arrivalTimer = setTimeout(wake, remaining);
+        this.voyageTimer = setTimeout(wake, remaining);
         return;
       }
       this.resolveVoyage();
     };
-    this.arrivalTimer = setTimeout(wake, Math.max(0, voyage.plannedArrivesAt - this.clock.now()));
+    this.voyageTimer = setTimeout(wake, Math.max(0, voyage.progress.nextBoundaryAt - this.clock.now()));
   }
 
   private scheduleSave(): void {

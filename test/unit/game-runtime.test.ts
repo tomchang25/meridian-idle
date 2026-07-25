@@ -54,6 +54,26 @@ describe("GameRuntime", () => {
     expect(runtime.getSnapshot().state.fleet.locationPortId).toBe("faro");
   });
 
+  it("wakes at intermediate Voyage boundaries before arrival", async () => {
+    vi.useFakeTimers();
+    const clock = controllableClock();
+    const runtime = new GameRuntime({ repository: repository(), seedSource, clock, voyagePacingMultiplier: 20 });
+    runtime.startNewGame();
+    runtime.setSupplyTarget("food", 1);
+    runtime.setSupplyTarget("water", 1);
+    runtime.restockAllSupplies();
+    departForFaro(runtime);
+
+    clock.advance(200);
+    await vi.advanceTimersByTimeAsync(200);
+
+    expect(runtime.getSnapshot().state.voyage?.progress).toMatchObject({
+      kind: "planned",
+      resolvedSimulationOffsetMilliseconds: 4_000,
+    });
+    expect(runtime.getSnapshot().state.fleet.locationPortId).toBe("lisbon");
+  });
+
   it("abandons a pending arrival when a new game replaces the world", async () => {
     vi.useFakeTimers();
     const clock = controllableClock();

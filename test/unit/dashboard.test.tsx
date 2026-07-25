@@ -279,6 +279,27 @@ describe("MeridianDashboard", () => {
         staticRisk: 0.1,
         requiredSupplies: { food: 1, water: 1 },
       },
+      progress: {
+        kind: "planned",
+        resolvedAt: now - 1_000,
+        resolvedSimulationOffsetMilliseconds: 20_000,
+        completedSpanCount: 0,
+        completedEdgeCount: 0,
+        position: {
+          kind: "edge",
+          edgeId: "fixture-edge",
+          originNodeId: "lisbon",
+          destinationNodeId: "faro",
+          simulationOffsetMilliseconds: 20_000,
+        },
+        nextBoundaryAt: now + 1_000,
+        supplyLedger: {
+          accountingMode: "accruing",
+          consumedSupplies: { food: 0, water: 0 },
+          remainderMicroUnitMilliseconds: { food: 0, water: 0 },
+          supplyConsumptionMicroUnitsPerSecond: { food: 20_000, water: 20_000 },
+        },
+      },
       supplyCost: 2,
       seed: 7,
     };
@@ -293,6 +314,8 @@ describe("MeridianDashboard", () => {
 
     expect(screen.getByRole("heading", { name: "Lisbon to Faro" })).toBeVisible();
     expect(screen.getByRole("progressbar", { name: "Voyage progress" })).toBeVisible();
+    expect(screen.getByText(/Food 0 \/ 1/)).toBeVisible();
+    expect(screen.getByText("Open waters")).toBeVisible();
     expect(screen.queryByRole("navigation", { name: "City actions" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Check arrival" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Latest arrival" })).toBeVisible();

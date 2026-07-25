@@ -33,6 +33,54 @@ export type VoyageSupplies = {
   water: number;
 };
 
+export type VoyagePosition =
+  | { kind: "node"; nodeId: string }
+  | {
+      kind: "edge";
+      edgeId: string;
+      originNodeId: string;
+      destinationNodeId: string;
+      simulationOffsetMilliseconds: number;
+    };
+
+export type AccruingSailingSupplyLedger = {
+  accountingMode: "accruing";
+  consumedSupplies: VoyageSupplies;
+  /** Fixed-point numerator left after whole Supply units have been removed. */
+  remainderMicroUnitMilliseconds: VoyageSupplies;
+  supplyConsumptionMicroUnitsPerSecond: VoyageSupplies;
+};
+
+export type PrepaidSailingSupplyLedger = {
+  /** Compatibility mode for Voyages that deducted their full requirement before schema v8. */
+  accountingMode: "prepaid";
+  consumedSupplies: VoyageSupplies;
+  remainderMicroUnitMilliseconds: VoyageSupplies;
+};
+
+export type SailingSupplyLedger = AccruingSailingSupplyLedger | PrepaidSailingSupplyLedger;
+
+export type PlannedVoyageProgress = {
+  kind: "planned";
+  resolvedAt: number;
+  resolvedSimulationOffsetMilliseconds: number;
+  completedSpanCount: number;
+  completedEdgeCount: number;
+  position: VoyagePosition;
+  nextBoundaryAt: number;
+  supplyLedger: SailingSupplyLedger;
+};
+
+export type LegacyRouteVoyageProgress = {
+  kind: "legacy-route";
+  resolvedAt: number;
+  resolvedSimulationOffsetMilliseconds: number;
+  nextBoundaryAt: number;
+  supplyLedger: PrepaidSailingSupplyLedger;
+};
+
+export type VoyageProgress = PlannedVoyageProgress | LegacyRouteVoyageProgress;
+
 export type PassageEdgeSnapshot = {
   id: string;
   originNodeId: string;
@@ -69,6 +117,7 @@ export type Voyage = {
   departedAt: number;
   plannedArrivesAt: number;
   passage: PassageSnapshot;
+  progress: VoyageProgress;
   supplyCost: number;
   seed: number;
 };
@@ -83,7 +132,7 @@ export type MigrationReport = { fromVersion: 1; migratedAt: number; droppedField
 export type ActivityEntry = { id: string; at: number; message: string; tone: ActivityTone };
 
 export type GameState = {
-  schemaVersion: 7;
+  schemaVersion: 8;
   createdAt: number;
   world: { knownPortIds: string[] };
   fleet: Fleet;

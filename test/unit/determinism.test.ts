@@ -42,6 +42,21 @@ function runCommands(from: GameState): { state: GameState; events: GameEvent[] }
 }
 
 describe("determinism", () => {
+  it("matches whole-unit Supply consumption across one-shot and incremental sailing resolution", () => {
+    let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 2, 10).state;
+    state = buySupply(WORLD_CONTENT, state, "water", 2, 20).state;
+    state = { ...state, fleet: { ...state.fleet, speed: 50 } };
+    const preview = previewVoyagePassage(WORLD_CONTENT, state, "faro", 20);
+    if (!preview.quoteId) throw new Error("Expected a slow Lisbon-to-Faro quote.");
+    const departed = departVoyage(WORLD_CONTENT, state, "faro", preview.quoteId, 100, VOYAGE_SEED, 20).state;
+
+    const incremental = resolveVoyage(WORLD_CONTENT, resolveVoyage(WORLD_CONTENT, departed, 2_600).state, 4_100).state;
+    const oneShot = resolveVoyage(WORLD_CONTENT, departed, 4_100).state;
+
+    expect(incremental).toEqual(oneShot);
+    expect(oneShot.latestVoyageResult?.supplyCost).toBe(24);
+  });
+
   it("reproduces the same event sequence from the same seed and commands", () => {
     const first = runCommands(createInitialGameState(0));
     const second = runCommands(createInitialGameState(0));

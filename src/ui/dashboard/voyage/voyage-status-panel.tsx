@@ -1,5 +1,6 @@
-import { getPort } from "@/content/content-catalog";
+import { getPort, getSubRegion } from "@/content/content-catalog";
 import type { Voyage } from "@/core/model/game";
+import { resolvedVoyageSubRegionId } from "@/core/rules/voyage";
 import type { Clock } from "@/runtime/clock";
 import { formatRemaining } from "../dashboard-helpers";
 import styles from "../meridian-dashboard.module.css";
@@ -17,6 +18,9 @@ export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
   const voyageElapsed = Math.min(voyageDuration, Math.max(0, (displayNow || voyage.departedAt) - voyage.departedAt));
   const voyageProgress = Math.floor((voyageElapsed / voyageDuration) * 100);
   const voyageRemaining = voyageDuration - voyageElapsed;
+  const resolvedSubRegionId = resolvedVoyageSubRegionId(voyage);
+  const resolvedWaters = getSubRegion(resolvedSubRegionId ?? "")?.name ?? "Open waters";
+  const consumedSupplies = voyage.progress.supplyLedger.consumedSupplies;
 
   return (
     <section className={styles.actionPanel} aria-labelledby="action-panel-title">
@@ -47,10 +51,15 @@ export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
             <dd>{formatRemaining(voyageRemaining)}</dd>
           </div>
           <div>
-            <dt>Committed</dt>
+            <dt>Consumed</dt>
             <dd>
-              Food {voyage.passage.requiredSupplies.food} / Water {voyage.passage.requiredSupplies.water}
+              Food {consumedSupplies.food} / {voyage.passage.requiredSupplies.food} · Water {consumedSupplies.water} /{" "}
+              {voyage.passage.requiredSupplies.water}
             </dd>
+          </div>
+          <div>
+            <dt>Resolved waters</dt>
+            <dd>{resolvedWaters}</dd>
           </div>
           <div>
             <dt>Supply cost</dt>

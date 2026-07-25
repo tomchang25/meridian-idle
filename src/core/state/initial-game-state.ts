@@ -7,7 +7,7 @@ function emptyStack(): CargoStack {
 
 export function createInitialGameState(now: number): GameState {
   return {
-    schemaVersion: 7,
+    schemaVersion: 8,
     createdAt: now,
     world: { knownPortIds: ["lisbon", "faro", "tangier"] },
     fleet: {

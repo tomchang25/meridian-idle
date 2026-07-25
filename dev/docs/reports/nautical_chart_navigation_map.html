@@ -563,7 +563,7 @@
           的人類導向總覽。
         </p>
         <p class="meta">
-          更新時間 2026-07-25 · 反映 Nautical Chart Navigation Child 03 實作狀態 · 原始碼與 tests
+          更新時間 2026-07-25 · 反映 Nautical Chart Navigation Child 04 實作狀態 · 原始碼與 tests
           才是權威；本頁負責幫人快速建立心智模型。
         </p>
         <nav class="toc" aria-label="Page sections">
@@ -582,8 +582,9 @@
         Content 描述「世界有哪些點與可走的方向」；<code>planPassage()</code> 決定「合法且穩定的最佳路徑」；<code
           >estimatePassage()</code
         >
-        把該路徑換算成時間、補給與風險。實際 Voyage 會在出航時重算 quote、扣除補給，並把完整 ordered path snapshot
-        到存檔；不再有另一套 legacy <code>ROUTES</code> authority。
+        把該路徑換算成時間、補給與風險。實際 Voyage 會在出航時重算 quote、保存完整 ordered path snapshot，並依 explicit
+        elapsed time 跨越 Supply、SubRegion、edge 與 arrival boundaries；不再有另一套 legacy <code>ROUTES</code>
+        authority。
       </div>
 
       <div class="legend" aria-label="Ownership legend">
@@ -984,7 +985,7 @@
             <tr>
               <td>Fleet speed 100 與 prior-save migration</td>
               <td><span class="status current">Current</span></td>
-              <td>Canonical persisted Fleet state，save schema version 6。</td>
+              <td>Canonical persisted Fleet state，save schema version 8。</td>
             </tr>
             <tr>
               <td>實際 departVoyage 使用 planner quote 與 immutable passage snapshot</td>
@@ -1001,6 +1002,15 @@
               <td>
                 <code>plannedSailingDuration</code> 保持 Supply／risk／edge-boundary 意義；抵達等待只由 Voyage
                 timestamps 依 snapshot multiplier 推導。<code>/debug/game?timeScale=20</code> 使用 isolated runtime。
+              </td>
+            </tr>
+            <tr>
+              <td>Boundary-aware sailing progress 與 actual Supply consumption</td>
+              <td><span class="status current">Current</span></td>
+              <td>
+                Persisted Voyage anchor 保存 resolved position、timeline cursor、next boundary 與 fixed-point Supply
+                remainder；timer 只喚醒 resolver。Food／Water 在跨越整數 consumption threshold 時才離開 Fleet，arrival
+                才結清最後 remainder。
               </td>
             </tr>
             <tr>
@@ -1095,11 +1105,14 @@
               <td>Pure deterministic core functions。</td>
             </tr>
             <tr>
-              <td>Voyage quote、snapshot 與 arrival settlement</td>
+              <td>Voyage quote、boundary resolver 與 arrival settlement</td>
               <td>
                 <a href="vscode://file/E:/Code/meridian-idle/src/core/rules/voyage.ts:86">voyage.ts:86</a>
               </td>
-              <td>出航 revalidation、Supply cost basis、pacing 與 exactly-once destination arrival。</td>
+              <td>
+                出航 revalidation、fixed-point Supply ledger、pacing、ordered boundaries 與 exactly-once destination
+                arrival。
+              </td>
             </tr>
             <tr>
               <td>Dev-only topology diagnostics</td>
