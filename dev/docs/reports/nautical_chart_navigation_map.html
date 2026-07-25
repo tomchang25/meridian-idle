@@ -999,8 +999,8 @@
               <td>Difficulty-ready Voyage pacing</td>
               <td><span class="status current">Current</span></td>
               <td>
-                <code>simulationDuration</code> 保持 Supply／risk／event 意義；只把 <code>scheduledDuration</code> 依
-                snapshot multiplier 壓縮。<code>/debug/game?timeScale=20</code> 使用 isolated runtime。
+                <code>plannedSailingDuration</code> 保持 Supply／risk／edge-boundary 意義；抵達等待只由 Voyage
+                timestamps 依 snapshot multiplier 推導。<code>/debug/game?timeScale=20</code> 使用 isolated runtime。
               </td>
             </tr>
             <tr>

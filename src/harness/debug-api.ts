@@ -1,4 +1,4 @@
-import type { V5GameState } from "@/core/model/game";
+import type { GameState } from "@/core/model/game";
 import type { HarnessClock } from "@/harness/harness-clock";
 import { listScenarios } from "@/harness/scenario-registry";
 
@@ -10,7 +10,7 @@ export type DebugApi = {
   scenarioId: string;
   /** Lists every registered scenario identifier. */
   scenarios(): string[];
-  getState(): V5GameState;
+  getState(): GameState;
   /** Moves simulated time forward and settles anything now due. Returns the new time. */
   advanceTime(milliseconds: number): number;
 };
@@ -18,7 +18,7 @@ export type DebugApi = {
 export type DebugApiBinding = {
   clock: HarnessClock;
   scenarioId: string;
-  getState(): V5GameState;
+  getState(): GameState;
   /** Re-evaluates time-driven work, such as a Voyage that has now arrived. */
   settle(): void;
 };

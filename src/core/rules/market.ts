@@ -1,5 +1,5 @@
 import type { WorldContent } from "@/core/content/world-content";
-import type { CategoryId, MarketSession, V5GameState } from "@/core/model/game";
+import type { CategoryId, MarketSession, GameState } from "@/core/model/game";
 import { createRandomStreams } from "@/core/random/random-streams";
 import { removedCostBasis, roundHalfUp, usedCargo, validQuantity, type RuleResult } from "@/core/rules/cargo";
 import { portLevel } from "@/core/rules/progression";
@@ -25,18 +25,18 @@ export function createMarketSession(portId: string, level: number, seed: number)
     netTrade: {},
   };
 }
-function currentPort(content: WorldContent, state: V5GameState) {
+function currentPort(content: WorldContent, state: GameState) {
   const port = content.getPort(state.fleet.locationPortId);
   return port && state.marketSession.portId === port.id ? port : undefined;
 }
-export function marketReference(content: WorldContent, state: V5GameState, productId: string): number | null {
+export function marketReference(content: WorldContent, state: GameState, productId: string): number | null {
   const family = content.getProductFamilyForProduct(productId);
   if (!family || !currentPort(content, state)) return null;
   const factor = state.marketSession.categoryFactors[family.category];
   if (!Number.isFinite(factor)) return null;
   return Math.max(1, roundHalfUp(family.basePrice * factor));
 }
-export function buyPrice(content: WorldContent, state: V5GameState, productId: string): PriceBreakdown | null {
+export function buyPrice(content: WorldContent, state: GameState, productId: string): PriceBreakdown | null {
   const family = content.getProductFamilyForProduct(productId);
   const port = currentPort(content, state);
   if (!family || !port) return null;
@@ -52,7 +52,7 @@ export function buyPrice(content: WorldContent, state: V5GameState, productId: s
     label: modifier < 1 ? "Producer + Level 100" : "Producer",
   };
 }
-export function sellPrice(content: WorldContent, state: V5GameState, productId: string): PriceBreakdown | null {
+export function sellPrice(content: WorldContent, state: GameState, productId: string): PriceBreakdown | null {
   const product = content.getProduct(productId);
   const family = content.getProductFamilyForProduct(productId);
   const port = currentPort(content, state);
@@ -80,7 +80,7 @@ export function sellPrice(content: WorldContent, state: V5GameState, productId: 
 }
 export function productPurchaseError(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   productId: string,
   quantity: number,
 ): string | null {
@@ -101,7 +101,7 @@ export function productPurchaseError(
   if (quantity > remainingCapacity) return `Requires ${quantity} Cargo Capacity; only ${remainingCapacity} remains.`;
   return null;
 }
-export function maximumProductPurchaseQuantity(content: WorldContent, state: V5GameState, productId: string): number {
+export function maximumProductPurchaseQuantity(content: WorldContent, state: GameState, productId: string): number {
   if (productPurchaseError(content, state, productId, 1)) return 0;
   const port = currentPort(content, state)!;
   const price = buyPrice(content, state, productId)!;
@@ -112,7 +112,7 @@ export function maximumProductPurchaseQuantity(content: WorldContent, state: V5G
 }
 export function buyProduct(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   productId: string,
   quantity: number,
   now = 0,
@@ -152,7 +152,7 @@ export function buyProduct(
 }
 export function sellProduct(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   productId: string,
   quantity: number,
   now = 0,

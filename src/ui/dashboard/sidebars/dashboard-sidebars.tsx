@@ -1,6 +1,6 @@
 import { WORLD_CONTENT } from "@/content/content-catalog";
 import { getPort, getProduct, SUPPLY_PRICES } from "@/content/content-catalog";
-import { SUPPLY_IDS, type V5GameState } from "@/core/model/game";
+import { SUPPLY_IDS, type GameState } from "@/core/model/game";
 import { averageUnitCost, usedCargo } from "@/core/rules/cargo";
 import { sellPrice } from "@/core/rules/market";
 import { portLevel, xpThreshold } from "@/core/rules/progression";
@@ -8,7 +8,7 @@ import { displayName, formatUnitGold, SUPPLY_LABELS } from "../dashboard-helpers
 import styles from "../meridian-dashboard.module.css";
 
 type DashboardSidebarProps = {
-  state: V5GameState;
+  state: GameState;
 };
 
 export function LongTermSidebar({ state }: DashboardSidebarProps) {

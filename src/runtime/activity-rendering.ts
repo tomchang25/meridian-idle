@@ -1,5 +1,5 @@
 import type { GameEvent } from "@/core/events/game-events";
-import type { ActivityEntry, V5GameState } from "@/core/model/game";
+import type { ActivityEntry, GameState } from "@/core/model/game";
 
 /** The single owner of how many activity rows the player keeps. */
 export const ACTIVITY_LIMIT = 24;
@@ -75,7 +75,7 @@ export function appendActivity(activity: readonly ActivityEntry[], events: reado
 }
 
 /** Applies a rule's events to the state it produced. */
-export function withRenderedActivity(state: V5GameState, events: readonly GameEvent[]): V5GameState {
+export function withRenderedActivity(state: GameState, events: readonly GameEvent[]): GameState {
   if (events.length === 0) return state;
   return { ...state, activity: appendActivity(state.activity, events) };
 }

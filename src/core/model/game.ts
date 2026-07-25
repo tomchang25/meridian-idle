@@ -28,7 +28,10 @@ export type MarketSession = {
   netTrade: Record<string, number>;
 };
 
-export type VoyageSupplies = Pick<Record<SupplyId, number>, "food" | "water">;
+export type VoyageSupplies = {
+  food: number;
+  water: number;
+};
 
 export type PassageEdgeSnapshot = {
   id: string;
@@ -42,8 +45,7 @@ export type PassageEdgeSnapshot = {
 type PassageSnapshotBase = {
   originPortId: string;
   destinationPortId: string;
-  simulationDurationMilliseconds: number;
-  scheduledDurationMilliseconds: number;
+  plannedSailingDurationMilliseconds: number;
   pacingMultiplier: number;
   requiredSupplies: VoyageSupplies;
   staticRisk: number;
@@ -80,8 +82,8 @@ export type VoyageResult = {
 export type MigrationReport = { fromVersion: 1; migratedAt: number; droppedFields: string[]; acknowledged: boolean };
 export type ActivityEntry = { id: string; at: number; message: string; tone: ActivityTone };
 
-export type V6GameState = {
-  schemaVersion: 6;
+export type GameState = {
+  schemaVersion: 7;
   createdAt: number;
   world: { knownPortIds: string[] };
   fleet: Fleet;
@@ -92,6 +94,3 @@ export type V6GameState = {
   migrationReport: MigrationReport | null;
   activity: ActivityEntry[];
 };
-
-/** @deprecated Use V6GameState. Kept as a source-compatible application alias. */
-export type V5GameState = V6GameState;

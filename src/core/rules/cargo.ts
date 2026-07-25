@@ -1,13 +1,13 @@
 import type { WorldContent } from "@/core/content/world-content";
 import type { GameEvent, SupplyRestockCause } from "@/core/events/game-events";
-import { SUPPLY_IDS, type CargoStack, type SupplyId, type V5GameState } from "@/core/model/game";
+import { SUPPLY_IDS, type CargoStack, type SupplyId, type GameState } from "@/core/model/game";
 
 /**
  * What a rule produced: the next state, the domain facts it established, and an
  * optional refusal reason. Rules never compose player-facing copy; the runtime
  * renders events into the activity feed.
  */
-export type RuleResult = { state: V5GameState; events: readonly GameEvent[]; error?: string };
+export type RuleResult = { state: GameState; events: readonly GameEvent[]; error?: string };
 export type SupplyRestockPlan = {
   deficits: Record<SupplyId, number>;
   totalQuantity: number;
@@ -24,7 +24,7 @@ export function removedCostBasis(stack: CargoStack, quantity: number): number {
 export function averageUnitCost(stack: CargoStack | undefined): number | null {
   return stack && stack.quantity > 0 ? stack.totalCostBasis / stack.quantity : null;
 }
-export function usedCargo(state: V5GameState): number {
+export function usedCargo(state: GameState): number {
   return [...Object.values(state.fleet.products), ...Object.values(state.fleet.supplies)].reduce(
     (sum, stack) => sum + stack.quantity,
     0,
@@ -33,7 +33,7 @@ export function usedCargo(state: V5GameState): number {
 export function validQuantity(quantity: number): boolean {
   return Number.isSafeInteger(quantity) && quantity > 0;
 }
-export function setSupplyTarget(state: V5GameState, supplyId: SupplyId, target: number): RuleResult {
+export function setSupplyTarget(state: GameState, supplyId: SupplyId, target: number): RuleResult {
   if (!Number.isSafeInteger(target) || target < 0)
     return { state, events: [], error: "Supply target must be a non-negative whole number." };
   const maximumTarget = supplyTargetMaximum(state, supplyId);
@@ -51,16 +51,16 @@ export function setSupplyTarget(state: V5GameState, supplyId: SupplyId, target: 
     events: [],
   };
 }
-export function supplyTargetMaximum(state: V5GameState, supplyId: SupplyId): number {
+export function supplyTargetMaximum(state: GameState, supplyId: SupplyId): number {
   return (
     state.fleet.cargoCapacity -
     SUPPLY_IDS.reduce((sum, id) => sum + (id === supplyId ? 0 : state.fleet.supplyTargets[id]), 0)
   );
 }
-export function setAutoRestockOnArrival(state: V5GameState, enabled: boolean): RuleResult {
+export function setAutoRestockOnArrival(state: GameState, enabled: boolean): RuleResult {
   return { state: { ...state, fleet: { ...state.fleet, autoRestockOnArrival: enabled } }, events: [] };
 }
-export function supplyRestockPlan(content: WorldContent, state: V5GameState): SupplyRestockPlan {
+export function supplyRestockPlan(content: WorldContent, state: GameState): SupplyRestockPlan {
   const deficits = Object.fromEntries(
     SUPPLY_IDS.map((id) => [id, Math.max(0, state.fleet.supplyTargets[id] - state.fleet.supplies[id].quantity)]),
   ) as Record<SupplyId, number>;
@@ -90,7 +90,7 @@ export function supplyRestockPlan(content: WorldContent, state: V5GameState): Su
 }
 export function restockSupplies(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   now: number,
   cause: SupplyRestockCause = { kind: "manual" },
 ): RuleResult {
@@ -109,7 +109,7 @@ export function restockSupplies(
             const cost = plan.deficits[id] * content.supplyPrices[id];
             return [id, { quantity: stack.quantity + plan.deficits[id], totalCostBasis: stack.totalCostBasis + cost }];
           }),
-        ) as V5GameState["fleet"]["supplies"],
+        ) as GameState["fleet"]["supplies"],
       },
     },
     events: [{ kind: "supplies-restocked", at: now, quantity: plan.totalQuantity, cause }],
@@ -117,7 +117,7 @@ export function restockSupplies(
 }
 export function supplyPurchaseError(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   supplyId: SupplyId,
   quantity: number,
 ): string | null {
@@ -133,7 +133,7 @@ export function supplyPurchaseError(
 }
 export function buySupply(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   supplyId: SupplyId,
   quantity: number,
   now: number,
@@ -157,7 +157,7 @@ export function buySupply(
     events: [{ kind: "supply-bought", at: now, supplyId, quantity }],
   };
 }
-export function discardSupply(state: V5GameState, supplyId: SupplyId, quantity: number): RuleResult {
+export function discardSupply(state: GameState, supplyId: SupplyId, quantity: number): RuleResult {
   const stack = state.fleet.supplies[supplyId];
   if (state.voyage || !validQuantity(quantity) || quantity > stack.quantity)
     return { state, events: [], error: "Not enough Supply to discard." };

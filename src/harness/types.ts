@@ -1,4 +1,4 @@
-import type { V5GameState } from "@/core/model/game";
+import type { GameState } from "@/core/model/game";
 
 /**
  * An authored world a browser or unit test can start from. Scenarios exist so a
@@ -10,5 +10,5 @@ export type Scenario = {
   id: string;
   /** What this world is for, shown in the debug interface. */
   description: string;
-  createState(now: number): V5GameState;
+  createState(now: number): GameState;
 };

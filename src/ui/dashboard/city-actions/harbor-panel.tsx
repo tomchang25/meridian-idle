@@ -50,7 +50,11 @@ export function HarborPanel({ store }: HarborPanelProps) {
               <dl>
                 <div>
                   <dt>Duration</dt>
-                  <dd>{passage ? formatRemaining(passage.scheduledDurationMilliseconds) : "—"}</dd>
+                  <dd>
+                    {preview.scheduledDurationMilliseconds
+                      ? formatRemaining(preview.scheduledDurationMilliseconds)
+                      : "—"}
+                  </dd>
                 </div>
                 <div>
                   <dt>Risk</dt>

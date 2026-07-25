@@ -1,5 +1,5 @@
 import { createSaveEnvelope } from "@/platform/persistence/save-migrations";
-import type { V5GameState } from "@/core/model/game";
+import type { GameState } from "@/core/model/game";
 
 const DATABASE_NAME = "meridian-idle";
 const STORE_NAME = "game-saves";
@@ -33,7 +33,7 @@ export class IndexedDbSaveRepository {
       database.close();
     }
   }
-  async save(state: V5GameState, now: number): Promise<void> {
+  async save(state: GameState, now: number): Promise<void> {
     if (!this.isAvailable()) throw new Error("IndexedDB unavailable");
     const database = await openDatabase();
     try {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { WORLD_CONTENT } from "@/content/content-catalog";
 import type { GameEvent } from "@/core/events/game-events";
-import type { V5GameState } from "@/core/model/game";
+import type { GameState } from "@/core/model/game";
 import { createRandomStream } from "@/core/random/random-stream";
 import { createRandomStreams, deriveSeed } from "@/core/random/random-streams";
 import { buySupply, setAutoRestockOnArrival, setSupplyTarget } from "@/core/rules/cargo";
@@ -12,7 +12,7 @@ import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrat
 
 const VOYAGE_SEED = 3;
 
-function departForFaro(state: V5GameState) {
+function departForFaro(state: GameState) {
   const preview = previewVoyagePassage(WORLD_CONTENT, state, "faro", 20);
   if (!preview.quoteId) throw new Error("Expected Lisbon-to-Faro quote.");
   return departVoyage(WORLD_CONTENT, state, "faro", preview.quoteId, 100, VOYAGE_SEED, 20);
@@ -22,10 +22,10 @@ function departForFaro(state: V5GameState) {
  * One fixed command sequence against a fixed clock. Offline resolution will
  * replay exactly this shape, so the events it produces are the contract.
  */
-function runCommands(from: V5GameState): { state: V5GameState; events: GameEvent[] } {
+function runCommands(from: GameState): { state: GameState; events: GameEvent[] } {
   const events: GameEvent[] = [];
   let state = from;
-  const step = (result: { state: V5GameState; events: readonly GameEvent[] }) => {
+  const step = (result: { state: GameState; events: readonly GameEvent[] }) => {
     state = result.state;
     events.push(...result.events);
   };
@@ -56,7 +56,7 @@ describe("determinism", () => {
     // Interrupt after departure, persist, reload, then finish the sequence.
     let interrupted = createInitialGameState(0);
     const events: GameEvent[] = [];
-    const step = (result: { state: V5GameState; events: readonly GameEvent[] }) => {
+    const step = (result: { state: GameState; events: readonly GameEvent[] }) => {
       interrupted = result.state;
       events.push(...result.events);
     };
@@ -81,7 +81,7 @@ describe("determinism", () => {
     const onTime = runCommands(createInitialGameState(0));
 
     let late = createInitialGameState(0);
-    const step = (result: { state: V5GameState }) => {
+    const step = (result: { state: GameState }) => {
       late = result.state;
     };
     step(buySupply(WORLD_CONTENT, late, "food", 3, 10));

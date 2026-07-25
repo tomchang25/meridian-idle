@@ -1,10 +1,10 @@
 import { getPort } from "@/content/content-catalog";
-import type { V5GameState } from "@/core/model/game";
+import type { GameState } from "@/core/model/game";
 import { displayName } from "../dashboard-helpers";
 import styles from "../meridian-dashboard.module.css";
 
 type PortScenePanelProps = {
-  state: V5GameState;
+  state: GameState;
 };
 
 export function PortScenePanel({ state }: PortScenePanelProps) {

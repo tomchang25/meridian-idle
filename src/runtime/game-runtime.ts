@@ -1,4 +1,4 @@
-import type { SupplyId, V5GameState } from "@/core/model/game";
+import type { SupplyId, GameState } from "@/core/model/game";
 import {
   buySupply as applySupplyPurchase,
   discardSupply as applySupplyDiscard,
@@ -26,7 +26,7 @@ export type SaveStatus = "loading" | "saved" | "saving" | "unavailable" | "corru
 export type SaveRepository = {
   isAvailable(): boolean;
   loadRaw(): Promise<unknown>;
-  save(state: V5GameState, savedAt: number): Promise<void>;
+  save(state: GameState, savedAt: number): Promise<void>;
 };
 
 export type GameRuntimeOptions = {
@@ -34,13 +34,13 @@ export type GameRuntimeOptions = {
   seedSource: SeedSource;
   clock?: Clock;
   /** Starts from an authored world instead of hydrating a save. Harness use only. */
-  initialState?: V5GameState;
+  initialState?: GameState;
   /** Applies only to newly departed Voyage waiting timestamps. */
   voyagePacingMultiplier?: number;
 };
 
 export type GameSnapshot = {
-  state: V5GameState;
+  state: GameState;
   saveStatus: SaveStatus;
   commandError: string | null;
 };
@@ -49,7 +49,7 @@ const HYDRATION_TIMEOUT_MS = 1_500;
 const SAVE_DEBOUNCE_MS = 350;
 
 /** A fresh world plus the one entry that records its creation. */
-function createNewGame(now: number): V5GameState {
+function createNewGame(now: number): GameState {
   return withRenderedActivity(createInitialGameState(now), [{ kind: "world-created", at: now }]);
 }
 
@@ -72,7 +72,7 @@ export class GameRuntime {
   private snapshot: GameSnapshot;
   private generation = 0;
   private hydrated: boolean;
-  private lastSavedState: V5GameState | null = null;
+  private lastSavedState: GameState | null = null;
   private arrivalTimer: ReturnType<typeof setTimeout> | undefined;
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
   private hydrationTimer: ReturnType<typeof setTimeout> | undefined;
@@ -286,7 +286,7 @@ export class GameRuntime {
   }
 
   /** Installs a different world and abandons everything scheduled for the old one. */
-  private replaceWorld(state: V5GameState, saveStatus: SaveStatus): void {
+  private replaceWorld(state: GameState, saveStatus: SaveStatus): void {
     this.generation += 1;
     this.clearTimers();
     this.lastSavedState = null;

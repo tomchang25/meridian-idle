@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { V5GameState } from "@/core/model/game";
+import type { GameState } from "@/core/model/game";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { GameRuntime, type SaveRepository } from "@/runtime/game-runtime";
 import { createSaveEnvelope } from "@/platform/persistence/save-migrations";
@@ -13,8 +13,8 @@ function departForFaro(runtime: GameRuntime) {
   runtime.departVoyage("faro", preview.quoteId);
 }
 
-function repository(saved: unknown = null): SaveRepository & { saves: V5GameState[] } {
-  const saves: V5GameState[] = [];
+function repository(saved: unknown = null): SaveRepository & { saves: GameState[] } {
+  const saves: GameState[] = [];
   return {
     saves,
     isAvailable: () => true,

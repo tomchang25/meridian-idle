@@ -4,7 +4,7 @@ import type {
   PassageEdgeSnapshot,
   PlannedPassageSnapshot,
   SupplyId,
-  V5GameState,
+  GameState,
   Voyage,
   VoyageSupplies,
 } from "@/core/model/game";
@@ -16,13 +16,14 @@ export type VoyagePassagePreview = {
   destinationPortId: string;
   quoteId: string | null;
   passage: PlannedPassageSnapshot | null;
+  scheduledDurationMilliseconds: number | null;
   readiness: { food: SupplyReadiness; water: SupplyReadiness } | null;
   error: string | null;
 };
 
 type SupplyReadiness = { required: number; aboard: number; missing: number };
 
-function consumeSupply(state: V5GameState, id: SupplyId, quantity: number) {
+function consumeSupply(state: GameState, id: SupplyId, quantity: number) {
   const stack = state.fleet.supplies[id];
   const cost = removedCostBasis(stack, quantity);
   return {
@@ -53,8 +54,8 @@ function validPacingMultiplier(value: number): boolean {
   return Number.isFinite(value) && value > 0;
 }
 
-function scheduledDuration(simulationDurationMilliseconds: number, pacingMultiplier: number): number {
-  return Math.max(1, Math.round(simulationDurationMilliseconds / pacingMultiplier));
+function scheduledDuration(plannedSailingDurationMilliseconds: number, pacingMultiplier: number): number {
+  return Math.max(1, Math.round(plannedSailingDurationMilliseconds / pacingMultiplier));
 }
 
 function resolveEdgeTimeline(
@@ -89,7 +90,12 @@ function cloneSnapshotEdges(edges: readonly PassageEdgeSnapshot[]): PassageEdgeS
   return edges.map((edge) => ({ ...edge, spans: edge.spans.map((span) => ({ ...span })) }));
 }
 
-function quoteId(state: V5GameState, destinationPortId: string, passage: PlannedPassageSnapshot): string {
+function quoteId(
+  state: GameState,
+  destinationPortId: string,
+  passage: PlannedPassageSnapshot,
+  scheduledDurationMilliseconds: number,
+): string {
   return JSON.stringify({
     originPortId: state.fleet.locationPortId,
     destinationPortId,
@@ -107,13 +113,13 @@ function quoteId(state: V5GameState, destinationPortId: string, passage: Planned
         simulationEndOffsetMilliseconds: span.simulationEndOffsetMilliseconds,
       })),
     })),
-    simulationDurationMilliseconds: passage.simulationDurationMilliseconds,
-    scheduledDurationMilliseconds: passage.scheduledDurationMilliseconds,
+    plannedSailingDurationMilliseconds: passage.plannedSailingDurationMilliseconds,
+    scheduledDurationMilliseconds,
     pacingMultiplier: passage.pacingMultiplier,
   });
 }
 
-function supplyReadiness(state: V5GameState, required: VoyageSupplies) {
+function supplyReadiness(state: GameState, required: VoyageSupplies) {
   const readinessFor = (id: "food" | "water"): SupplyReadiness => ({
     required: required[id],
     aboard: state.fleet.supplies[id].quantity,
@@ -125,7 +131,7 @@ function supplyReadiness(state: V5GameState, required: VoyageSupplies) {
 /** Quotes a destination from canonical state without mutating it. */
 export function previewVoyagePassage(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   destinationPortId: string,
   pacingMultiplier = 1,
 ): VoyagePassagePreview {
@@ -134,11 +140,19 @@ export function previewVoyagePassage(
       destinationPortId,
       quoteId: null,
       passage: null,
+      scheduledDurationMilliseconds: null,
       readiness: null,
       error: "The Fleet is already on a Voyage.",
     };
   if (!validPacingMultiplier(pacingMultiplier))
-    return { destinationPortId, quoteId: null, passage: null, readiness: null, error: "Voyage pacing is invalid." };
+    return {
+      destinationPortId,
+      quoteId: null,
+      passage: null,
+      scheduledDurationMilliseconds: null,
+      readiness: null,
+      error: "Voyage pacing is invalid.",
+    };
 
   const plan = planPassage({
     world: content,
@@ -147,8 +161,16 @@ export function previewVoyagePassage(
     knownPortIds: state.world.knownPortIds,
     speed: state.fleet.speed,
   });
-  if (plan.kind === "denied")
-    return { destinationPortId, quoteId: null, passage: null, readiness: null, error: denialMessage(plan.reason) };
+  if (plan.kind === "denied") {
+    return {
+      destinationPortId,
+      quoteId: null,
+      passage: null,
+      scheduledDurationMilliseconds: null,
+      readiness: null,
+      error: denialMessage(plan.reason),
+    };
+  }
 
   const estimate = estimatePassage(plan, content, state.fleet.speed);
   const passage: PlannedPassageSnapshot = {
@@ -157,23 +179,30 @@ export function previewVoyagePassage(
     destinationPortId: plan.destinationPortId,
     edges: resolveEdgeTimeline(estimate.edges, content, state.fleet.speed, estimate.durationMilliseconds),
     totalDistance: estimate.totalDistance,
-    simulationDurationMilliseconds: estimate.durationMilliseconds,
-    scheduledDurationMilliseconds: scheduledDuration(estimate.durationMilliseconds, pacingMultiplier),
+    plannedSailingDurationMilliseconds: estimate.durationMilliseconds,
     pacingMultiplier,
     requiredSupplies: { ...estimate.requiredSupplies },
     staticRisk: estimate.staticRisk,
   };
+  const scheduledDurationMilliseconds = scheduledDuration(passage.plannedSailingDurationMilliseconds, pacingMultiplier);
   const readiness = supplyReadiness(state, passage.requiredSupplies);
   const error =
     readiness.food.missing > 0 || readiness.water.missing > 0
       ? `Requires Food ${readiness.food.required} and Water ${readiness.water.required} before departure.`
       : null;
-  return { destinationPortId, quoteId: quoteId(state, destinationPortId, passage), passage, readiness, error };
+  return {
+    destinationPortId,
+    quoteId: quoteId(state, destinationPortId, passage, scheduledDurationMilliseconds),
+    passage,
+    scheduledDurationMilliseconds,
+    readiness,
+    error,
+  };
 }
 
 export function voyageDepartureError(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   destinationPortId: string,
   pacingMultiplier = 1,
 ): string | null {
@@ -182,7 +211,7 @@ export function voyageDepartureError(
 
 export function departVoyage(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   destinationPortId: string,
   expectedQuoteId: string,
   now: number,
@@ -191,7 +220,12 @@ export function departVoyage(
 ): RuleResult {
   const preview = previewVoyagePassage(content, state, destinationPortId, pacingMultiplier);
   if (preview.error) return { state, events: [], error: preview.error };
-  if (!preview.passage || !preview.quoteId || preview.quoteId !== expectedQuoteId)
+  if (
+    !preview.passage ||
+    !preview.quoteId ||
+    !preview.scheduledDurationMilliseconds ||
+    preview.quoteId !== expectedQuoteId
+  )
     return { state, events: [], error: "This passage quote is stale. Review the latest departure details." };
   if (!Number.isSafeInteger(now) || now < 0) return { state, events: [], error: "Departure time is invalid." };
   if (!Number.isInteger(seed) || seed <= 0 || seed > 0xffff_ffff)
@@ -203,7 +237,7 @@ export function departVoyage(
   const voyage: Voyage = {
     id: `voyage-${preview.passage.originPortId}-${preview.passage.destinationPortId}-${now}`,
     departedAt: now,
-    plannedArrivesAt: now + preview.passage.scheduledDurationMilliseconds,
+    plannedArrivesAt: now + preview.scheduledDurationMilliseconds,
     passage: { ...preview.passage, edges: cloneSnapshotEdges(preview.passage.edges) },
     supplyCost: foodUse.cost + waterUse.cost,
     seed,
@@ -216,7 +250,7 @@ export function departVoyage(
   };
 }
 
-export function resolveVoyage(content: WorldContent, state: V5GameState, now: number): RuleResult {
+export function resolveVoyage(content: WorldContent, state: GameState, now: number): RuleResult {
   const voyage = state.voyage;
   if (!voyage || now < voyage.plannedArrivesAt) return { state, events: [] };
   const arrival = settlePortEntry(content, { ...state, voyage: null }, voyage.passage.destinationPortId, voyage.seed);

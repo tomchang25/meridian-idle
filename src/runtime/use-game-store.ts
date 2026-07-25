@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import type { SupplyId, V5GameState } from "@/core/model/game";
+import type { SupplyId, GameState } from "@/core/model/game";
 import { GameRuntime, type SaveRepository, type SaveStatus } from "@/runtime/game-runtime";
 import type { Clock } from "@/runtime/clock";
 import type { SeedSource } from "@/runtime/seed-source";
@@ -12,7 +12,7 @@ export type GameStoreDependencies = {
   seedSource?: SeedSource;
   clock?: Clock;
   /** Starts from an authored world instead of hydrating a save. Harness use only. */
-  initialState?: V5GameState;
+  initialState?: GameState;
   voyagePacingMultiplier?: number;
 };
 

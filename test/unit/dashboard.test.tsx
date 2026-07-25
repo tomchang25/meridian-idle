@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SaveStatus } from "@/runtime/use-game-store";
-import type { V5GameState } from "@/core/model/game";
+import type { GameState } from "@/core/model/game";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { MeridianDashboard } from "@/ui/dashboard/meridian-dashboard";
 
@@ -9,7 +9,7 @@ const store = {
   state: {
     ...createInitialGameState(0),
     migrationReport: { fromVersion: 1 as const, migratedAt: 0, acknowledged: false, droppedFields: ["Captain"] },
-  } as V5GameState,
+  } as GameState,
   saveStatus: "saved" as SaveStatus,
   commandError: null as string | null,
   canGenerateVoyageSeed: true,
@@ -24,14 +24,14 @@ const store = {
   previewVoyage: vi.fn((destinationPortId: string) => ({
     destinationPortId,
     quoteId: `quote-${destinationPortId}`,
+    scheduledDurationMilliseconds: destinationPortId === "faro" ? 40_000 : 96_000,
     passage: {
       kind: "planned" as const,
       originPortId: "lisbon",
       destinationPortId,
       edges: [],
       totalDistance: destinationPortId === "faro" ? 20 : 48,
-      simulationDurationMilliseconds: destinationPortId === "faro" ? 40_000 : 96_000,
-      scheduledDurationMilliseconds: destinationPortId === "faro" ? 40_000 : 96_000,
+      plannedSailingDurationMilliseconds: destinationPortId === "faro" ? 40_000 : 96_000,
       pacingMultiplier: 1,
       requiredSupplies: { food: destinationPortId === "faro" ? 1 : 2, water: destinationPortId === "faro" ? 1 : 2 },
       staticRisk: destinationPortId === "faro" ? 0.1 : 0.2,
@@ -238,8 +238,7 @@ describe("MeridianDashboard", () => {
         destinationPortId: "faro",
         edges: [],
         totalDistance: 20,
-        simulationDurationMilliseconds: 40_000,
-        scheduledDurationMilliseconds: 2_000,
+        plannedSailingDurationMilliseconds: 40_000,
         pacingMultiplier: 20,
         staticRisk: 0.1,
         requiredSupplies: { food: 1, water: 1 },

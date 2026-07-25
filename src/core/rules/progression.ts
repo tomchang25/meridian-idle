@@ -1,5 +1,5 @@
 import type { WorldContent } from "@/core/content/world-content";
-import type { MarketSession, V5GameState } from "@/core/model/game";
+import type { MarketSession, GameState } from "@/core/model/game";
 import { createMarketSession } from "@/core/rules/market";
 
 export function xpThreshold(level: number): number {
@@ -9,7 +9,7 @@ export function xpThreshold(level: number): number {
   if (level <= 75) return 7900 + 300 * (level - 50);
   return 15400 + 450 * (Math.min(level, 100) - 75);
 }
-export function portLevel(state: V5GameState, portId: string): number {
+export function portLevel(state: GameState, portId: string): number {
   const xp = state.portProgress[portId]?.xp ?? 0;
   for (let level = 100; level >= 1; level--) if (xp >= xpThreshold(level)) return level;
   return 1;
@@ -22,10 +22,10 @@ export function sessionXp(content: WorldContent, session: MarketSession): number
 }
 export function settlePortEntry(
   content: WorldContent,
-  state: V5GameState,
+  state: GameState,
   destinationPortId: string,
   seed: number,
-): { state: V5GameState; xpGained: number } {
+): { state: GameState; xpGained: number } {
   if (destinationPortId === state.marketSession.portId) return { state, xpGained: 0 };
   const contributions = Object.entries(state.marketSession.netTrade).reduce((sum, [productId, quantity]) => {
     const family = content.getProductFamilyForProduct(productId);

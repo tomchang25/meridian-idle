@@ -32,8 +32,10 @@ describe("voyage", () => {
     const x20 = departForFaro(state, 100, 20).state.voyage!;
     if (x1.passage.kind !== "planned" || x20.passage.kind !== "planned") throw new Error("Expected planned passages.");
 
-    expect(x1.passage).toMatchObject({ simulationDurationMilliseconds: 40_000, scheduledDurationMilliseconds: 40_000 });
-    expect(x20.passage).toMatchObject({ simulationDurationMilliseconds: 40_000, scheduledDurationMilliseconds: 2_000 });
+    expect(x1.passage).toMatchObject({ plannedSailingDurationMilliseconds: 40_000 });
+    expect(x20.passage).toMatchObject({ plannedSailingDurationMilliseconds: 40_000 });
+    expect(x1.plannedArrivesAt - x1.departedAt).toBe(40_000);
+    expect(x20.plannedArrivesAt - x20.departedAt).toBe(2_000);
     expect(x20.passage.requiredSupplies).toEqual(x1.passage.requiredSupplies);
     expect(x20.passage.edges).toEqual(x1.passage.edges);
     expect(x1.passage.edges.map((edge) => edge.simulationEndOffsetMilliseconds)).toEqual([
@@ -43,6 +45,7 @@ describe("voyage", () => {
     expect(x1.passage.edges[0]).not.toHaveProperty("distance");
     expect(x1.passage.edges[0]).not.toHaveProperty("traversalModifier");
     expect(x1.passage).not.toHaveProperty("effectiveFleetSpeed");
+    expect(x1.passage).not.toHaveProperty("scheduledDurationMilliseconds");
   });
 
   it("rejects a stale planner quote without consuming Supplies", () => {
