@@ -16,8 +16,8 @@ The likely replacement uses a data-driven vector chart inside the docked Harbor 
 
 - `LongTermSidebar` currently owns the decorative Known waters map and the only all-known-Port Level list. The candidate UI should remove that competing map owner; the sidebar may retain a compact legend or status summary only when it adds information not already owned by the chart.
 - `HarborPanel` currently renders every outgoing direct route with an immediate departure button. The candidate Harbor workspace should own destination selection, selected-Port intelligence, route preview, disabled reason, and one explicit Set Sail action.
-- Candidate chart layers are coastline or parchment background, Region and SubRegion areas, legal sea-lane context, known Port markers, mission markers when later available, selected passage, current Fleet marker, labels, and interaction overlays. Hidden navigation nodes remain invisible outside an explicit development diagnostic.
-- SVG is a likely first rendering boundary because the current world is authored and modest, path geometry is vector data, and semantic controls can remain in ordinary DOM alongside it. Verify rendering and performance assumptions at implementation-spec time rather than introducing a general mapping library by default.
+- Candidate chart layers are coastline or parchment background, Region and SubRegion areas, legal sea-lane context, known Port markers, mission markers when later available, selected passage, current Fleet marker, labels, and interaction overlays. Hidden navigation nodes remain invisible outside the existing development diagnostic — the `/debug/chart` inspector shipped by Child 01 — which stays the topology-debugging owner so the player chart never needs a diagnostics mode.
+- SVG is a likely first rendering boundary because the current world is authored and modest, path geometry is vector data, and semantic controls can remain in ordinary DOM alongside it; the Child 01 inspector already renders the same authored geometry as SVG and is the evidence base for this assumption. Verify rendering and performance assumptions at implementation-spec time rather than introducing a general mapping library by default.
 - Selecting a known Port should expose name, Region, SubRegion, Level, full authored catalog or concise specialty summary, observed Market-information status, reachability, distance, duration, Food, Water, risk, and traversed waters. It must not create or refresh a remote Market Session.
 - The current Port needs a distinct non-color-only marker, and the selected destination and passage need persistent labels or text equivalents. Unknown or locked content must follow the established world-discovery rules rather than leaking final Port identities through chart geometry.
 - Selection, zoom or pan if needed, and open detail state are presentation state and should not enter the game save. The committed Voyage snapshot remains the only persisted journey owner.
@@ -28,14 +28,15 @@ The likely replacement uses a data-driven vector chart inside the docked Harbor 
 
 ### Candidate files to inspect
 
-- `game/features/dashboard/meridian-dashboard.tsx`
-- `game/features/dashboard/city-actions/city-action-panel.tsx`
-- `game/features/dashboard/city-actions/harbor-panel.tsx`
-- `game/features/dashboard/sidebars/dashboard-sidebars.tsx`
-- `game/features/dashboard/voyage/voyage-status-panel.tsx`
-- `game/features/dashboard/meridian-dashboard.module.css`
-- `game/features/dashboard/dashboard-types.ts`
-- `game/application/use-game-store.ts`
+- `src/ui/dashboard/meridian-dashboard.tsx`
+- `src/ui/dashboard/city-actions/city-action-panel.tsx`
+- `src/ui/dashboard/city-actions/harbor-panel.tsx`
+- `src/ui/dashboard/sidebars/dashboard-sidebars.tsx`
+- `src/ui/dashboard/voyage/voyage-status-panel.tsx`
+- `src/ui/dashboard/meridian-dashboard.module.css`
+- `src/ui/dashboard/dashboard-types.ts`
+- `src/runtime/use-game-store.ts`
+- `src/app/debug/chart-inspector.tsx`
 - `test/unit/dashboard.test.tsx`
 - `test/unit/use-game-store.test.tsx`
 - `test/e2e/application.smoke.spec.ts`

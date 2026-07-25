@@ -54,7 +54,9 @@ Base passage duration = round-half-up(sum(unrounded edge duration))
 Required Supply = ceil(base passage duration × Fleet consumption rate)
 ```
 
-Food and Water remain the mandatory committed Voyage Supplies. Their rates and time unit are content-owned, and the converted Core graph must preserve the existing Core route quotes unless a separate balance decision changes them. Supply quantities and acquisition cost basis remain consumed atomically at departure; later Event-driven delays or losses may consume additional Supplies through the existing ordered Event contract.
+Fleet speed is canonical Fleet state, fixed at 100 until a later upgrade system moves it. Food and Water remain the mandatory committed Voyage Supplies; their rates and the time unit are content-owned constants, and required quantities derive from quoted duration through one shared formula. Supply quantities and acquisition cost basis remain consumed atomically at departure; later Event-driven delays or losses may consume additional Supplies through the existing ordered Event contract.
+
+An approved balance decision (2026-07-25) re-authors the converted Core world rather than preserving legacy route quotes: edge distances are rebuilt on the graph, and normal-play durations are 20× the legacy debug-scale durations. A harness-owned debug time scale (`DEBUG_TIME_SCALE = 20`) keeps the legacy 2–5 second observed pacing for debug play and tests, without changing canonical durations or persisted state.
 
 Each edge retains its own static risk exposure for deterministic Event resolution. The route-level preview may summarize independent edge exposure as `1 - product(1 - edge risk)`, but the immutable Voyage snapshot retains ordered edge inputs so arrival and Events never depend on mutable chart content.
 
@@ -107,14 +109,14 @@ The former Known waters sidebar must not remain a competing map owner. It may be
 
 ### Child Overview
 
-| Child | Focus                                 | Observable outcome                                                                                                                         | Current document                                                                      |
-| ----- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| 01    | Spatial Navigation Content            | Regions, SubRegions, Ports, navigation points, edges, geometry, spans, and graph validation form one coherent authored world               | [Sketch](nautical-chart-navigation_01_spatial-navigation-content.sketch.md)           |
-| 02    | Passage Planning And Voyage Contract  | A deterministic fastest path produces one shared quote and immutable persisted Voyage without forced intermediate docking                  | [Sketch](nautical-chart-navigation_02_passage-planning-and-voyage-contract.sketch.md) |
-| 03    | Nautical Chart Departure Surface      | Known waters becomes an accessible chart for Port intelligence, route preview, and explicit departure                                      | [Sketch](nautical-chart-navigation_03_chart-departure-surface.sketch.md)              |
-| 04    | Boundary-Aware Progress And Hardening | Underway location, SubRegion exposure, Event boundaries, persistence, and offline resolution remain deterministic across the complete path | [Sketch](nautical-chart-navigation_04_boundary-aware-progress.sketch.md)              |
+| Child | Focus                                         | Observable outcome                                                                                                                            | Current document                                                                                      |
+| ----- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 01    | Spatial Content, Planner, And Chart Inspector | The authored graph, deterministic planner, and shared estimator are visually verifiable through a `/debug/chart` inspector with quote preview | [Implementation spec](nautical-chart-navigation_01_spatial-navigation-content.implementation_spec.md) |
+| 02    | Voyage Contract And Migration                 | Departure adopts the planner's quote into an immutable persisted Voyage without forced intermediate docking, migrating legacy route saves     | [Sketch](nautical-chart-navigation_02_passage-planning-and-voyage-contract.sketch.md)                 |
+| 03    | Nautical Chart Departure Surface              | Known waters becomes an accessible chart for Port intelligence, route preview, and explicit departure                                         | [Sketch](nautical-chart-navigation_03_chart-departure-surface.sketch.md)                              |
+| 04    | Boundary-Aware Progress And Hardening         | Underway location, SubRegion exposure, Event boundaries, persistence, and offline resolution remain deterministic across the complete path    | [Sketch](nautical-chart-navigation_04_boundary-aware-progress.sketch.md)                              |
 
-Recommended landing order is 01, 02, 03, then 04. Child 03 depends on the planner rather than shipping a second presentation-only route model, and Child 04 hardens the complete chart-to-arrival flow after both planning and interaction exist.
+Recommended landing order is 01, 02, 03, then 04. Child 01 carries the planner and estimator so its inspector can preview real passages; Child 02 is therefore the Voyage-contract child — departure validation, the immutable snapshot, and legacy-save migration. Child 03 depends on the planner rather than shipping a second presentation-only route model, and Child 04 hardens the complete chart-to-arrival flow after both planning and interaction exist.
 
 ## Non-Goals
 
@@ -133,7 +135,7 @@ Recommended landing order is 01, 02, 03, then 04. Child 03 depends on the planne
 4. Equal canonical state and content always produce the same legal edge path, aggregate distance, duration, Supply requirements, risk summary, and disabled reason.
 5. Departure revalidates and persists an immutable ordered passage snapshot, so later content or unlock changes cannot alter an active Voyage.
 6. Foreground timers, reload, visibility resume, hydration, clock rollback, and long offline return use the same explicit-time resolver and produce the same ordered boundaries, costs, Events, and arrival exactly once.
-7. Converted Core journeys preserve their approved distance, duration, mandatory Supply, risk, and destination-settlement behavior unless an independently approved balance change says otherwise.
+7. Converted Core journeys follow the approved 2026-07-25 rebalance — re-authored edge distances, normal-play durations at 20× legacy scale from Fleet speed 100, formula-derived Supplies — with the pinned baseline table in the Child 01 spec as the parity authority, and destination-settlement behavior unchanged.
 8. The chart replaces the static three-point, single-line illustration and direct per-route departure board as the authoritative destination command surface without leaving Port Level confined to a sidebar.
 9. Docked selection, disabled routes, departure confirmation, underway progress, Event interruption, and arrival remain understandable and operable on desktop, mobile, keyboard, touch, reduced motion, and assistive technology.
 10. Malformed graph content, unreachable known Ports, invalid persisted paths, and obsolete active Voyage payloads fail through explicit validation or recoverable migration rather than creating an arbitrary route or Port entry.

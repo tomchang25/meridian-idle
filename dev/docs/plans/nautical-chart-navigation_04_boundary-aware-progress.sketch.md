@@ -28,14 +28,15 @@ The likely extension retains that explicit-time model. The immutable passage sna
 
 ### Candidate files to inspect
 
-- `game/domain/models/game.ts`
-- `game/domain/rules/voyage.ts`
-- `game/domain/rules/progression.ts`
-- `game/application/use-game-store.ts`
-- `game/infrastructure/persistence/save-migrations.ts`
-- `game/features/dashboard/voyage/use-voyage-clock.ts`
-- `game/features/dashboard/voyage/voyage-status-panel.tsx`
-- `game/features/dashboard/scene/port-scene-panel.tsx`
+- `src/core/model/game.ts`
+- `src/core/rules/voyage.ts`
+- `src/core/rules/progression.ts`
+- `src/core/navigation/passage-planner.ts`
+- `src/runtime/use-game-store.ts`
+- `src/platform/persistence/save-migrations.ts`
+- `src/ui/dashboard/voyage/use-voyage-clock.ts`
+- `src/ui/dashboard/voyage/voyage-status-panel.tsx`
+- `src/ui/dashboard/scene/port-scene-panel.tsx`
 - `test/unit/voyage.test.ts`
 - `test/unit/use-game-store.test.tsx`
 - `test/unit/save-migrations.test.ts`
