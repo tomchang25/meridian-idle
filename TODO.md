@@ -33,7 +33,6 @@ Nothing currently in progress.
 Queued work, large enough to have a pre-plan file in `dev/docs/plans/`. Promote a line to `## Active` when building starts; if it goes stale here, retire it to `## Draft`.
 
 - [product] Build the V5 manual Product trade, Port progression, voyage risk, Items, combat, and Expedition core — [ref plans/v5-core.md]
-- [navigation] Replace static Known waters and direct Port routes with an accessible nautical-chart departure surface, spatial passage graph, and boundary-aware Voyage flow — [ref plans/nautical-chart-navigation.md]
 - [architecture] Land the canvas presentation contract and semantic DOM mirror with the first canvas scene — [ref plans/architecture-foundation.md]
 
 ---

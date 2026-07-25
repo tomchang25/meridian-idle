@@ -32,6 +32,14 @@
 - 2026-07-17 — [ledger] Cargo Hold now shows Supplies, Products, and free capacity together with proportional group distributions.
 - 2026-07-17 — [ui] Circular Fleet and Provisioning icons now center legible glyphs.
 
+### Nautical Chart and Passage Navigation
+
+- 2026-07-25 — [navigation] Destinations are now chosen from an interactive nautical chart that shows every known Port in its authored position with its Region, SubRegion, Level, specialties, and reachability, replacing the static Known waters illustration and the per-route departure board.
+- 2026-07-25 — [navigation] Voyages now follow an authored sea-lane graph rather than direct Port-to-Port routes, so a passage can sail past a Port without entering it, and each quote states its own distance, duration, Food and Water, risk, and traversed waters before a separate departure confirmation.
+- 2026-07-25 — [voyage] Sailing now advances through deterministic edge and SubRegion boundaries and charges Food and Water for the distance actually sailed, producing the same result whether the game is watched, reloaded, or left offline.
+- 2026-07-25 — [voyage] The Fleet can now sail to Cape St. Vincent and hold there indefinitely with no time, Supply, or Event cost, then commit a fresh Passage onward; only entering a Port settles its Market, XP, and restocking.
+- 2026-07-25 — [voyage] An underway Fleet can now break off its Passage and sail on to the nearest node instead, keeping everything already sailed and paid for while the abandoned route costs nothing further.
+
 ### Supply Replenishment Policy and Arrival Auto-Restock
 
 - 2026-07-17 — [supplies] Fleet Supply targets now support atomic manual restocking and optional destination-priced replenishment after Voyage arrival.

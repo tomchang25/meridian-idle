@@ -44,7 +44,7 @@ Child 08 is the only remaining child. It lands together with the first canvas sc
 
 ### Relationship to other plans
 
-This plan owns architecture shape only. The v5-core plan owns gameplay behavior for voyage/offline and events/items/combat; the nautical-chart-navigation plan owns navigation content and the chart surface. Where a gate above names one of those plans, the architecture child is a prerequisite of that work, not a replacement for it.
+This plan owns architecture shape only. The v5-core plan owns gameplay behavior for voyage/offline and events/items/combat. Where a gate above names that plan, the architecture child is a prerequisite of that work, not a replacement for it. Navigation content and the nautical chart surface were owned by a separate flow that has shipped; `dev/docs/reports/nautical_chart_navigation_map.html` is their current human-facing overview.
 
 ## Non-Goals
 
