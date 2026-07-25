@@ -1,63 +1,57 @@
-# Nautical Chart Navigation 04 — Boundary-Aware Progress Sketch
+# Nautical Chart Navigation 04 — Boundary Progress And Sailing Consumption Sketch
 
 Parent Plan: `nautical-chart-navigation.md`
 
 ## Goal
 
-Explore deterministic advancement along the persisted edge path so the chart can narrate current waters and future maritime content can resolve at SubRegion or Event boundaries. This child hardens foreground, reload, visibility resume, hydration, clock rollback, and offline return without introducing canonical hourly ticks.
+Explore canonical advancement through resolved edge and SubRegion boundaries, including actual-traversal Supply consumption, so later Expedition and diversion work can materialize a deterministic node or mid-edge position without introducing ticks.
 
 ## Summary
 
-The current Voyage has one departure and arrival boundary. Canonical state does not advance while underway; a 250-millisecond hook only interpolates visual progress, and one resolver settles the destination when the planned arrival timestamp is reached.
+The current fixed Voyage has one departure and arrival boundary, deducts its full baseline Supplies at departure, and derives all underway display progress from two timestamps. This child preserves derived animation but introduces a persisted resolution anchor only when gameplay crosses a meaningful boundary or a command needs an exact current position.
 
-The likely extension retains that explicit-time model. The immutable passage snapshot provides ordered edge timing and SubRegion spans, presentation derives continuous ship position without saving animation progress, and the shared resolver processes only meaningful crossed boundaries in deterministic order. A quiet Voyage may still jump directly to arrival.
+The likely resolver advances explicit time through ordered sailing boundaries, deducts Food, Water, and cost basis from actual resolved sailing time, and schedules only the next boundary. A quiet transfer may still resolve directly to arrival in one call. Mission objectives, Combat phases, return-route choice, and player diversion build on this foundation in later children.
 
 ## Sketch
 
-- `useVoyageClock` and `VoyageStatusPanel` currently derive progress from departure and planned arrival timestamps. Preserve presentation interpolation, but derive the selected edge, chart position, current narrated SubRegion, and remaining time from the immutable passage schedule rather than adding frame-by-frame store mutation.
-- `resolveVoyage` currently performs one exact-boundary arrival. The candidate resolver should accept explicit `now`, clamp clock rollback, and iterate crossed edge, SubRegion, Event, and arrival boundaries in chronological order until reaching `now` or a manual decision.
-- Do not create one persisted mutation per hour or per animation frame. Persist only state needed for exactly-once effects, manual pauses, changed arrival timing, or recovery; pure positional progress remains derived from timestamps and the immutable snapshot.
-- Child 06 of V5 Core is expected to establish ordered Event beats, delay, diversion, Combat, Items, and idempotency. Verify its shipped contract before this child's implementation spec and adapt path boundaries to that single resolver rather than creating parallel graph events.
-- Edge static risk and SubRegion spans should determine eligible Event context from copied snapshot inputs. Runtime graph edits must not move an active Voyage into different waters or change its Event exposure.
-- A delay should update the remaining schedule through one deterministic persisted transition and account for additional Supplies through the established Event contract. A diversion should select only a legal authored Port outcome and replace the remaining committed path explicitly; it must not silently run current shortest-path logic against mutable content.
-- Market Session transition, source Port XP settlement, auto-restock, docked state, and arrival feedback remain one atomic destination-entry boundary after every earlier beat resolves.
-- Application entry points should converge on the same resolver for foreground scheduling, visibility resume, post-hydration settlement, and offline return. Browser timer callbacks schedule work but do not define elapsed time or event count.
-- Save validation should cover ordered edge identity, endpoint coherence, monotonic timestamps, SubRegion spans, event boundary state, decision pauses, delay or diversion state, and destination legality. Corrupt snapshots remain recoverable without partial arrival.
-- Domain tests should compare one-shot long-offline resolution, many incremental calls, save/reload between boundaries, exact-boundary calls, replay, and clock rollback. Application tests should cover Strict Mode scheduling and each browser lifecycle entry point without relying on timer tick count.
-- The underway chart should expose origin, planned or actual destination, current narrated waters, path progress, remaining time, committed and extra Supplies, risk or Event state, and interruption reason through both visual and semantic presentation.
+- The resolved Passage timeline from Child 02a likely remains the immutable schedule for the active plan. Verify how its cumulative edge and SubRegion offsets map through the snapshotted pacing multiplier.
+- Introduce a candidate resolution anchor containing the current node or edge, resolved sailing offset, edge/span cursor, explicit resolution time, and next scheduled boundary. Do not persist animation-frame interpolation.
+- The shared resolver should clamp clock rollback and process every crossed edge, SubRegion, Supply, and arrival boundary in chronological order until reaching explicit `now` or a blocking state.
+- Replace departure-time baseline consumption with deterministic actual-traversal consumption. Compute the delta between cumulative consumption at the old and new sailing offsets so one long-offline call and many short calls consume identical quantity and proportional acquisition cost basis.
+- Departure may continue to require enough Food and Water for a committed fixed transfer as a readiness rule, but quantity and cost basis should leave the Fleet only as sailing resolves. The later Expedition child owns reserve policy across an unknown return choice.
+- Runtime scheduling, visibility resume, hydration, reload, and offline return should all call the same resolver. Browser timers wake work but do not define elapsed time or boundary count.
+- Destination entry remains one atomic final boundary after every earlier sailing consumption and position transition. Passing a harbor approach never settles its Port.
+- Save validation should cover ordered offsets, cursor coherence, monotonic resolution anchors, cumulative consumption, next-boundary timing, and destination legality.
+- Tests should compare direct arrival, many incremental resolutions, save/reload between edges and spans, exact-boundary calls, clock rollback, one-shot offline return, and x1/x20 pacing.
 
 ### Candidate files to inspect
 
 - `src/core/model/game.ts`
 - `src/core/rules/voyage.ts`
-- `src/core/rules/progression.ts`
+- `src/core/rules/cargo.ts`
 - `src/core/navigation/passage-planner.ts`
+- `src/runtime/game-runtime.ts`
 - `src/runtime/use-game-store.ts`
 - `src/platform/persistence/save-migrations.ts`
 - `src/ui/dashboard/voyage/use-voyage-clock.ts`
 - `src/ui/dashboard/voyage/voyage-status-panel.tsx`
-- `src/ui/dashboard/scene/port-scene-panel.tsx`
 - `test/unit/voyage.test.ts`
+- `test/unit/game-runtime.test.ts`
 - `test/unit/use-game-store.test.tsx`
 - `test/unit/save-migrations.test.ts`
-- `test/unit/dashboard.test.tsx`
-- `test/e2e/application.smoke.spec.ts`
-- `dev/docs/plans/v5-core_06_events-items-combat-and-recovery.sketch.md`
 
 ## Non-Goals
 
-1. Per-hour canonical ticks, interval-count progression, or persisted animation-frame position.
-2. New maritime mission types, dynamic weather, currents, Pirate Danger, Patrol, or tactical ship control.
-3. A second Event, Combat, Port settlement, offline reward, or Market transition owner.
-4. Replanning an active Voyage merely because graph content, unlocks, or balancing changed after departure.
+1. Canonical hourly ticks, interval-count progression, or persisted animation-frame position.
+2. Expedition objectives, mission-site availability, Adventure duration, or Combat rules.
+3. Player-selected return routes, mid-edge reversal, waypoints, or plan revisions.
+4. Nautical-chart interaction redesign beyond exposing the resolved progress state.
 
 ## Acceptance Criteria
 
-1. Equal snapshot, seed, decisions, and explicit time produce the same current edge, SubRegion narrative, ordered effects, delay or diversion, and final Port entry online and offline.
-2. Quiet Voyages may resolve directly to arrival, while crossed effect boundaries apply in chronological order and at most once.
-3. Smooth chart position and countdown remain derived presentation; gameplay correctness does not depend on animation frames, interval callbacks, or browser foreground time.
-4. Manual Event decisions pause resolution and are never selected automatically during offline return.
-5. Only actual Port entry settles Market Session, Port XP, restocking, and docked operations after every preceding boundary has resolved.
-6. Incremental resolution, one-shot long-offline resolution, reload between boundaries, clock rollback, and replay produce equivalent canonical outcomes.
-7. Invalid or obsolete persisted paths fail recoverably without partial Event effects, arbitrary rerouting, or unintended Port entry.
-8. Underway route, current waters, progress, remaining time, Supplies, Event interruption, and arrival remain understandable through visual and semantic chart presentation.
+1. Equal snapshot, pacing, seed, and explicit time produce the same node or mid-edge position and actual sailing Supply consumption online and offline.
+2. Quiet transfers may resolve directly to arrival, while crossed edge and SubRegion boundaries apply in chronological order and at most once.
+3. One-shot and incremental resolution consume equal Food, Water, and cost basis without depending on timer or frame counts.
+4. Smooth chart position remains derived presentation, while gameplay commands can materialize an exact deterministic position anchor.
+5. Only actual destination entry settles Market, progression, restock, and docked operations.
+6. Invalid progress anchors and obsolete timelines fail recoverably without partial consumption or arrival.
