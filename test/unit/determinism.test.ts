@@ -6,11 +6,17 @@ import { createRandomStream } from "@/core/random/random-stream";
 import { createRandomStreams, deriveSeed } from "@/core/random/random-streams";
 import { buySupply, setAutoRestockOnArrival, setSupplyTarget } from "@/core/rules/cargo";
 import { buyProduct } from "@/core/rules/market";
-import { departVoyage, resolveVoyage } from "@/core/rules/voyage";
+import { departVoyage, previewVoyagePassage, resolveVoyage } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
 
 const VOYAGE_SEED = 3;
+
+function departForFaro(state: V5GameState) {
+  const preview = previewVoyagePassage(WORLD_CONTENT, state, "faro", 20);
+  if (!preview.quoteId) throw new Error("Expected Lisbon-to-Faro quote.");
+  return departVoyage(WORLD_CONTENT, state, "faro", preview.quoteId, 100, VOYAGE_SEED, 20);
+}
 
 /**
  * One fixed command sequence against a fixed clock. Offline resolution will
@@ -29,7 +35,7 @@ function runCommands(from: V5GameState): { state: V5GameState; events: GameEvent
   step(buyProduct(WORLD_CONTENT, state, "cod", 2, 30));
   step(setSupplyTarget(state, "food", 4));
   step(setAutoRestockOnArrival(state, true));
-  step(departVoyage(WORLD_CONTENT, state, "lisbon-faro", 100, VOYAGE_SEED));
+  step(departForFaro(state));
   step(resolveVoyage(WORLD_CONTENT, state, 2_100));
 
   return { state, events };
@@ -59,7 +65,7 @@ describe("determinism", () => {
     step(buyProduct(WORLD_CONTENT, interrupted, "cod", 2, 30));
     step(setSupplyTarget(interrupted, "food", 4));
     step(setAutoRestockOnArrival(interrupted, true));
-    step(departVoyage(WORLD_CONTENT, interrupted, "lisbon-faro", 100, VOYAGE_SEED));
+    step(departForFaro(interrupted));
 
     const loaded = loadSave(createSaveEnvelope(interrupted, 150), 150);
     expect(loaded.kind).toBe("current");
@@ -83,7 +89,7 @@ describe("determinism", () => {
     step(buyProduct(WORLD_CONTENT, late, "cod", 2, 30));
     step(setSupplyTarget(late, "food", 4));
     step(setAutoRestockOnArrival(late, true));
-    step(departVoyage(WORLD_CONTENT, late, "lisbon-faro", 100, VOYAGE_SEED));
+    step(departForFaro(late));
     const lateResolution = resolveVoyage(WORLD_CONTENT, late, 900_000);
 
     expect(lateResolution.events).toEqual(onTime.events.slice(-lateResolution.events.length));

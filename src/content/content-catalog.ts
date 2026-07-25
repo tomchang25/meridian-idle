@@ -5,7 +5,6 @@
  */
 export { PRODUCT_FAMILIES, PRODUCTS, type Product, type ProductFamily } from "@/content/product-definitions";
 export { PORTS, STARTING_PORT_ID, type Port, type PortCatalogEntry } from "@/content/port-definitions";
-export { ROUTES, type Route } from "@/content/route-definitions";
 export { SUPPLY_PRICES } from "@/content/supply-definitions";
 export { REGIONS, SUB_REGIONS, type Region, type SubRegion } from "@/content/region-definitions";
 export {
@@ -24,7 +23,6 @@ import { NAV_EDGES, NAVIGATION_CONSTANTS, NAV_POINTS } from "@/content/navigatio
 import { PORTS } from "@/content/port-definitions";
 import { PRODUCT_FAMILIES, PRODUCTS } from "@/content/product-definitions";
 import { REGIONS, SUB_REGIONS } from "@/content/region-definitions";
-import { ROUTES } from "@/content/route-definitions";
 import { SUPPLY_PRICES } from "@/content/supply-definitions";
 import type { WorldContent } from "@/core/content/world-content";
 
@@ -56,9 +54,6 @@ export function getProductFamilyForProduct(productId: string) {
   const product = getProduct(productId);
   return product ? getProductFamily(product.familyId) : undefined;
 }
-export function getRoute(id: string) {
-  return ROUTES.find((route) => route.id === id);
-}
 
 /**
  * The shipped world, as core rules consume it. Rules never import this module;
@@ -74,7 +69,6 @@ export const WORLD_CONTENT: WorldContent = {
   getOutgoingNavEdges,
   getProduct,
   getProductFamilyForProduct,
-  getRoute,
   supplyPrices: SUPPLY_PRICES,
   navigationConstants: NAVIGATION_CONSTANTS,
 };

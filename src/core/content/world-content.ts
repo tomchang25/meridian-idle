@@ -1,7 +1,7 @@
 import type { CategoryId, SupplyId } from "@/core/model/game";
 
 /**
- * The shapes core understands. Core defines what a Port or a Route is; the
+ * The shapes core understands. Core defines what a Port or navigation edge is; the
  * content layer authors particular ones and is checked against these.
  */
 export type ProductFamily = {
@@ -72,16 +72,6 @@ export type NavigationConstants = {
   debugTimeScale: number;
 };
 
-export type Route = {
-  id: string;
-  originPortId: string;
-  destinationPortId: string;
-  distance: number;
-  durationMilliseconds: number;
-  staticRisk: number;
-  requiredSupplies: { food: number; water: number };
-};
-
 /**
  * How a rule reaches authored data. Deliberately lookups rather than arrays:
  * rules only ever resolve by identifier, and handing over the collections would
@@ -96,7 +86,6 @@ export type WorldContent = {
   getOutgoingNavEdges(nodeId: string): readonly NavEdge[];
   getProduct(id: string): Product | undefined;
   getProductFamilyForProduct(productId: string): ProductFamily | undefined;
-  getRoute(id: string): Route | undefined;
   readonly supplyPrices: Record<SupplyId, number>;
   readonly navigationConstants: NavigationConstants;
 };

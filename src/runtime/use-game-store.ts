@@ -13,6 +13,7 @@ export type GameStoreDependencies = {
   clock?: Clock;
   /** Starts from an authored world instead of hydrating a save. Harness use only. */
   initialState?: V5GameState;
+  voyagePacingMultiplier?: number;
 };
 
 /**
@@ -25,6 +26,7 @@ export function useGameStore({
   seedSource = browserSeedSource,
   clock,
   initialState,
+  voyagePacingMultiplier,
 }: GameStoreDependencies = {}) {
   // Created once per mount, deliberately not keyed on dependency identity:
   // callers commonly pass inline objects, and rebuilding the runtime mid-life
@@ -36,6 +38,7 @@ export function useGameStore({
         seedSource,
         clock,
         initialState,
+        voyagePacingMultiplier,
       }),
   );
 
@@ -62,7 +65,8 @@ export function useGameStore({
       restockAllSupplies: () => runtime.restockAllSupplies(),
       buyProduct: (productId: string, quantity: number) => runtime.buyProduct(productId, quantity),
       sellProduct: (productId: string, quantity: number) => runtime.sellProduct(productId, quantity),
-      departVoyage: (routeId: string) => runtime.departVoyage(routeId),
+      previewVoyage: (destinationPortId: string) => runtime.previewVoyage(destinationPortId),
+      departVoyage: (destinationPortId: string, quoteId: string) => runtime.departVoyage(destinationPortId, quoteId),
     }),
     [runtime, snapshot],
   );

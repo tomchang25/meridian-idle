@@ -9,7 +9,6 @@ import {
   PRODUCTS,
   PRODUCT_FAMILIES,
   REGIONS,
-  ROUTES,
   STARTING_PORT_ID,
   SUB_REGIONS,
   SUPPLY_PRICES,
@@ -20,7 +19,6 @@ const shippedCatalog: ContentCatalog = {
   productFamilies: PRODUCT_FAMILIES,
   products: PRODUCTS,
   ports: PORTS,
-  routes: ROUTES,
   regions: REGIONS,
   subRegions: SUB_REGIONS,
   navPoints: NAV_POINTS,
@@ -44,7 +42,7 @@ describe("core content", () => {
     expect(validateCatalog(shippedCatalog)).toEqual([]);
   });
 
-  it("authors a complete, clean navigation graph alongside legacy Routes", () => {
+  it("authors a complete, clean navigation graph as the only passage authority", () => {
     expect(NAV_POINTS).toHaveLength(4);
     expect(NAV_EDGES).toHaveLength(12);
     expect(validateCatalog(shippedCatalog)).toEqual([]);
@@ -62,41 +60,6 @@ describe("core content", () => {
 });
 
 describe("catalog validation", () => {
-  it("names the offending entry rather than only the failure", () => {
-    const [diagnostic] = validateCatalog(
-      withCatalog({ routes: [{ ...ROUTES[0], id: "broken-route", destinationPortId: "atlantis" }] }),
-    );
-
-    expect(diagnostic).toMatchObject({ code: "unknown-route-destination", entry: "broken-route" });
-    expect(diagnostic.message).toContain("atlantis");
-  });
-
-  it("rejects unknown Route endpoints, self-routes, and duplicate Route identities", () => {
-    expect(codesFor(withCatalog({ routes: [{ ...ROUTES[0], originPortId: "atlantis" }] }))).toContain(
-      "unknown-route-origin",
-    );
-    expect(codesFor(withCatalog({ routes: [{ ...ROUTES[0], destinationPortId: "lisbon" }] }))).toContain("self-route");
-    expect(codesFor(withCatalog({ routes: [...ROUTES, { ...ROUTES[0] }] }))).toContain("duplicate-route");
-  });
-
-  it("rejects impossible Route measurements", () => {
-    expect(codesFor(withCatalog({ routes: [{ ...ROUTES[0], distance: 0 }] }))).toContain("invalid-distance");
-    expect(codesFor(withCatalog({ routes: [{ ...ROUTES[0], durationMilliseconds: 0 }] }))).toContain(
-      "invalid-duration",
-    );
-    expect(codesFor(withCatalog({ routes: [{ ...ROUTES[0], staticRisk: 1.5 }] }))).toContain("invalid-risk");
-    expect(codesFor(withCatalog({ routes: [{ ...ROUTES[0], requiredSupplies: { food: -1, water: 1 } }] }))).toContain(
-      "invalid-required-supplies",
-    );
-  });
-
-  it("rejects a Port that no Route path can reach from the start", () => {
-    const withoutTangierRoutes = ROUTES.filter((route) => route.destinationPortId !== "tangier");
-    const diagnostics = validateCatalog(withCatalog({ routes: withoutTangierRoutes }));
-
-    expect(diagnostics).toContainEqual(expect.objectContaining({ code: "unreachable-port", entry: "tangier" }));
-  });
-
   it("rejects an unknown starting Port", () => {
     expect(codesFor(withCatalog({ startingPortId: "atlantis" }))).toContain("unknown-starting-port");
   });

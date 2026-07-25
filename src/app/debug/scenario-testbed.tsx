@@ -1,13 +1,25 @@
 import { useEffect, useMemo, useRef } from "react";
 import { installDebugApi } from "@/harness/debug-api";
-import { createHarnessClock } from "@/harness/harness-clock";
+import { createHarnessClock, DEBUG_TIME_SCALE } from "@/harness/harness-clock";
 import { findScenario } from "@/harness/scenario-registry";
+import { createInitialGameState } from "@/core/state/initial-game-state";
+import { systemClock } from "@/runtime/clock";
 import { useGameStore } from "@/runtime/use-game-store";
 import { DashboardView, MeridianDashboard } from "@/ui/dashboard/meridian-dashboard";
 
 function readScenarioId(): string | null {
   try {
     return new URL(window.location.href).searchParams.get("scenario");
+  } catch {
+    return null;
+  }
+}
+
+function readDebugPacingMultiplier(): number | null {
+  try {
+    return new URL(window.location.href).searchParams.get("timeScale") === String(DEBUG_TIME_SCALE)
+      ? DEBUG_TIME_SCALE
+      : null;
   } catch {
     return null;
   }
@@ -21,8 +33,17 @@ function readScenarioId(): string | null {
  */
 export function ScenarioTestbed() {
   const scenario = findScenario(readScenarioId());
-  if (!scenario) return <MeridianDashboard />;
+  if (!scenario) {
+    const pacingMultiplier = readDebugPacingMultiplier();
+    return pacingMultiplier ? <PacedDebugSurface pacingMultiplier={pacingMultiplier} /> : <MeridianDashboard />;
+  }
   return <HarnessSurface scenario={scenario} />;
+}
+
+function PacedDebugSurface({ pacingMultiplier }: { pacingMultiplier: number }) {
+  const initialState = useMemo(() => createInitialGameState(systemClock.now()), []);
+  const store = useGameStore({ initialState, voyagePacingMultiplier: pacingMultiplier });
+  return <DashboardView store={store} />;
 }
 
 function HarnessSurface({ scenario }: { scenario: NonNullable<ReturnType<typeof findScenario>> }) {

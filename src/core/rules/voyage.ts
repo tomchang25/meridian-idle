@@ -1,8 +1,26 @@
-import type { WorldContent } from "@/core/content/world-content";
+import type { NavEdge, WorldContent } from "@/core/content/world-content";
+import { estimatePassage, planPassage, type PassageDenialReason } from "@/core/navigation/passage-planner";
+import type {
+  PassageEdgeSnapshot,
+  PlannedPassageSnapshot,
+  SupplyId,
+  V5GameState,
+  Voyage,
+  VoyageSupplies,
+} from "@/core/model/game";
 import type { GameEvent } from "@/core/events/game-events";
-import type { SupplyId, V5GameState, Voyage } from "@/core/model/game";
 import { removedCostBasis, restockSupplies, supplyRestockPlan, type RuleResult } from "@/core/rules/cargo";
 import { settlePortEntry } from "@/core/rules/progression";
+
+export type VoyagePassagePreview = {
+  destinationPortId: string;
+  quoteId: string | null;
+  passage: PlannedPassageSnapshot | null;
+  readiness: { food: SupplyReadiness; water: SupplyReadiness } | null;
+  error: string | null;
+};
+
+type SupplyReadiness = { required: number; aboard: number; missing: number };
 
 function consumeSupply(state: V5GameState, id: SupplyId, quantity: number) {
   const stack = state.fleet.supplies[id];
@@ -15,79 +33,194 @@ function consumeSupply(state: V5GameState, id: SupplyId, quantity: number) {
     },
   };
 }
+
+function denialMessage(reason: PassageDenialReason): string {
+  switch (reason) {
+    case "destination-unknown":
+      return "This destination is still locked.";
+    case "same-port":
+      return "The Fleet is already docked at this destination.";
+    case "invalid-speed":
+      return "The Fleet has no valid sailing speed.";
+    case "no-legal-path":
+      return "No legal passage reaches this destination.";
+    default:
+      return "This destination is unavailable.";
+  }
+}
+
+function validPacingMultiplier(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
+function scheduledDuration(simulationDurationMilliseconds: number, pacingMultiplier: number): number {
+  return Math.max(1, Math.round(simulationDurationMilliseconds / pacingMultiplier));
+}
+
+function resolveEdgeTimeline(
+  edges: readonly NavEdge[],
+  content: WorldContent,
+  speed: number,
+  totalDurationMilliseconds: number,
+): PassageEdgeSnapshot[] {
+  let unroundedOffset = 0;
+  return edges.map((edge, edgeIndex) => {
+    const spans = edge.spans.map((span, spanIndex) => {
+      unroundedOffset +=
+        (span.distance / speed) * edge.traversalModifier * content.navigationConstants.timePerDistanceUnitMilliseconds;
+      const isFinalBoundary = edgeIndex === edges.length - 1 && spanIndex === edge.spans.length - 1;
+      return {
+        subRegionId: span.subRegionId,
+        simulationEndOffsetMilliseconds: isFinalBoundary ? totalDurationMilliseconds : Math.round(unroundedOffset),
+      };
+    });
+    return {
+      id: edge.id,
+      originNodeId: edge.originNodeId,
+      destinationNodeId: edge.destinationNodeId,
+      simulationEndOffsetMilliseconds: spans[spans.length - 1]?.simulationEndOffsetMilliseconds ?? 0,
+      staticRisk: edge.staticRisk,
+      spans,
+    };
+  });
+}
+
+function cloneSnapshotEdges(edges: readonly PassageEdgeSnapshot[]): PassageEdgeSnapshot[] {
+  return edges.map((edge) => ({ ...edge, spans: edge.spans.map((span) => ({ ...span })) }));
+}
+
+function quoteId(state: V5GameState, destinationPortId: string, passage: PlannedPassageSnapshot): string {
+  return JSON.stringify({
+    originPortId: state.fleet.locationPortId,
+    destinationPortId,
+    fleetSpeed: state.fleet.speed,
+    knownPortIds: [...state.world.knownPortIds].sort(),
+    supplies: {
+      food: state.fleet.supplies.food.quantity,
+      water: state.fleet.supplies.water.quantity,
+    },
+    edges: passage.edges.map((edge) => ({
+      id: edge.id,
+      simulationEndOffsetMilliseconds: edge.simulationEndOffsetMilliseconds,
+      spans: edge.spans.map((span) => ({
+        subRegionId: span.subRegionId,
+        simulationEndOffsetMilliseconds: span.simulationEndOffsetMilliseconds,
+      })),
+    })),
+    simulationDurationMilliseconds: passage.simulationDurationMilliseconds,
+    scheduledDurationMilliseconds: passage.scheduledDurationMilliseconds,
+    pacingMultiplier: passage.pacingMultiplier,
+  });
+}
+
+function supplyReadiness(state: V5GameState, required: VoyageSupplies) {
+  const readinessFor = (id: "food" | "water"): SupplyReadiness => ({
+    required: required[id],
+    aboard: state.fleet.supplies[id].quantity,
+    missing: Math.max(0, required[id] - state.fleet.supplies[id].quantity),
+  });
+  return { food: readinessFor("food"), water: readinessFor("water") };
+}
+
+/** Quotes a destination from canonical state without mutating it. */
+export function previewVoyagePassage(
+  content: WorldContent,
+  state: V5GameState,
+  destinationPortId: string,
+  pacingMultiplier = 1,
+): VoyagePassagePreview {
+  if (state.voyage)
+    return {
+      destinationPortId,
+      quoteId: null,
+      passage: null,
+      readiness: null,
+      error: "The Fleet is already on a Voyage.",
+    };
+  if (!validPacingMultiplier(pacingMultiplier))
+    return { destinationPortId, quoteId: null, passage: null, readiness: null, error: "Voyage pacing is invalid." };
+
+  const plan = planPassage({
+    world: content,
+    originPortId: state.fleet.locationPortId,
+    destinationPortId,
+    knownPortIds: state.world.knownPortIds,
+    speed: state.fleet.speed,
+  });
+  if (plan.kind === "denied")
+    return { destinationPortId, quoteId: null, passage: null, readiness: null, error: denialMessage(plan.reason) };
+
+  const estimate = estimatePassage(plan, content, state.fleet.speed);
+  const passage: PlannedPassageSnapshot = {
+    kind: "planned",
+    originPortId: plan.originPortId,
+    destinationPortId: plan.destinationPortId,
+    edges: resolveEdgeTimeline(estimate.edges, content, state.fleet.speed, estimate.durationMilliseconds),
+    totalDistance: estimate.totalDistance,
+    simulationDurationMilliseconds: estimate.durationMilliseconds,
+    scheduledDurationMilliseconds: scheduledDuration(estimate.durationMilliseconds, pacingMultiplier),
+    pacingMultiplier,
+    requiredSupplies: { ...estimate.requiredSupplies },
+    staticRisk: estimate.staticRisk,
+  };
+  const readiness = supplyReadiness(state, passage.requiredSupplies);
+  const error =
+    readiness.food.missing > 0 || readiness.water.missing > 0
+      ? `Requires Food ${readiness.food.required} and Water ${readiness.water.required} before departure.`
+      : null;
+  return { destinationPortId, quoteId: quoteId(state, destinationPortId, passage), passage, readiness, error };
+}
+
+export function voyageDepartureError(
+  content: WorldContent,
+  state: V5GameState,
+  destinationPortId: string,
+  pacingMultiplier = 1,
+): string | null {
+  return previewVoyagePassage(content, state, destinationPortId, pacingMultiplier).error;
+}
+
 export function departVoyage(
   content: WorldContent,
   state: V5GameState,
-  routeId: string,
+  destinationPortId: string,
+  expectedQuoteId: string,
   now: number,
   seed: number,
+  pacingMultiplier = 1,
 ): RuleResult {
-  const route = content.getRoute(routeId);
-  const eligibilityError = voyageDepartureError(content, state, routeId);
-  if (eligibilityError) return { state, events: [], error: eligibilityError };
-  if (!route) return { state, events: [], error: "This route is unavailable." };
+  const preview = previewVoyagePassage(content, state, destinationPortId, pacingMultiplier);
+  if (preview.error) return { state, events: [], error: preview.error };
+  if (!preview.passage || !preview.quoteId || preview.quoteId !== expectedQuoteId)
+    return { state, events: [], error: "This passage quote is stale. Review the latest departure details." };
   if (!Number.isSafeInteger(now) || now < 0) return { state, events: [], error: "Departure time is invalid." };
   if (!Number.isInteger(seed) || seed <= 0 || seed > 0xffff_ffff)
     return { state, events: [], error: "A secure non-zero Voyage seed is required." };
-  const { food, water } = route.requiredSupplies;
+
+  const { food, water } = preview.passage.requiredSupplies;
   const foodUse = consumeSupply(state, "food", food);
   const waterUse = consumeSupply({ ...state, fleet: { ...state.fleet, supplies: foodUse.supplies } }, "water", water);
   const voyage: Voyage = {
-    id: `voyage-${route.id}-${now}`,
-    routeId: route.id,
-    originPortId: route.originPortId,
-    destinationPortId: route.destinationPortId,
+    id: `voyage-${preview.passage.originPortId}-${preview.passage.destinationPortId}-${now}`,
     departedAt: now,
-    plannedArrivesAt: now + route.durationMilliseconds,
-    staticRisk: route.staticRisk,
-    requiredSupplies: route.requiredSupplies,
+    plannedArrivesAt: now + preview.passage.scheduledDurationMilliseconds,
+    passage: { ...preview.passage, edges: cloneSnapshotEdges(preview.passage.edges) },
     supplyCost: foodUse.cost + waterUse.cost,
     seed,
   };
   return {
-    state: {
-      ...state,
-      fleet: { ...state.fleet, supplies: waterUse.supplies },
-      voyage,
-    },
-    events: [{ kind: "voyage-departed", at: now, voyageId: voyage.id, destinationPortId: route.destinationPortId }],
+    state: { ...state, fleet: { ...state.fleet, supplies: waterUse.supplies }, voyage },
+    events: [
+      { kind: "voyage-departed", at: now, voyageId: voyage.id, destinationPortId: voyage.passage.destinationPortId },
+    ],
   };
 }
-export function voyageDepartureError(content: WorldContent, state: V5GameState, routeId: string): string | null {
-  const route = content.getRoute(routeId);
-  if (!route) return "This route is unavailable.";
-  if (state.voyage) return "The Fleet is already on a Voyage.";
-  if (route.originPortId !== state.fleet.locationPortId) return "The Fleet is not docked at this route's origin.";
-  if (!state.world.knownPortIds.includes(route.destinationPortId)) return "This destination is still locked.";
-  const { food, water } = route.requiredSupplies;
-  if (state.fleet.supplies.food.quantity < food || state.fleet.supplies.water.quantity < water)
-    return `Requires Food ${food} and Water ${water} before departure.`;
-  return null;
-}
-export function voyageSupplyReadiness(content: WorldContent, state: V5GameState, routeId: string) {
-  const route = content.getRoute(routeId);
-  if (!route) return null;
-  const { food, water } = route.requiredSupplies;
-  return {
-    food: {
-      required: food,
-      aboard: state.fleet.supplies.food.quantity,
-      missing: Math.max(0, food - state.fleet.supplies.food.quantity),
-    },
-    water: {
-      required: water,
-      aboard: state.fleet.supplies.water.quantity,
-      missing: Math.max(0, water - state.fleet.supplies.water.quantity),
-    },
-  };
-}
+
 export function resolveVoyage(content: WorldContent, state: V5GameState, now: number): RuleResult {
   const voyage = state.voyage;
   if (!voyage || now < voyage.plannedArrivesAt) return { state, events: [] };
-  const arrival = settlePortEntry(content, { ...state, voyage: null }, voyage.destinationPortId, voyage.seed);
+  const arrival = settlePortEntry(content, { ...state, voyage: null }, voyage.passage.destinationPortId, voyage.seed);
   let settledState = arrival.state;
-  // Chronological: any restock outcome precedes arrival, so the renderer leaves
-  // the arrival entry newest.
   const events: GameEvent[] = [];
   if (settledState.fleet.autoRestockOnArrival) {
     const plan = supplyRestockPlan(content, settledState);
@@ -113,7 +246,7 @@ export function resolveVoyage(content: WorldContent, state: V5GameState, now: nu
     kind: "voyage-arrived",
     at: voyage.plannedArrivesAt,
     voyageId: voyage.id,
-    destinationPortId: voyage.destinationPortId,
+    destinationPortId: voyage.passage.destinationPortId,
   });
   return {
     state: {
@@ -122,7 +255,7 @@ export function resolveVoyage(content: WorldContent, state: V5GameState, now: nu
       latestVoyageResult: {
         voyageId: voyage.id,
         arrivedAt: voyage.plannedArrivesAt,
-        destinationPortId: voyage.destinationPortId,
+        destinationPortId: voyage.passage.destinationPortId,
         sourceXpGained: arrival.xpGained,
         supplyCost: voyage.supplyCost,
       },

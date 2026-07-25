@@ -21,6 +21,24 @@ const store = {
   restockAllSupplies: vi.fn(),
   buyProduct: vi.fn(),
   sellProduct: vi.fn(),
+  previewVoyage: vi.fn((destinationPortId: string) => ({
+    destinationPortId,
+    quoteId: `quote-${destinationPortId}`,
+    passage: {
+      kind: "planned" as const,
+      originPortId: "lisbon",
+      destinationPortId,
+      edges: [],
+      totalDistance: destinationPortId === "faro" ? 20 : 48,
+      simulationDurationMilliseconds: destinationPortId === "faro" ? 40_000 : 96_000,
+      scheduledDurationMilliseconds: destinationPortId === "faro" ? 40_000 : 96_000,
+      pacingMultiplier: 1,
+      requiredSupplies: { food: destinationPortId === "faro" ? 1 : 2, water: destinationPortId === "faro" ? 1 : 2 },
+      staticRisk: destinationPortId === "faro" ? 0.1 : 0.2,
+    },
+    readiness: { food: { required: 1, aboard: 2, missing: 0 }, water: { required: 1, aboard: 2, missing: 0 } },
+    error: null,
+  })),
   departVoyage: vi.fn(),
 };
 
@@ -148,10 +166,10 @@ describe("MeridianDashboard", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Harbor/ }));
     expect(screen.getByRole("heading", { name: "Choose Next Port" })).toBeVisible();
-    expect(screen.getByText(/Food 1 required \/ 2 aboard \/ Ready/)).toBeVisible();
+    expect(screen.getAllByText(/Food 1 required \/ 2 aboard \/ Ready/)).toHaveLength(2);
     expect(screen.queryByRole("button", { name: /Manage Supplies/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Depart for Faro" }));
-    expect(store.departVoyage).toHaveBeenCalledWith("lisbon-faro");
+    expect(store.departVoyage).toHaveBeenCalledWith("faro", "quote-faro");
   });
 
   it("associates visible Product and Supply purchase reasons with disabled controls", () => {
@@ -212,13 +230,20 @@ describe("MeridianDashboard", () => {
     const now = Date.now();
     store.state.voyage = {
       id: "voyage-1",
-      routeId: "lisbon-faro",
-      originPortId: "lisbon",
-      destinationPortId: "faro",
       departedAt: now - 1_000,
       plannedArrivesAt: now + 1_000,
-      staticRisk: 0.1,
-      requiredSupplies: { food: 1, water: 1 },
+      passage: {
+        kind: "planned",
+        originPortId: "lisbon",
+        destinationPortId: "faro",
+        edges: [],
+        totalDistance: 20,
+        simulationDurationMilliseconds: 40_000,
+        scheduledDurationMilliseconds: 2_000,
+        pacingMultiplier: 20,
+        staticRisk: 0.1,
+        requiredSupplies: { food: 1, water: 1 },
+      },
       supplyCost: 2,
       seed: 7,
     };

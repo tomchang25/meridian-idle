@@ -1,6 +1,4 @@
-import { WORLD_CONTENT } from "@/content/content-catalog";
-import { getPort, ROUTES } from "@/content/content-catalog";
-import { voyageDepartureError, voyageSupplyReadiness } from "@/core/rules/voyage";
+import { getPort } from "@/content/content-catalog";
 import { displayName, formatRemaining } from "../dashboard-helpers";
 import type { DashboardStore } from "../dashboard-types";
 import styles from "../meridian-dashboard.module.css";
@@ -12,7 +10,7 @@ type HarborPanelProps = {
 export function HarborPanel({ store }: HarborPanelProps) {
   const { state } = store;
   const port = getPort(state.fleet.locationPortId);
-  const routes = ROUTES.filter((route) => route.originPortId === state.fleet.locationPortId);
+  const destinations = state.world.knownPortIds.filter((portId) => portId !== state.fleet.locationPortId);
 
   return (
     <section aria-labelledby="harbor-command">
@@ -30,38 +28,41 @@ export function HarborPanel({ store }: HarborPanelProps) {
         Every departure commits the listed Food and Water before the Voyage begins.
       </p>
       <ul className={styles.harborRoutes}>
-        {routes.map((route) => {
-          const routeDestination = getPort(route.destinationPortId);
-          const departureError = voyageDepartureError(WORLD_CONTENT, state, route.id);
-          const unavailableReason = !store.canGenerateVoyageSeed ? "Secure randomness is unavailable." : departureError;
-          const departureReasonId = `depart-${route.id}-reason`;
-          const readiness = voyageSupplyReadiness(WORLD_CONTENT, state, route.id);
+        {destinations.map((destinationPortId) => {
+          const routeDestination = getPort(destinationPortId);
+          const preview = store.previewVoyage(destinationPortId);
+          const passage = preview.passage;
+          const unavailableReason = !store.canGenerateVoyageSeed ? "Secure randomness is unavailable." : preview.error;
+          const departureReasonId = `depart-${destinationPortId}-reason`;
+          const readiness = preview.readiness;
           return (
-            <li key={route.id}>
+            <li key={destinationPortId}>
               <div className={styles.routeCompass} aria-hidden="true">
-                {route.distance}
+                {passage?.totalDistance ?? "—"}
               </div>
               <div className={styles.routeIdentity}>
                 <span>{displayName(routeDestination?.regionId ?? "unknown waters")}</span>
                 <strong>{routeDestination?.name ?? "Unknown Port"}</strong>
-                <p>{route.distance} distance units across an authored trade route.</p>
+                <p>
+                  {passage ? `${passage.totalDistance} distance units across a charted passage.` : "No legal passage."}
+                </p>
               </div>
               <dl>
                 <div>
                   <dt>Duration</dt>
-                  <dd>{formatRemaining(route.durationMilliseconds)}</dd>
+                  <dd>{passage ? formatRemaining(passage.scheduledDurationMilliseconds) : "—"}</dd>
                 </div>
                 <div>
                   <dt>Risk</dt>
-                  <dd>{Math.round(route.staticRisk * 100)}%</dd>
+                  <dd>{passage ? `${Math.round(passage.staticRisk * 100)}%` : "—"}</dd>
                 </div>
                 <div>
                   <dt>Supplies</dt>
                   <dd>
-                    Food {readiness?.food.required} required / {readiness?.food.aboard} aboard
+                    Food {readiness?.food.required ?? "—"} required / {readiness?.food.aboard ?? "—"} aboard
                     {readiness?.food.missing ? ` / Missing ${readiness.food.missing}` : " / Ready"}
                     <br />
-                    Water {readiness?.water.required} required / {readiness?.water.aboard} aboard
+                    Water {readiness?.water.required ?? "—"} required / {readiness?.water.aboard ?? "—"} aboard
                     {readiness?.water.missing ? ` / Missing ${readiness.water.missing}` : " / Ready"}
                   </dd>
                 </div>
@@ -72,7 +73,7 @@ export function HarborPanel({ store }: HarborPanelProps) {
                   type="button"
                   disabled={unavailableReason !== null}
                   aria-describedby={unavailableReason ? departureReasonId : undefined}
-                  onClick={() => store.departVoyage(route.id)}
+                  onClick={() => preview.quoteId && store.departVoyage(destinationPortId, preview.quoteId)}
                 >
                   Depart for {routeDestination?.name ?? "destination"}
                 </button>

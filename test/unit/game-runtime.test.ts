@@ -1,13 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { WORLD_CONTENT } from "@/content/content-catalog";
 import type { V5GameState } from "@/core/model/game";
-import { departVoyage } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { GameRuntime, type SaveRepository } from "@/runtime/game-runtime";
 import { createSaveEnvelope } from "@/platform/persistence/save-migrations";
 import type { SeedSource } from "@/runtime/seed-source";
 
 const seedSource: SeedSource = { isAvailable: () => true, nextSeed: () => 3 };
+
+function departForFaro(runtime: GameRuntime) {
+  const preview = runtime.previewVoyage("faro");
+  if (!preview.quoteId) throw new Error("Expected Lisbon-to-Faro quote.");
+  runtime.departVoyage("faro", preview.quoteId);
+}
 
 function repository(saved: unknown = null): SaveRepository & { saves: V5GameState[] } {
   const saves: V5GameState[] = [];
@@ -34,12 +38,12 @@ describe("GameRuntime", () => {
   it("settles an arrival on its own schedule", async () => {
     vi.useFakeTimers();
     const clock = controllableClock();
-    const runtime = new GameRuntime({ repository: repository(), seedSource, clock });
+    const runtime = new GameRuntime({ repository: repository(), seedSource, clock, voyagePacingMultiplier: 20 });
     runtime.startNewGame();
     runtime.setSupplyTarget("food", 2);
     runtime.setSupplyTarget("water", 2);
     runtime.restockAllSupplies();
-    runtime.departVoyage("lisbon-faro");
+    departForFaro(runtime);
 
     expect(runtime.getSnapshot().state.voyage).not.toBeNull();
 
@@ -53,12 +57,12 @@ describe("GameRuntime", () => {
   it("abandons a pending arrival when a new game replaces the world", async () => {
     vi.useFakeTimers();
     const clock = controllableClock();
-    const runtime = new GameRuntime({ repository: repository(), seedSource, clock });
+    const runtime = new GameRuntime({ repository: repository(), seedSource, clock, voyagePacingMultiplier: 20 });
     runtime.startNewGame();
     runtime.setSupplyTarget("food", 2);
     runtime.setSupplyTarget("water", 2);
     runtime.restockAllSupplies();
-    runtime.departVoyage("lisbon-faro");
+    departForFaro(runtime);
 
     // The previous world's arrival is now due, but its world is gone.
     runtime.startNewGame();
@@ -80,7 +84,7 @@ describe("GameRuntime", () => {
           releaseLoad = resolve;
         }),
     };
-    const saved = departVoyage(WORLD_CONTENT, createInitialGameState(0), "lisbon-faro", 0, 3).state;
+    const saved = createInitialGameState(0);
     const runtime = new GameRuntime({ repository: slowRepository, seedSource, clock: controllableClock() });
     runtime.hydrate();
 
@@ -110,12 +114,12 @@ describe("GameRuntime", () => {
   it("remains usable across a dispose/activate remount cycle", () => {
     vi.useFakeTimers();
     const clock = controllableClock();
-    const runtime = new GameRuntime({ repository: repository(), seedSource, clock });
+    const runtime = new GameRuntime({ repository: repository(), seedSource, clock, voyagePacingMultiplier: 20 });
     runtime.startNewGame();
     runtime.setSupplyTarget("food", 2);
     runtime.setSupplyTarget("water", 2);
     runtime.restockAllSupplies();
-    runtime.departVoyage("lisbon-faro");
+    departForFaro(runtime);
     expect(runtime.getSnapshot().state.voyage).not.toBeNull();
 
     // React StrictMode drives the subscribing effect setup/teardown/setup on the

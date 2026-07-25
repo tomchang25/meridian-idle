@@ -27,15 +27,46 @@ export type MarketSession = {
   specialtySupply: number;
   netTrade: Record<string, number>;
 };
-export type Voyage = {
+
+export type VoyageSupplies = Pick<Record<SupplyId, number>, "food" | "water">;
+
+export type PassageEdgeSnapshot = {
   id: string;
-  routeId: string;
+  originNodeId: string;
+  destinationNodeId: string;
+  simulationEndOffsetMilliseconds: number;
+  staticRisk: number;
+  spans: { subRegionId: string; simulationEndOffsetMilliseconds: number }[];
+};
+
+type PassageSnapshotBase = {
   originPortId: string;
   destinationPortId: string;
+  simulationDurationMilliseconds: number;
+  scheduledDurationMilliseconds: number;
+  pacingMultiplier: number;
+  requiredSupplies: VoyageSupplies;
+  staticRisk: number;
+};
+
+export type PlannedPassageSnapshot = PassageSnapshotBase & {
+  kind: "planned";
+  edges: PassageEdgeSnapshot[];
+  totalDistance: number;
+};
+
+export type LegacyRoutePassageSnapshot = PassageSnapshotBase & {
+  kind: "legacy-route";
+  legacyRouteId: string;
+};
+
+export type PassageSnapshot = PlannedPassageSnapshot | LegacyRoutePassageSnapshot;
+
+export type Voyage = {
+  id: string;
   departedAt: number;
   plannedArrivesAt: number;
-  staticRisk: number;
-  requiredSupplies: Pick<Record<SupplyId, number>, "food" | "water">;
+  passage: PassageSnapshot;
   supplyCost: number;
   seed: number;
 };
@@ -49,8 +80,8 @@ export type VoyageResult = {
 export type MigrationReport = { fromVersion: 1; migratedAt: number; droppedFields: string[]; acknowledged: boolean };
 export type ActivityEntry = { id: string; at: number; message: string; tone: ActivityTone };
 
-export type V5GameState = {
-  schemaVersion: 5;
+export type V6GameState = {
+  schemaVersion: 6;
   createdAt: number;
   world: { knownPortIds: string[] };
   fleet: Fleet;
@@ -61,3 +92,6 @@ export type V5GameState = {
   migrationReport: MigrationReport | null;
   activity: ActivityEntry[];
 };
+
+/** @deprecated Use V6GameState. Kept as a source-compatible application alias. */
+export type V5GameState = V6GameState;

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
 
-describe("V5 save migration", () => {
+describe("V6 save migration", () => {
   it("creates one legal Lisbon world", () => {
     const state = createInitialGameState(100);
     expect(state.fleet.locationPortId).toBe("lisbon");
@@ -20,7 +20,7 @@ describe("V5 save migration", () => {
     expect(result.envelope.state.migrationReport?.droppedFields).toContain("running Action");
   });
 
-  it("round-trips a current V5 payload and rejects malformed saves", () => {
+  it("round-trips a current V6 payload and rejects malformed saves", () => {
     const state = createInitialGameState(100);
     expect(loadSave(createSaveEnvelope(state, 200), 300)).toMatchObject({
       kind: "current",
@@ -50,7 +50,7 @@ describe("V5 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 5, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 6, savedAt: 300 });
     expect(result.envelope.state.fleet.supplyTargets.food).toBe(3);
     expect(result.envelope.state.fleet.autoRestockOnArrival).toBe(false);
   });
@@ -76,7 +76,7 @@ describe("V5 save migration", () => {
 
     expect(result.kind).toBe("migrated");
     if (result.kind !== "migrated") return;
-    expect(result.envelope).toMatchObject({ version: 5, savedAt: 300 });
+    expect(result.envelope).toMatchObject({ version: 6, savedAt: 300 });
     expect(result.envelope.state.fleet.supplies.munitions).toEqual({ quantity: 4, totalCostBasis: 72 });
     expect(result.envelope.state.fleet.supplies.spares).toEqual({ quantity: 5, totalCostBasis: 120 });
     expect(result.envelope.state.fleet.supplyTargets).toMatchObject({ munitions: 4, spares: 5 });
@@ -91,8 +91,74 @@ describe("V5 save migration", () => {
 
     const result = loadSave({ version: 4, savedAt: 200, state: v4State }, 300);
 
-    expect(result).toMatchObject({ kind: "migrated", envelope: { version: 5, savedAt: 300 } });
+    expect(result).toMatchObject({ kind: "migrated", envelope: { version: 6, savedAt: 300 } });
     if (result.kind !== "migrated") return;
     expect(result.envelope.state.fleet.speed).toBe(100);
+  });
+
+  it("preserves a valid active V5 Voyage as a frozen legacy passage", () => {
+    const state = createInitialGameState(100);
+    const legacyV5 = {
+      ...state,
+      schemaVersion: 5 as const,
+      voyage: {
+        id: "voyage-lisbon-faro-100",
+        routeId: "lisbon-faro",
+        originPortId: "lisbon",
+        destinationPortId: "faro",
+        departedAt: 100,
+        plannedArrivesAt: 2_100,
+        staticRisk: 0.1,
+        requiredSupplies: { food: 1, water: 1 },
+        supplyCost: 12,
+        seed: 3,
+      },
+    };
+
+    const result = loadSave({ version: 5, savedAt: 500, state: legacyV5 }, 800);
+
+    expect(result).toMatchObject({
+      kind: "migrated",
+      envelope: {
+        version: 6,
+        state: {
+          voyage: {
+            departedAt: 100,
+            plannedArrivesAt: 2_100,
+            supplyCost: 12,
+            seed: 3,
+            passage: {
+              kind: "legacy-route",
+              legacyRouteId: "lisbon-faro",
+              originPortId: "lisbon",
+              destinationPortId: "faro",
+              scheduledDurationMilliseconds: 2_000,
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it("rejects an active V5 Voyage whose frozen route payload is inconsistent", () => {
+    const state = createInitialGameState(100);
+    const malformed = {
+      ...state,
+      schemaVersion: 5 as const,
+      voyage: {
+        id: "voyage-bad",
+        routeId: "lisbon-faro",
+        originPortId: "lisbon",
+        destinationPortId: "tangier",
+        departedAt: 100,
+        plannedArrivesAt: 2_100,
+        staticRisk: 0.1,
+        requiredSupplies: { food: 1, water: 1 },
+        supplyCost: 12,
+        seed: 3,
+      },
+    };
+
+    expect(loadSave({ version: 5, savedAt: 500, state: malformed }, 800)).toEqual({ kind: "corrupt" });
   });
 });

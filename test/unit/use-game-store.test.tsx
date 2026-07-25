@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SeedSource } from "@/runtime/seed-source";
 import { useGameStore, type GameStoreDependencies, type SaveRepository } from "@/runtime/use-game-store";
 import { buySupply } from "@/core/rules/cargo";
-import { departVoyage } from "@/core/rules/voyage";
+import { departVoyage, previewVoyagePassage } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { createSaveEnvelope } from "@/platform/persistence/save-migrations";
 
@@ -21,6 +21,12 @@ function repository(raw: unknown | null = null): SaveRepository & {
 }
 
 const fixedSeedSource: SeedSource = { isAvailable: () => true, nextSeed: () => 7 };
+
+function departForFaro(state: ReturnType<typeof createInitialGameState>, now = 100, pacingMultiplier = 20) {
+  const preview = previewVoyagePassage(WORLD_CONTENT, state, "faro", pacingMultiplier);
+  if (!preview.quoteId) throw new Error("Expected Lisbon-to-Faro quote.");
+  return departVoyage(WORLD_CONTENT, state, "faro", preview.quoteId, now, 3, pacingMultiplier);
+}
 
 async function settleHydration() {
   await act(async () => {
@@ -121,7 +127,8 @@ describe("useGameStore", () => {
     act(() => result.current.applySupplyTarget("food"));
     act(() => result.current.applySupplyTarget("water"));
     const suppliesBefore = result.current.state.fleet.supplies;
-    act(() => result.current.departVoyage("lisbon-faro"));
+    const preview = result.current.previewVoyage("faro");
+    act(() => result.current.departVoyage("faro", preview.quoteId!));
 
     expect(result.current.state.voyage).toBeNull();
     expect(result.current.state.fleet.supplies).toBe(suppliesBefore);
@@ -133,7 +140,7 @@ describe("useGameStore", () => {
     let currentNow = 100;
     let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 1, 1).state;
     state = buySupply(WORLD_CONTENT, state, "water", 1, 2).state;
-    state = departVoyage(WORLD_CONTENT, state, "lisbon-faro", 100, 3).state;
+    state = departForFaro(state).state;
     const savedRepository = repository(createSaveEnvelope(state, 100));
     const dependencies: GameStoreDependencies = {
       repository: savedRepository,
@@ -149,7 +156,7 @@ describe("useGameStore", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2_000);
     });
-    expect(result.current.state.voyage?.destinationPortId).toBe("faro");
+    expect(result.current.state.voyage?.passage.destinationPortId).toBe("faro");
 
     currentNow = 2_100;
     await act(async () => {

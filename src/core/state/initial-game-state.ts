@@ -1,13 +1,13 @@
-import { SUPPLY_IDS, type CargoStack, type V5GameState } from "@/core/model/game";
+import { SUPPLY_IDS, type CargoStack, type V6GameState } from "@/core/model/game";
 import { createMarketSession } from "@/core/rules/market";
 
 function emptyStack(): CargoStack {
   return { quantity: 0, totalCostBasis: 0 };
 }
 
-export function createInitialGameState(now: number): V5GameState {
+export function createInitialGameState(now: number): V6GameState {
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     createdAt: now,
     world: { knownPortIds: ["lisbon", "faro", "tangier"] },
     fleet: {
@@ -19,8 +19,8 @@ export function createInitialGameState(now: number): V5GameState {
       maxHp: 100,
       attack: 10,
       products: {},
-      supplies: Object.fromEntries(SUPPLY_IDS.map((id) => [id, emptyStack()])) as V5GameState["fleet"]["supplies"],
-      supplyTargets: Object.fromEntries(SUPPLY_IDS.map((id) => [id, 0])) as V5GameState["fleet"]["supplyTargets"],
+      supplies: Object.fromEntries(SUPPLY_IDS.map((id) => [id, emptyStack()])) as V6GameState["fleet"]["supplies"],
+      supplyTargets: Object.fromEntries(SUPPLY_IDS.map((id) => [id, 0])) as V6GameState["fleet"]["supplyTargets"],
       autoRestockOnArrival: false,
     },
     portProgress: { lisbon: { xp: 0 }, faro: { xp: 0 }, tangier: { xp: 0 } },

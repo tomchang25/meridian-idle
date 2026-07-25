@@ -32,8 +32,3 @@ export function createHarnessClock(start: number = HARNESS_EPOCH): HarnessClock 
 }
 
 /** Makes a Clock advance simulated time by a fixed multiple of its base clock. */
-export function createScaledClock(base: Clock, factor: number): Clock {
-  const startedAt = base.now();
-  const scale = Math.max(0, factor);
-  return { now: () => startedAt + (base.now() - startedAt) * scale };
-}

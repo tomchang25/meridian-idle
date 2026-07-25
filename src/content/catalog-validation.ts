@@ -1,7 +1,6 @@
 import { CATEGORY_IDS, SUPPLY_IDS, type SupplyId } from "@/core/model/game";
 import type { Port } from "@/content/port-definitions";
 import type { Product, ProductFamily } from "@/content/product-definitions";
-import type { Route } from "@/content/route-definitions";
 import type { NavEdge, NavPoint, NavigationConstants } from "@/content/navigation-definitions";
 import type { Region, SubRegion } from "@/content/region-definitions";
 
@@ -23,7 +22,6 @@ export type ContentCatalog = {
   productFamilies: readonly ProductFamily[];
   products: readonly Product[];
   ports: readonly Port[];
-  routes: readonly Route[];
   regions: readonly Region[];
   subRegions: readonly SubRegion[];
   navPoints: readonly NavPoint[];
@@ -48,25 +46,6 @@ function duplicates(ids: readonly string[]): string[] {
     seen.add(id);
   }
   return [...repeated];
-}
-
-function isWholeAtLeast(value: unknown, minimum: number): boolean {
-  return typeof value === "number" && Number.isSafeInteger(value) && value >= minimum;
-}
-
-/** Ports reachable from the start by following directed routes. */
-function reachablePorts(catalog: ContentCatalog): Set<string> {
-  const reached = new Set<string>([catalog.startingPortId]);
-  const queue = [catalog.startingPortId];
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-    for (const route of catalog.routes) {
-      if (route.originPortId !== current || reached.has(route.destinationPortId)) continue;
-      reached.add(route.destinationPortId);
-      queue.push(route.destinationPortId);
-    }
-  }
-  return reached;
 }
 
 /** Ports reachable while treating every Port other than the origin as terminal. */
@@ -120,8 +99,6 @@ export function validateCatalog(catalog: ContentCatalog): ContentDiagnostic[] {
     report("duplicate-product", id, "Product identity is used more than once.");
   for (const id of duplicates(catalog.ports.map((port) => port.id)))
     report("duplicate-port", id, "Port identity is used more than once.");
-  for (const id of duplicates(catalog.routes.map((route) => route.id)))
-    report("duplicate-route", id, "Route identity is used more than once.");
   for (const id of duplicates(catalog.regions.map((region) => region.id)))
     report("duplicate-region", id, "Region identity is used more than once.");
   for (const id of duplicates(catalog.subRegions.map((subRegion) => subRegion.id)))
@@ -265,35 +242,8 @@ export function validateCatalog(catalog: ContentCatalog): ContentDiagnostic[] {
       );
   }
 
-  for (const route of catalog.routes) {
-    if (!portIds.has(route.originPortId))
-      report("unknown-route-origin", route.id, `Route names unknown origin Port "${route.originPortId}".`);
-    if (!portIds.has(route.destinationPortId))
-      report(
-        "unknown-route-destination",
-        route.id,
-        `Route names unknown destination Port "${route.destinationPortId}".`,
-      );
-    if (route.originPortId === route.destinationPortId)
-      report("self-route", route.id, "Route origin and destination are the same Port.");
-    if (!(route.distance > 0)) report("invalid-distance", route.id, "Route distance must be greater than zero.");
-    if (!(route.durationMilliseconds > 0))
-      report("invalid-duration", route.id, "Route duration must be greater than zero.");
-    if (!(route.staticRisk >= 0 && route.staticRisk <= 1))
-      report("invalid-risk", route.id, "Route static risk must be between zero and one.");
-    if (!isWholeAtLeast(route.requiredSupplies.food, 0) || !isWholeAtLeast(route.requiredSupplies.water, 0))
-      report("invalid-required-supplies", route.id, "Route required Supplies must be non-negative whole numbers.");
-  }
-
   if (!portIds.has(catalog.startingPortId))
     report("unknown-starting-port", catalog.startingPortId, "The starting Port is not an authored Port.");
-  else {
-    const reached = reachablePorts(catalog);
-    for (const port of catalog.ports) {
-      if (!reached.has(port.id))
-        report("unreachable-port", port.id, "No Route path reaches this Port from the starting Port.");
-    }
-  }
 
   if (portIds.has(catalog.startingPortId)) {
     const reached = reachableGraphPorts(catalog);

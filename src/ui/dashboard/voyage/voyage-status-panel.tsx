@@ -12,7 +12,7 @@ type VoyageStatusPanelProps = {
 
 export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
   const displayNow = useVoyageClock(voyage, clock);
-  const destinationPort = getPort(voyage.destinationPortId);
+  const destinationPort = getPort(voyage.passage.destinationPortId);
   const voyageDuration = Math.max(1, voyage.plannedArrivesAt - voyage.departedAt);
   const voyageElapsed = Math.min(voyageDuration, Math.max(0, (displayNow || voyage.departedAt) - voyage.departedAt));
   const voyageProgress = Math.floor((voyageElapsed / voyageDuration) * 100);
@@ -25,13 +25,14 @@ export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
           <div>
             <p>Voyage in progress</p>
             <h2 id="action-panel-title">
-              {getPort(voyage.originPortId)?.name ?? "Unknown Port"} to {destinationPort?.name ?? "Unknown Port"}
+              {getPort(voyage.passage.originPortId)?.name ?? "Unknown Port"} to{" "}
+              {destinationPort?.name ?? "Unknown Port"}
             </h2>
           </div>
-          <span className={styles.voyageBadge}>Risk {Math.round(voyage.staticRisk * 100)}%</span>
+          <span className={styles.voyageBadge}>Risk {Math.round(voyage.passage.staticRisk * 100)}%</span>
         </div>
         <div className={styles.routeTrack} aria-hidden="true">
-          <span>{getPort(voyage.originPortId)?.name ?? "Origin"}</span>
+          <span>{getPort(voyage.passage.originPortId)?.name ?? "Origin"}</span>
           <i />
           <b>{voyageProgress}%</b>
           <i />
@@ -48,7 +49,7 @@ export function VoyageStatusPanel({ voyage, clock }: VoyageStatusPanelProps) {
           <div>
             <dt>Committed</dt>
             <dd>
-              Food {voyage.requiredSupplies.food} / Water {voyage.requiredSupplies.water}
+              Food {voyage.passage.requiredSupplies.food} / Water {voyage.passage.requiredSupplies.water}
             </dd>
           </div>
           <div>

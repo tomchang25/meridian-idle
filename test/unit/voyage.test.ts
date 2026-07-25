@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { WORLD_CONTENT } from "@/content/content-catalog";
 import { buySupply, setAutoRestockOnArrival, setSupplyTarget } from "@/core/rules/cargo";
-import { departVoyage, resolveVoyage } from "@/core/rules/voyage";
+import { departVoyage, previewVoyagePassage, resolveVoyage } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { createSaveEnvelope, loadSave } from "@/platform/persistence/save-migrations";
+
+function departForFaro(state: ReturnType<typeof createInitialGameState>, now = 100, pacingMultiplier = 20) {
+  const preview = previewVoyagePassage(WORLD_CONTENT, state, "faro", pacingMultiplier);
+  if (!preview.quoteId) throw new Error("Expected Lisbon-to-Faro quote.");
+  return departVoyage(WORLD_CONTENT, state, "faro", preview.quoteId, now, 3, pacingMultiplier);
+}
 
 function createDepartedVoyage() {
   let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 1, 1).state;
   state = buySupply(WORLD_CONTENT, state, "water", 1, 2).state;
-  return departVoyage(WORLD_CONTENT, state, "lisbon-faro", 100, 3).state;
+  return departForFaro(state).state;
 }
 
 describe("voyage", () => {
@@ -17,6 +23,40 @@ describe("voyage", () => {
     expect(departed.fleet.supplies.food).toEqual({ quantity: 0, totalCostBasis: 0 });
     expect(departed.fleet.supplies.water).toEqual({ quantity: 0, totalCostBasis: 0 });
     expect(departed.voyage?.supplyCost).toBe(12);
+  });
+
+  it("keeps simulation costs constant while pacing only compresses the arrival schedule", () => {
+    let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 1, 1).state;
+    state = buySupply(WORLD_CONTENT, state, "water", 1, 2).state;
+    const x1 = departForFaro(state, 100, 1).state.voyage!;
+    const x20 = departForFaro(state, 100, 20).state.voyage!;
+    if (x1.passage.kind !== "planned" || x20.passage.kind !== "planned") throw new Error("Expected planned passages.");
+
+    expect(x1.passage).toMatchObject({ simulationDurationMilliseconds: 40_000, scheduledDurationMilliseconds: 40_000 });
+    expect(x20.passage).toMatchObject({ simulationDurationMilliseconds: 40_000, scheduledDurationMilliseconds: 2_000 });
+    expect(x20.passage.requiredSupplies).toEqual(x1.passage.requiredSupplies);
+    expect(x20.passage.edges).toEqual(x1.passage.edges);
+    expect(x1.passage.edges.map((edge) => edge.simulationEndOffsetMilliseconds)).toEqual([
+      4_000, 20_000, 36_000, 40_000,
+    ]);
+    expect(x1.passage.edges[1].spans.map((span) => span.simulationEndOffsetMilliseconds)).toEqual([12_000, 20_000]);
+    expect(x1.passage.edges[0]).not.toHaveProperty("distance");
+    expect(x1.passage.edges[0]).not.toHaveProperty("traversalModifier");
+    expect(x1.passage).not.toHaveProperty("effectiveFleetSpeed");
+  });
+
+  it("rejects a stale planner quote without consuming Supplies", () => {
+    let state = buySupply(WORLD_CONTENT, createInitialGameState(0), "food", 1, 1).state;
+    state = buySupply(WORLD_CONTENT, state, "water", 1, 2).state;
+    const preview = previewVoyagePassage(WORLD_CONTENT, state, "faro");
+    state = { ...state, fleet: { ...state.fleet, speed: 200 } };
+
+    const result = departVoyage(WORLD_CONTENT, state, "faro", preview.quoteId!, 100, 3);
+
+    expect(result.error).toBe("This passage quote is stale. Review the latest departure details.");
+    expect(result.state).toBe(state);
+    expect(result.state.fleet.supplies.food).toEqual({ quantity: 1, totalCostBasis: 8 });
+    expect(result.state.fleet.supplies.water).toEqual({ quantity: 1, totalCostBasis: 4 });
   });
 
   it("treats clock rollback as a no-op and completes at the exact boundary", () => {
@@ -52,11 +92,7 @@ describe("voyage", () => {
     state = setSupplyTarget(state, "food", 2).state;
     state = setSupplyTarget(state, "water", 2).state;
     state = setAutoRestockOnArrival(state, true).state;
-    const resolution = resolveVoyage(
-      WORLD_CONTENT,
-      departVoyage(WORLD_CONTENT, state, "lisbon-faro", 100, 3).state,
-      2_100,
-    );
+    const resolution = resolveVoyage(WORLD_CONTENT, departForFaro(state).state, 2_100);
     const arrived = resolution.state;
 
     expect(arrived.fleet.supplies.food).toEqual({ quantity: 2, totalCostBasis: 16 });
@@ -77,9 +113,7 @@ describe("voyage", () => {
       },
     ]);
     expect(arrived.latestVoyageResult?.supplyCost).toBe(12);
-    expect(
-      resolveVoyage(WORLD_CONTENT, departVoyage(WORLD_CONTENT, state, "lisbon-faro", 100, 3).state, 900_000).state,
-    ).toEqual(arrived);
+    expect(resolveVoyage(WORLD_CONTENT, departForFaro(state).state, 900_000).state).toEqual(arrived);
   });
 
   it("keeps a completed arrival when automatic restock cannot afford every deficit", () => {
@@ -89,11 +123,7 @@ describe("voyage", () => {
     state = setSupplyTarget(state, "water", 2).state;
     state = setAutoRestockOnArrival(state, true).state;
     state.fleet.gold = 0;
-    const resolution = resolveVoyage(
-      WORLD_CONTENT,
-      departVoyage(WORLD_CONTENT, state, "lisbon-faro", 100, 3).state,
-      2_100,
-    );
+    const resolution = resolveVoyage(WORLD_CONTENT, departForFaro(state).state, 2_100);
     const arrived = resolution.state;
 
     expect(arrived.fleet.locationPortId).toBe("faro");

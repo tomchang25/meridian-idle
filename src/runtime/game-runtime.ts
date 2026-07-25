@@ -10,8 +10,9 @@ import {
 import { buyProduct as applyProductBuy, sellProduct as applyProductSell } from "@/core/rules/market";
 import {
   departVoyage as applyDeparture,
+  previewVoyagePassage,
   resolveVoyage as applyVoyageResolution,
-  voyageDepartureError,
+  type VoyagePassagePreview,
 } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { WORLD_CONTENT } from "@/content/content-catalog";
@@ -34,6 +35,8 @@ export type GameRuntimeOptions = {
   clock?: Clock;
   /** Starts from an authored world instead of hydrating a save. Harness use only. */
   initialState?: V5GameState;
+  /** Applies only to newly departed Voyage waiting timestamps. */
+  voyagePacingMultiplier?: number;
 };
 
 export type GameSnapshot = {
@@ -63,6 +66,7 @@ function createNewGame(now: number): V5GameState {
 export class GameRuntime {
   private readonly repository: SaveRepository;
   private readonly seedSource: SeedSource;
+  private readonly voyagePacingMultiplier: number;
   private readonly listeners = new Set<() => void>();
 
   private snapshot: GameSnapshot;
@@ -76,10 +80,17 @@ export class GameRuntime {
 
   readonly clock: Clock;
 
-  constructor({ repository, seedSource, clock = systemClock, initialState }: GameRuntimeOptions) {
+  constructor({
+    repository,
+    seedSource,
+    clock = systemClock,
+    initialState,
+    voyagePacingMultiplier = 1,
+  }: GameRuntimeOptions) {
     this.repository = repository;
     this.seedSource = seedSource;
     this.clock = clock;
+    this.voyagePacingMultiplier = voyagePacingMultiplier;
     this.hydrated = Boolean(initialState);
     this.snapshot = {
       state: initialState ?? createNewGame(clock.now()),
@@ -216,11 +227,19 @@ export class GameRuntime {
     this.commit(applyProductSell(WORLD_CONTENT, this.snapshot.state, productId, quantity, this.clock.now()));
   }
 
-  departVoyage(routeId: string): void {
+  previewVoyage(destinationPortId: string): VoyagePassagePreview {
+    return previewVoyagePassage(WORLD_CONTENT, this.snapshot.state, destinationPortId, this.voyagePacingMultiplier);
+  }
+
+  departVoyage(destinationPortId: string, quoteId: string): void {
     const { state } = this.snapshot;
-    const eligibilityError = voyageDepartureError(WORLD_CONTENT, state, routeId);
-    if (eligibilityError) {
-      this.publish({ commandError: eligibilityError });
+    const preview = this.previewVoyage(destinationPortId);
+    if (preview.error) {
+      this.publish({ commandError: preview.error });
+      return;
+    }
+    if (!preview.quoteId || preview.quoteId !== quoteId) {
+      this.publish({ commandError: "This passage quote is stale. Review the latest departure details." });
       return;
     }
     let seed: number | null = null;
@@ -233,7 +252,17 @@ export class GameRuntime {
       this.publish({ commandError: "Secure randomness is unavailable; Voyage departure was not changed." });
       return;
     }
-    this.commit(applyDeparture(WORLD_CONTENT, state, routeId, this.clock.now(), seed));
+    this.commit(
+      applyDeparture(
+        WORLD_CONTENT,
+        state,
+        destinationPortId,
+        quoteId,
+        this.clock.now(),
+        seed,
+        this.voyagePacingMultiplier,
+      ),
+    );
   }
 
   /** Settles an arrival that is now due; a no-op while the Voyage is still at sea. */

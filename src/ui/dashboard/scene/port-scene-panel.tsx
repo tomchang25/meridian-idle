@@ -10,7 +10,7 @@ type PortScenePanelProps = {
 export function PortScenePanel({ state }: PortScenePanelProps) {
   const { voyage } = state;
   const port = getPort(state.fleet.locationPortId);
-  const destinationPort = voyage ? getPort(voyage.destinationPortId) : undefined;
+  const destinationPort = voyage ? getPort(voyage.passage.destinationPortId) : undefined;
   const regionName = displayName(port?.regionId ?? "unknown waters");
 
   return (
@@ -18,7 +18,7 @@ export function PortScenePanel({ state }: PortScenePanelProps) {
       <div className={styles.sceneCopy}>
         <p>
           {voyage
-            ? `${displayName(getPort(voyage.originPortId)?.regionId ?? "open water")} / Open Water`
+            ? `${displayName(getPort(voyage.passage.originPortId)?.regionId ?? "open water")} / Open Water`
             : `${regionName} / ${port?.name ?? "Unknown Port"}`}
         </p>
         <h2 id="scene-title">
@@ -28,7 +28,7 @@ export function PortScenePanel({ state }: PortScenePanelProps) {
         </h2>
         <div className={styles.sceneTags}>
           <span>{voyage ? "Underway" : "Docked"}</span>
-          {voyage ? <span>Static risk {Math.round(voyage.staticRisk * 100)}%</span> : <span>Market open</span>}
+          {voyage ? <span>Static risk {Math.round(voyage.passage.staticRisk * 100)}%</span> : <span>Market open</span>}
         </div>
       </div>
 

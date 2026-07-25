@@ -563,7 +563,7 @@
           的人類導向總覽。
         </p>
         <p class="meta">
-          更新時間 2026-07-25 · 反映 Nautical Chart Navigation Child 01 實作狀態 · 原始碼與 tests
+          更新時間 2026-07-25 · 反映 Nautical Chart Navigation Child 02 實作狀態 · 原始碼與 tests
           才是權威；本頁負責幫人快速建立心智模型。
         </p>
         <nav class="toc" aria-label="Page sections">
@@ -582,8 +582,8 @@
         Content 描述「世界有哪些點與可走的方向」；<code>planPassage()</code> 決定「合法且穩定的最佳路徑」；<code
           >estimatePassage()</code
         >
-        把該路徑換算成時間、補給與風險。目前這條新鏈只供
-        <code>/debug/chart</code> 使用，實際 Voyage 仍由 legacy <code>ROUTES</code> 執行。
+        把該路徑換算成時間、補給與風險。實際 Voyage 會在出航時重算 quote、扣除補給，並把完整 ordered path snapshot
+        到存檔；不再有另一套 legacy <code>ROUTES</code> authority。
       </div>
 
       <div class="legend" aria-label="Ownership legend">
@@ -984,12 +984,24 @@
             <tr>
               <td>Fleet speed 100 與 prior-save migration</td>
               <td><span class="status current">Current</span></td>
-              <td>Canonical persisted Fleet state，save schema version 5。</td>
+              <td>Canonical persisted Fleet state，save schema version 6。</td>
             </tr>
             <tr>
-              <td>實際 departVoyage 使用 PassageQuote</td>
-              <td><span class="status future">Child 02</span></td>
-              <td>目前仍使用 legacy <code>ROUTES</code> 與既有 Voyage payload。</td>
+              <td>實際 departVoyage 使用 planner quote 與 immutable passage snapshot</td>
+              <td><span class="status current">Current</span></td>
+              <td>
+                <code>previewVoyagePassage()</code>／<code>departVoyage()</code>；stale quote 會被拒絕，進行中的 Voyage
+                不讀 live graph。每個 edge／SubRegion span 保存 resolved simulation end offset，不重複保存
+                distance、modifier 與 Fleet speed 公式輸入。
+              </td>
+            </tr>
+            <tr>
+              <td>Difficulty-ready Voyage pacing</td>
+              <td><span class="status current">Current</span></td>
+              <td>
+                <code>simulationDuration</code> 保持 Supply／risk／event 意義；只把 <code>scheduledDuration</code> 依
+                snapshot multiplier 壓縮。<code>/debug/game?timeScale=20</code> 使用 isolated runtime。
+              </td>
             </tr>
             <tr>
               <td>Harbor production chart interaction</td>
@@ -1076,6 +1088,13 @@
                 >
               </td>
               <td>Pure deterministic core functions。</td>
+            </tr>
+            <tr>
+              <td>Voyage quote、snapshot 與 arrival settlement</td>
+              <td>
+                <a href="vscode://file/E:/Code/meridian-idle/src/core/rules/voyage.ts:86">voyage.ts:86</a>
+              </td>
+              <td>出航 revalidation、Supply cost basis、pacing 與 exactly-once destination arrival。</td>
             </tr>
             <tr>
               <td>可視化與 passage preview</td>

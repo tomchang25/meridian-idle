@@ -1,6 +1,6 @@
 import { setAutoRestockOnArrival, setSupplyTarget } from "@/core/rules/cargo";
 import { restockSupplies } from "@/core/rules/cargo";
-import { departVoyage } from "@/core/rules/voyage";
+import { departVoyage, previewVoyagePassage } from "@/core/rules/voyage";
 import { createInitialGameState } from "@/core/state/initial-game-state";
 import { WORLD_CONTENT } from "@/content/content-catalog";
 import type { Scenario } from "@/harness/types";
@@ -18,7 +18,8 @@ export const midVoyage: Scenario = {
     state = setSupplyTarget(state, "water", 4).state;
     state = restockSupplies(WORLD_CONTENT, state, now).state;
     state = setAutoRestockOnArrival(state, true).state;
-    return departVoyage(WORLD_CONTENT, state, "lisbon-faro", now, 3).state;
+    const preview = previewVoyagePassage(WORLD_CONTENT, state, "faro");
+    return departVoyage(WORLD_CONTENT, state, "faro", preview.quoteId!, now, 3).state;
   },
 };
 
